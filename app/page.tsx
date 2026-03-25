@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { AuthProvider, ProtectedRoute, UserMenu } from 'lyzr-architect/client'
 import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
+import fetchWrapper from '@/lib/fetchWrapper'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -117,7 +118,16 @@ export default function Page() {
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
     try {
-      const res = await fetch('/api/analyses')
+      const res = await fetchWrapper('/api/analyses')
+      if (!res) {
+        setLoadingAnalyses(false)
+        return
+      }
+      const contentType = res.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        setLoadingAnalyses(false)
+        return
+      }
       const data = await res.json()
       if (data?.success && Array.isArray(data?.data)) {
         setAnalyses(data.data)
@@ -141,18 +151,28 @@ export default function Page() {
     setActiveAgentId(AGENT_ID)
 
     try {
-      const signalRes = await fetch('/api/signals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input_text: narrative,
-          structured_fields: fields,
-          signal_types: [],
-          status: 'pending',
-        }),
-      })
-      const signalData = await signalRes.json()
-      const signalId = signalData?.data?._id ?? ''
+      let signalId = ''
+      try {
+        const signalRes = await fetchWrapper('/api/signals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input_text: narrative,
+            structured_fields: fields,
+            signal_types: [],
+            status: 'pending',
+          }),
+        })
+        if (signalRes) {
+          const ct = signalRes.headers.get('content-type') || ''
+          if (ct.includes('application/json')) {
+            const signalData = await signalRes.json()
+            signalId = signalData?.data?._id ?? ''
+          }
+        }
+      } catch (e) {
+        console.error('Failed to save signal:', e)
+      }
 
       const fieldParts = Object.entries(fields)
         .filter(([, v]) => v.trim())
@@ -185,14 +205,25 @@ export default function Page() {
         cross_cutting_themes: agentData?.cross_cutting_themes ?? '',
       }
 
-      const analysisRes = await fetch('/api/analyses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysisPayload),
-      })
-      const analysisData = await analysisRes.json()
-
-      const savedAnalysis = analysisData?.data ?? { ...analysisPayload, createdAt: new Date().toISOString() }
+      let savedAnalysis: any = { ...analysisPayload, createdAt: new Date().toISOString() }
+      try {
+        const analysisRes = await fetchWrapper('/api/analyses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(analysisPayload),
+        })
+        if (analysisRes) {
+          const ct = analysisRes.headers.get('content-type') || ''
+          if (ct.includes('application/json')) {
+            const analysisData = await analysisRes.json()
+            if (analysisData?.data) {
+              savedAnalysis = analysisData.data
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to save analysis:', e)
+      }
       setSelectedAnalysis(savedAnalysis)
       setCurrentView('result')
       await fetchAnalyses()
