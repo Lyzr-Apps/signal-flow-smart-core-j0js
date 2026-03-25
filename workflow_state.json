@@ -1,0 +1,61 @@
+{
+  "app_name": "loreal_foresight",
+  "workflow_type": "manager-subagent",
+  "agents": {
+    "manager": {
+      "agent_id": "69c4231c4d9b1d0c43a2101b",
+      "name": "Signal Orchestrator Manager",
+      "node_id": "manager_agent",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "managed_agents": [
+        "69c4230638f7fd77009ae10a",
+        "69c423061b19ba3adafaf1a0",
+        "69c423062cf2666b2c6632f6",
+        "69c423078de80a381519c382"
+      ]
+    },
+    "sub_agents": [
+      {
+        "agent_id": "69c4230638f7fd77009ae10a",
+        "name": "Opportunity & Investment Agent",
+        "node_id": "opportunity_agent",
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-6"
+      },
+      {
+        "agent_id": "69c423061b19ba3adafaf1a0",
+        "name": "Competitive Positioning Agent",
+        "node_id": "competitive_agent",
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-6"
+      },
+      {
+        "agent_id": "69c423062cf2666b2c6632f6",
+        "name": "Launch & Market Response Agent",
+        "node_id": "launch_agent",
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-6"
+      },
+      {
+        "agent_id": "69c423078de80a381519c382",
+        "name": "Claims & Brand Integrity Agent",
+        "node_id": "claims_agent",
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-6"
+      }
+    ]
+  },
+  "database": {
+    "db_name": "app_signal-flow-smart-core-j0js",
+    "collections": ["signals", "analyses"],
+    "provisioned": true
+  },
+  "response_schemas": [
+    "response_schemas/opportunity_investment_agent_response.json",
+    "response_schemas/competitive_positioning_agent_response.json",
+    "response_schemas/launch_market_response_agent_response.json",
+    "response_schemas/claims_brand_integrity_agent_response.json",
+    "response_schemas/signal_orchestrator_manager_response.json"
+  ]
+}
