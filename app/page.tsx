@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { AuthProvider, ProtectedRoute, UserMenu } from 'lyzr-architect/client'
 import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
 import fetchWrapper from '@/lib/fetchWrapper'
@@ -10,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Activity, Loader2 } from 'lucide-react'
 
-import AuthScreen from './sections/AuthScreen'
 import Sidebar from './sections/Sidebar'
 import Dashboard from './sections/Dashboard'
 import SignalInput from './sections/SignalInput'
@@ -293,55 +291,50 @@ export default function Page() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ProtectedRoute unauthenticatedFallback={<AuthScreen />}>
-          <div className="min-h-screen bg-background text-foreground flex">
-            <Sidebar currentView={currentView} onNavigate={setCurrentView} />
-            <div className="flex-1 flex flex-col min-h-screen">
-              <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-serif text-sm tracking-widest text-foreground uppercase">
-                    Foresight System
-                  </h2>
-                  {activeAgentId && (
-                    <Badge variant="outline" className="text-[10px] tracking-wider border-primary/40 text-primary animate-pulse">
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Analyzing
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="sample-toggle"
-                      checked={sampleMode}
-                      onCheckedChange={setSampleMode}
-                    />
-                    <Label htmlFor="sample-toggle" className="text-xs text-muted-foreground tracking-wide cursor-pointer">
-                      Sample Data
-                    </Label>
-                  </div>
-                  <UserMenu />
-                </div>
-              </header>
-              {renderContent()}
-              <div className="px-6 py-3 border-t border-border bg-card flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-wider">
-                  <Activity className="h-3 w-3" />
-                  <span>Signal Orchestrator Manager</span>
-                  <span className="mx-1">|</span>
-                  <span className={activeAgentId ? 'text-primary' : 'text-muted-foreground'}>
-                    {activeAgentId ? 'Processing' : 'Ready'}
-                  </span>
-                </div>
-                <span className="text-[10px] text-muted-foreground tracking-wider">
-                  Agent ID: {AGENT_ID.slice(0, 8)}...
-                </span>
+      <div className="min-h-screen bg-background text-foreground flex">
+        <Sidebar currentView={currentView} onNavigate={setCurrentView} />
+        <div className="flex-1 flex flex-col min-h-screen">
+          <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card">
+            <div className="flex items-center gap-3">
+              <h2 className="font-serif text-sm tracking-widest text-foreground uppercase">
+                Foresight System
+              </h2>
+              {activeAgentId && (
+                <Badge variant="outline" className="text-[10px] tracking-wider border-primary/40 text-primary animate-pulse">
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Analyzing
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="sample-toggle"
+                  checked={sampleMode}
+                  onCheckedChange={setSampleMode}
+                />
+                <Label htmlFor="sample-toggle" className="text-xs text-muted-foreground tracking-wide cursor-pointer">
+                  Sample Data
+                </Label>
               </div>
             </div>
+          </header>
+          {renderContent()}
+          <div className="px-6 py-3 border-t border-border bg-card flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-wider">
+              <Activity className="h-3 w-3" />
+              <span>Signal Orchestrator Manager</span>
+              <span className="mx-1">|</span>
+              <span className={activeAgentId ? 'text-primary' : 'text-muted-foreground'}>
+                {activeAgentId ? 'Processing' : 'Ready'}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground tracking-wider">
+              Agent ID: {AGENT_ID.slice(0, 8)}...
+            </span>
           </div>
-        </ProtectedRoute>
-      </AuthProvider>
+        </div>
+      </div>
     </ErrorBoundary>
   )
 }

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware, getCurrentUserId } from 'lyzr-architect';
-
 import getSignalModel from '@/models/Signal';
 
-async function handleGet(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const Signal = await getSignalModel();
     const signals = await Signal.find({}).sort({ createdAt: -1 });
@@ -13,19 +11,13 @@ async function handleGet(req: NextRequest) {
   }
 }
 
-async function handlePost(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const Signal = await getSignalModel();
-    const signal = await Signal.create({
-      ...body,
-      owner_user_id: getCurrentUserId(),
-    });
+    const signal = await Signal.create(body);
     return NextResponse.json({ success: true, data: signal });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-
-export const GET = authMiddleware(handleGet);
-export const POST = authMiddleware(handlePost);
