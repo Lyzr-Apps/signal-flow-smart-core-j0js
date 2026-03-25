@@ -12,6 +12,8 @@ import Dashboard from './sections/Dashboard'
 import SignalInput from './sections/SignalInput'
 import AnalysisResult from './sections/AnalysisResult'
 import AnalysisHistory from './sections/AnalysisHistory'
+import DetailView from './sections/DetailView'
+import type { DetailItem } from './sections/DetailView'
 
 const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
 
@@ -64,6 +66,7 @@ export default function Page() {
   const [agentError, setAgentError] = useState<string | null>(null)
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null)
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+  const [detailItem, setDetailItem] = useState<DetailItem | null>(null)
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -195,6 +198,25 @@ export default function Page() {
     setCurrentView('dashboard')
   }
 
+  const handleOpenDetail = (item: DetailItem) => {
+    setDetailItem(item)
+    setCurrentView('detail')
+  }
+
+  const handleBackFromDetail = () => {
+    setDetailItem(null)
+    setCurrentView('dashboard')
+  }
+
+  const handleDetailViewAnalysis = (analysisId: string) => {
+    const found = analyses.find(a => a._id === analysisId)
+    if (found) {
+      setSelectedAnalysis(found)
+      setCurrentView('result')
+      setDetailItem(null)
+    }
+  }
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
@@ -204,6 +226,23 @@ export default function Page() {
             loading={loadingAnalyses}
             onNavigate={setCurrentView}
             onViewAnalysis={handleViewAnalysis}
+            onOpenDetail={handleOpenDetail}
+          />
+        )
+      case 'detail':
+        return detailItem ? (
+          <DetailView
+            item={detailItem}
+            onBack={handleBackFromDetail}
+            onViewAnalysis={handleDetailViewAnalysis}
+          />
+        ) : (
+          <Dashboard
+            analyses={displayAnalyses}
+            loading={loadingAnalyses}
+            onNavigate={setCurrentView}
+            onViewAnalysis={handleViewAnalysis}
+            onOpenDetail={handleOpenDetail}
           />
         )
       case 'new-signal':
@@ -236,6 +275,7 @@ export default function Page() {
             loading={loadingAnalyses}
             onNavigate={setCurrentView}
             onViewAnalysis={handleViewAnalysis}
+            onOpenDetail={handleOpenDetail}
           />
         )
     }
