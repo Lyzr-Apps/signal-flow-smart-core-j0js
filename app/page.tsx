@@ -9,7 +9,7 @@ import { RiRadarLine, RiLoader4Line } from 'react-icons/ri'
 
 import Sidebar from './sections/Sidebar'
 import Dashboard from './sections/Dashboard'
-import SignalInput from './sections/SignalInput'
+import CategoryListView from './sections/CategoryListView'
 import AnalysisResult from './sections/AnalysisResult'
 import AnalysisHistory from './sections/AnalysisHistory'
 import DetailView from './sections/DetailView'
@@ -27,7 +27,6 @@ interface AnalysisData {
   cross_cutting_themes?: string
   createdAt?: string
 }
-
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -62,8 +61,6 @@ export default function Page() {
   const [currentView, setCurrentView] = useState('dashboard')
   const [analyses, setAnalyses] = useState<AnalysisData[]>([])
   const [loadingAnalyses, setLoadingAnalyses] = useState(false)
-  const [agentLoading, setAgentLoading] = useState(false)
-  const [agentError, setAgentError] = useState<string | null>(null)
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null)
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
   const [detailItem, setDetailItem] = useState<DetailItem | null>(null)
@@ -72,15 +69,9 @@ export default function Page() {
     setLoadingAnalyses(true)
     try {
       const res = await fetchWrapper('/api/analyses')
-      if (!res) {
-        setLoadingAnalyses(false)
-        return
-      }
+      if (!res) { setLoadingAnalyses(false); return }
       const contentType = res.headers.get('content-type') || ''
-      if (!contentType.includes('application/json')) {
-        setLoadingAnalyses(false)
-        return
-      }
+      if (!contentType.includes('application/json')) { setLoadingAnalyses(false); return }
       const data = await res.json()
       if (data?.success && Array.isArray(data?.data)) {
         setAnalyses(data.data)
@@ -97,96 +88,6 @@ export default function Page() {
   }, [fetchAnalyses])
 
   const displayAnalyses = analyses
-
-  const handleSignalSubmit = async (fields: Record<string, string>, narrative: string) => {
-    setAgentError(null)
-    setAgentLoading(true)
-    setActiveAgentId(AGENT_ID)
-
-    try {
-      let signalId = ''
-      try {
-        const signalRes = await fetchWrapper('/api/signals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            input_text: narrative,
-            structured_fields: fields,
-            signal_types: [],
-            status: 'pending',
-          }),
-        })
-        if (signalRes) {
-          const ct = signalRes.headers.get('content-type') || ''
-          if (ct.includes('application/json')) {
-            const signalData = await signalRes.json()
-            signalId = signalData?.data?._id ?? ''
-          }
-        }
-      } catch (e) {
-        console.error('Failed to save signal:', e)
-      }
-
-      const fieldParts = Object.entries(fields)
-        .filter(([, v]) => v.trim())
-        .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
-        .join('\n')
-      const message = [fieldParts, narrative].filter(Boolean).join('\n\n')
-
-      const result = await callAIAgent(message, AGENT_ID)
-
-      if (!result?.success) {
-        setAgentError(result?.error ?? 'Agent call failed.')
-        setAgentLoading(false)
-        setActiveAgentId(null)
-        return
-      }
-
-      const parsed = parseLLMJson(result.response)
-      const agentData = parsed?.result ?? parsed ?? {}
-
-      const signalTypes = Array.isArray(agentData?.signal_classifications)
-        ? agentData.signal_classifications.map((s: any) => s?.type).filter(Boolean)
-        : []
-
-      const analysisPayload = {
-        signal_id: signalId,
-        orchestrator_summary: agentData?.executive_summary ?? '',
-        specialist_outputs: Array.isArray(agentData?.specialist_analyses) ? agentData.specialist_analyses : [],
-        signal_types: signalTypes,
-        priority_actions: Array.isArray(agentData?.priority_actions) ? agentData.priority_actions : [],
-        cross_cutting_themes: agentData?.cross_cutting_themes ?? '',
-      }
-
-      let savedAnalysis: any = { ...analysisPayload, createdAt: new Date().toISOString() }
-      try {
-        const analysisRes = await fetchWrapper('/api/analyses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(analysisPayload),
-        })
-        if (analysisRes) {
-          const ct = analysisRes.headers.get('content-type') || ''
-          if (ct.includes('application/json')) {
-            const analysisData = await analysisRes.json()
-            if (analysisData?.data) {
-              savedAnalysis = analysisData.data
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Failed to save analysis:', e)
-      }
-      setSelectedAnalysis(savedAnalysis)
-      setCurrentView('result')
-      await fetchAnalyses()
-    } catch (err: any) {
-      setAgentError(err?.message ?? 'An unexpected error occurred.')
-    } finally {
-      setAgentLoading(false)
-      setActiveAgentId(null)
-    }
-  }
 
   const handleViewAnalysis = (analysis: AnalysisData) => {
     setSelectedAnalysis(analysis)
@@ -217,6 +118,12 @@ export default function Page() {
     }
   }
 
+  const handleNavigate = (view: string) => {
+    setDetailItem(null)
+    setSelectedAnalysis(null)
+    setCurrentView(view)
+  }
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
@@ -224,7 +131,7 @@ export default function Page() {
           <Dashboard
             analyses={displayAnalyses}
             loading={loadingAnalyses}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
           />
@@ -240,17 +147,41 @@ export default function Page() {
           <Dashboard
             analyses={displayAnalyses}
             loading={loadingAnalyses}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
           />
         )
-      case 'new-signal':
+      case 'actions-list':
         return (
-          <SignalInput
-            loading={agentLoading}
-            error={agentError}
-            onSubmit={handleSignalSubmit}
+          <CategoryListView
+            category="actions"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+          />
+        )
+      case 'opportunities-list':
+        return (
+          <CategoryListView
+            category="opportunities"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+          />
+        )
+      case 'risks-list':
+        return (
+          <CategoryListView
+            category="risks"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+          />
+        )
+      case 'alerts-list':
+        return (
+          <CategoryListView
+            category="alerts"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
           />
         )
       case 'result':
@@ -273,7 +204,7 @@ export default function Page() {
           <Dashboard
             analyses={displayAnalyses}
             loading={loadingAnalyses}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
           />
@@ -284,12 +215,12 @@ export default function Page() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-foreground flex">
-        <Sidebar currentView={currentView} onNavigate={setCurrentView} />
+        <Sidebar currentView={currentView} onNavigate={handleNavigate} />
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card">
             <div className="flex items-center gap-3">
               <h2 className="font-serif text-sm tracking-[0.18em] text-foreground uppercase">
-                L'Or&eacute;al Foresight
+                L&apos;Or&eacute;al Foresight
               </h2>
               <span className="text-[9px] tracking-[0.15em] text-muted-foreground uppercase">Powered by BlueVerse</span>
               {activeAgentId && (
@@ -301,7 +232,7 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-3 text-[10px] text-muted-foreground tracking-wide">
               <RiRadarLine className="h-3.5 w-3.5 text-primary" />
-              <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Processing signal...' : 'System ready'}</span>
+              <span>System ready</span>
             </div>
           </header>
           {renderContent()}

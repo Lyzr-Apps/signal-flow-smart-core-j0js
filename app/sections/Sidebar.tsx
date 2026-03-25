@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { RiDashboardLine, RiAddCircleLine, RiHistoryLine, RiRadarLine } from 'react-icons/ri'
+import { RiDashboardLine, RiFlashlightLine, RiArrowRightUpLine, RiErrorWarningLine, RiShieldLine, RiFileTextLine, RiRadarLine } from 'react-icons/ri'
 
 interface SidebarProps {
   currentView: string
@@ -11,8 +11,11 @@ interface SidebarProps {
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Intelligence Hub', icon: RiDashboardLine },
-  { id: 'new-signal', label: 'New Signal', icon: RiAddCircleLine },
-  { id: 'history', label: 'Analysis Archive', icon: RiHistoryLine },
+  { id: 'actions-list', label: 'Recommended Actions', icon: RiFlashlightLine },
+  { id: 'opportunities-list', label: 'Active Opportunities', icon: RiArrowRightUpLine },
+  { id: 'risks-list', label: 'Launch Risks', icon: RiErrorWarningLine },
+  { id: 'alerts-list', label: 'Claims / Reputation', icon: RiShieldLine },
+  { id: 'history', label: 'Recent Analyses', icon: RiFileTextLine },
 ]
 
 export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
@@ -40,10 +43,10 @@ export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
             <Button
               key={item.id}
               variant={isActive ? 'secondary' : 'ghost'}
-              className={`w-full justify-start gap-3 text-[13px] tracking-wide h-10 ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => onNavigate(item.id)}
             >
-              <Icon className="h-[15px] w-[15px]" />
+              <Icon className="h-[14px] w-[14px]" />
               {item.label}
             </Button>
           )
