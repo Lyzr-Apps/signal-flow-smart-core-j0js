@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { LayoutDashboard, PlusCircle, History, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { RiDashboardLine, RiAddCircleLine, RiHistoryLine, RiRadarLine } from 'react-icons/ri'
 
 interface SidebarProps {
   currentView: string
@@ -10,23 +10,29 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'new-signal', label: 'New Signal', icon: PlusCircle },
-  { id: 'history', label: 'Analysis History', icon: History },
+  { id: 'dashboard', label: 'Intelligence Hub', icon: RiDashboardLine },
+  { id: 'new-signal', label: 'New Signal', icon: RiAddCircleLine },
+  { id: 'history', label: 'Analysis Archive', icon: RiHistoryLine },
 ]
 
 export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
   return (
-    <aside className="w-64 min-h-screen bg-card border-r border-border flex flex-col">
-      <div className="p-6 border-b border-border">
-        <h1 className="font-serif text-lg tracking-widest text-foreground">
+    <aside className="w-60 min-h-screen bg-card border-r border-border flex flex-col">
+      <div className="px-5 pt-7 pb-5 border-b border-border">
+        <h1 className="font-serif text-[17px] tracking-[0.22em] text-foreground leading-tight">
           L&apos;OR&Eacute;AL
         </h1>
-        <p className="text-[10px] tracking-[0.2em] text-muted-foreground uppercase mt-1">
-          Dynamic Foresight System
+        <p className="text-[17px] font-serif tracking-[0.14em] text-primary mt-0.5 leading-tight">
+          Foresight
         </p>
+        <div className="flex items-center gap-1.5 mt-2.5">
+          <RiRadarLine className="h-3 w-3 text-muted-foreground" />
+          <p className="text-[9px] tracking-[0.18em] text-muted-foreground uppercase">
+            Powered by BlueVerse
+          </p>
+        </div>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-3 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           const isActive = currentView === item.id
@@ -34,22 +40,18 @@ export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
             <Button
               key={item.id}
               variant={isActive ? 'secondary' : 'ghost'}
-              className={`w-full justify-start gap-3 text-sm tracking-wide ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`w-full justify-start gap-3 text-[13px] tracking-wide h-10 ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => onNavigate(item.id)}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-[15px] w-[15px]" />
               {item.label}
             </Button>
           )
         })}
       </nav>
-      <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Activity className="h-3 w-3" />
-          <span className="tracking-wide">Signal Orchestrator</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-1 tracking-wide">
-          Powered by AI Foresight
+      <div className="px-5 py-4 border-t border-border">
+        <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
+          Strategic Intelligence Platform
         </p>
       </div>
     </aside>
