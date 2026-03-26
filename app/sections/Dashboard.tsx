@@ -287,10 +287,19 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
               <div className="flex gap-3 mb-3 text-[10px] text-muted-foreground tracking-wide">
                 <span>{topAnalysis.brand}</span><span className="text-border">|</span><span>{topAnalysis.market}</span>
               </div>
-              <div className="flex flex-wrap gap-1.5 mb-4 flex-1">
-                {topAnalysis.signalTypes.slice(0, 3).map((t, i) => (
-                  <span key={i} className="text-[9px] tracking-[0.1em] uppercase text-primary border border-primary/30 px-1.5 py-0.5">{t}</span>
-                ))}
+              <div className="grid grid-cols-3 gap-2 mb-4 flex-1">
+                <div className="bg-secondary/50 border border-border/60 p-2 text-center">
+                  <p className="text-[15px] font-serif text-foreground">{allSignals.length}</p>
+                  <p className="text-[8px] text-muted-foreground tracking-[0.1em] uppercase mt-0.5">Signals</p>
+                </div>
+                <div className="bg-secondary/50 border border-border/60 p-2 text-center">
+                  <p className="text-[15px] font-serif text-foreground">{allActions.filter(a => isHighPriority(a.priority)).length}</p>
+                  <p className="text-[8px] text-muted-foreground tracking-[0.1em] uppercase mt-0.5">Actions</p>
+                </div>
+                <div className="bg-secondary/50 border border-border/60 p-2 text-center">
+                  <p className="text-[15px] font-serif text-foreground">{safeAnalyses.length}</p>
+                  <p className="text-[8px] text-muted-foreground tracking-[0.1em] uppercase mt-0.5">Live</p>
+                </div>
               </div>
               <button onClick={() => openRecentAnalysis(topAnalysis)} className="w-full flex items-center justify-between bg-primary/10 hover:bg-primary/20 border border-primary/20 px-4 py-2.5 transition-colors group">
                 <span className="text-[11px] text-primary tracking-[0.1em] uppercase">View Analysis</span>

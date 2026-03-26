@@ -154,8 +154,6 @@ Provide specific, data-backed findings from current web sources. Include signal 
         console.error('Failed to save analysis:', e)
       }
 
-      setSelectedAnalysis(savedAnalysis)
-      setCurrentView('result')
       await fetchAnalyses()
     } catch (err: any) {
       setAgentError(err?.message ?? 'An unexpected error occurred.')
