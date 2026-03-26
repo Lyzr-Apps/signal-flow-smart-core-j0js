@@ -51,6 +51,13 @@
     "collections": ["signals", "analyses"],
     "provisioned": true
   },
+  "web_analyst": {
+    "agent_id": "69c5630b37c96c3d3ffadec1",
+    "name": "Beauty Foresight Web Analyst",
+    "provider": "perplexity",
+    "model": "sonar-pro",
+    "purpose": "Real-time web search for beauty industry intelligence"
+  },
   "response_schemas": [
     "response_schemas/opportunity_investment_agent_response.json",
     "response_schemas/competitive_positioning_agent_response.json",

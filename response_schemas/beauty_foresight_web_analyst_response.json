@@ -1,0 +1,74 @@
+{
+  "agent_name": "Beauty Foresight Web Analyst",
+  "agent_id": "69c5630b37c96c3d3ffadec1",
+  "description": "Real-time beauty and cosmetics industry foresight analyst that searches the web for current trends, competitive movements, ingredient innovations, product launches, consumer sentiment shifts, and regulatory changes across L'Oreal's portfolio brands and competitors.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "executive_summary": "string",
+    "signal_classifications": [
+      {
+        "type": "string",
+        "confidence": "string",
+        "rationale": "string"
+      }
+    ],
+    "specialist_analyses": [
+      {
+        "agent_name": "string",
+        "domain": "string",
+        "key_findings": "string",
+        "confidence": "string",
+        "recommendations": [
+          {
+            "action": "string",
+            "priority": "string",
+            "rationale": "string"
+          }
+        ]
+      }
+    ],
+    "cross_cutting_themes": "string",
+    "priority_actions": [
+      {
+        "action": "string",
+        "priority": "string",
+        "owner": "string"
+      }
+    ]
+  },
+  "example_response": {
+    "executive_summary": "sample string",
+    "signal_classifications": [
+      {
+        "type": "sample string",
+        "confidence": "sample string",
+        "rationale": "sample string"
+      }
+    ],
+    "specialist_analyses": [
+      {
+        "agent_name": "sample string",
+        "domain": "sample string",
+        "key_findings": "sample string",
+        "confidence": "sample string",
+        "recommendations": [
+          {
+            "action": "sample string",
+            "priority": "sample string",
+            "rationale": "sample string"
+          }
+        ]
+      }
+    ],
+    "cross_cutting_themes": "sample string",
+    "priority_actions": [
+      {
+        "action": "sample string",
+        "priority": "sample string",
+        "owner": "sample string"
+      }
+    ]
+  }
+}

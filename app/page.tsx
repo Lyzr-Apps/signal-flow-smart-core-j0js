@@ -16,6 +16,7 @@ import DetailView from './sections/DetailView'
 import type { DetailItem } from './sections/DetailView'
 
 const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
+const WEB_AGENT_ID = '69c5630b37c96c3d3ffadec1'
 
 interface AnalysisData {
   _id?: string
@@ -64,6 +65,8 @@ export default function Page() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null)
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
   const [detailItem, setDetailItem] = useState<DetailItem | null>(null)
+  const [agentLoading, setAgentLoading] = useState(false)
+  const [agentError, setAgentError] = useState<string | null>(null)
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -88,6 +91,79 @@ export default function Page() {
   }, [fetchAnalyses])
 
   const displayAnalyses = analyses
+
+  const handleRunAnalysis = async () => {
+    setAgentError(null)
+    setAgentLoading(true)
+    setActiveAgentId(WEB_AGENT_ID)
+
+    try {
+      const message = `Conduct a comprehensive real-time beauty and cosmetics industry foresight analysis for L'Oreal. Search the web for the latest developments as of today. Cover:
+
+1. Emerging skincare and haircare ingredient trends (peptides, retinoids, exosomes, niacinamide, ceramides, etc.)
+2. Competitor brand launches and campaigns (Estee Lauder, P&G Beauty, Unilever, Shiseido, Beiersdorf, and indie brands)
+3. Recent product launch performance and consumer reception
+4. Ingredient safety concerns, regulatory changes, and claims risks
+5. Consumer sentiment shifts on social media, TikTok, Reddit, and beauty forums
+6. Market opportunities and whitespace areas
+
+Provide specific, data-backed findings from current web sources. Include signal classifications, specialist analyses across at least 4 domains, and prioritized action recommendations for L'Oreal portfolio brands.`
+
+      const result = await callAIAgent(message, WEB_AGENT_ID)
+
+      if (!result?.success) {
+        setAgentError(result?.error ?? 'Web analysis failed. Please try again.')
+        setAgentLoading(false)
+        setActiveAgentId(null)
+        return
+      }
+
+      const parsed = parseLLMJson(result.response)
+      const agentData = parsed?.result ?? parsed ?? {}
+
+      const signalTypes = Array.isArray(agentData?.signal_classifications)
+        ? agentData.signal_classifications.map((s: any) => s?.type).filter(Boolean)
+        : []
+
+      const analysisPayload = {
+        signal_id: '',
+        orchestrator_summary: agentData?.executive_summary ?? '',
+        specialist_outputs: Array.isArray(agentData?.specialist_analyses) ? agentData.specialist_analyses : [],
+        signal_types: signalTypes,
+        priority_actions: Array.isArray(agentData?.priority_actions) ? agentData.priority_actions : [],
+        cross_cutting_themes: agentData?.cross_cutting_themes ?? '',
+      }
+
+      let savedAnalysis: any = { ...analysisPayload, createdAt: new Date().toISOString() }
+      try {
+        const analysisRes = await fetchWrapper('/api/analyses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(analysisPayload),
+        })
+        if (analysisRes) {
+          const ct = analysisRes.headers.get('content-type') || ''
+          if (ct.includes('application/json')) {
+            const analysisData = await analysisRes.json()
+            if (analysisData?.data) {
+              savedAnalysis = analysisData.data
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to save analysis:', e)
+      }
+
+      setSelectedAnalysis(savedAnalysis)
+      setCurrentView('result')
+      await fetchAnalyses()
+    } catch (err: any) {
+      setAgentError(err?.message ?? 'An unexpected error occurred.')
+    } finally {
+      setAgentLoading(false)
+      setActiveAgentId(null)
+    }
+  }
 
   const handleViewAnalysis = (analysis: AnalysisData) => {
     setSelectedAnalysis(analysis)
@@ -134,6 +210,9 @@ export default function Page() {
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
+            onRunAnalysis={handleRunAnalysis}
+            agentLoading={agentLoading}
+            agentError={agentError}
           />
         )
       case 'detail':
@@ -150,6 +229,9 @@ export default function Page() {
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
+            onRunAnalysis={handleRunAnalysis}
+            agentLoading={agentLoading}
+            agentError={agentError}
           />
         )
       case 'actions-list':
@@ -207,6 +289,9 @@ export default function Page() {
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
+            onRunAnalysis={handleRunAnalysis}
+            agentLoading={agentLoading}
+            agentError={agentError}
           />
         )
     }
@@ -232,7 +317,7 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-3 text-[10px] text-muted-foreground tracking-wide">
               <RiRadarLine className="h-3.5 w-3.5 text-primary" />
-              <span>System ready</span>
+              <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Searching the web...' : 'System ready'}</span>
             </div>
           </header>
           {renderContent()}

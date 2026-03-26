@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiTimeLine, RiFlashlightLine, RiLineChartLine, RiAlertLine, RiArrowRightUpLine, RiShieldLine, RiErrorWarningLine, RiFileTextLine, RiArrowRightSLine } from 'react-icons/ri'
+import { RiTimeLine, RiFlashlightLine, RiLineChartLine, RiAlertLine, RiArrowRightUpLine, RiShieldLine, RiErrorWarningLine, RiFileTextLine, RiArrowRightSLine, RiGlobalLine, RiLoader4Line, RiCloseCircleLine } from 'react-icons/ri'
 import {
   urgencyBadge, severityDot, cleanText, isHighPriority, deriveFromAnalyses,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_ANALYSES,
@@ -15,9 +15,12 @@ interface DashboardProps {
   onNavigate: (view: string) => void
   onViewAnalysis: (analysis: AnalysisItem) => void
   onOpenDetail: (item: DetailItem) => void
+  onRunAnalysis?: () => void
+  agentLoading?: boolean
+  agentError?: string | null
 }
 
-export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail }: DashboardProps) {
+export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail, onRunAnalysis, agentLoading, agentError }: DashboardProps) {
   const safeAnalyses = Array.isArray(analyses) ? analyses : []
   const hasRealData = safeAnalyses.length > 0
   const derived = useMemo(() => deriveFromAnalyses(safeAnalyses), [safeAnalyses])
@@ -117,6 +120,51 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
             )
           })}
         </div>
+      </div>
+
+      {/* Run Analysis Section */}
+      <div className="px-8 pt-4">
+        <div className="bg-card border border-border p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <RiGlobalLine className="h-5 w-5 text-primary" />
+            <div>
+              <p className="text-[13px] text-foreground tracking-wide">Real-Time Web Intelligence</p>
+              <p className="text-[10px] text-muted-foreground tracking-wide mt-0.5">Search the web for current beauty industry signals, trends, and competitive movements</p>
+            </div>
+          </div>
+          <button
+            onClick={onRunAnalysis}
+            disabled={agentLoading}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 text-[11px] tracking-[0.14em] uppercase transition-colors ${agentLoading ? 'bg-primary/50 text-primary-foreground/70 cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+          >
+            {agentLoading ? (
+              <>
+                <RiLoader4Line className="h-4 w-4 animate-spin" />
+                Searching Web...
+              </>
+            ) : (
+              <>
+                <RiGlobalLine className="h-4 w-4" />
+                Run Analysis
+              </>
+            )}
+          </button>
+        </div>
+        {agentLoading && (
+          <div className="mt-3 bg-primary/5 border border-primary/20 p-3 flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin flex-shrink-0" />
+            <div>
+              <p className="text-[12px] text-foreground tracking-wide">Perplexity AI is searching the web for real-time beauty industry intelligence...</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">This typically takes 30-60 seconds. Results will appear across all dashboard sections.</p>
+            </div>
+          </div>
+        )}
+        {agentError && (
+          <div className="mt-3 bg-red-500/5 border border-red-500/20 p-3 flex items-center gap-3">
+            <RiCloseCircleLine className="h-4 w-4 text-red-400 flex-shrink-0" />
+            <p className="text-[12px] text-red-400 tracking-wide flex-1">{agentError}</p>
+          </div>
+        )}
       </div>
 
       <div className="px-8 pb-10 space-y-8 mt-4">
