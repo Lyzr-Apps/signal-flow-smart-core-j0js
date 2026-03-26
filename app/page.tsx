@@ -67,6 +67,7 @@ export default function Page() {
   const [detailItem, setDetailItem] = useState<DetailItem | null>(null)
   const [agentLoading, setAgentLoading] = useState(false)
   const [agentError, setAgentError] = useState<string | null>(null)
+  const [hasRunAnalysis, setHasRunAnalysis] = useState(false)
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -241,6 +242,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
         console.error('Failed to save analysis:', e)
       }
 
+      setHasRunAnalysis(true)
       await fetchAnalyses()
     } catch (err: any) {
       setAgentError(err?.message ?? 'An unexpected error occurred.')
@@ -297,6 +299,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             onOpenDetail={handleOpenDetail}
             agentLoading={agentLoading}
             agentError={agentError}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'detail':
@@ -315,6 +318,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             onOpenDetail={handleOpenDetail}
             agentLoading={agentLoading}
             agentError={agentError}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'actions-list':
@@ -323,6 +327,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             category="actions"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'opportunities-list':
@@ -331,6 +336,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             category="opportunities"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'risks-list':
@@ -339,6 +345,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             category="risks"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'alerts-list':
@@ -347,6 +354,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             category="alerts"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
       case 'result':
@@ -374,6 +382,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             onOpenDetail={handleOpenDetail}
             agentLoading={agentLoading}
             agentError={agentError}
+            hasRunAnalysis={hasRunAnalysis}
           />
         )
     }
