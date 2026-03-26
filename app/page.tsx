@@ -210,7 +210,6 @@ Provide specific, data-backed findings from current web sources. Include signal 
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
-            onRunAnalysis={handleRunAnalysis}
             agentLoading={agentLoading}
             agentError={agentError}
           />
@@ -229,7 +228,6 @@ Provide specific, data-backed findings from current web sources. Include signal 
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
-            onRunAnalysis={handleRunAnalysis}
             agentLoading={agentLoading}
             agentError={agentError}
           />
@@ -289,7 +287,6 @@ Provide specific, data-backed findings from current web sources. Include signal 
             onNavigate={handleNavigate}
             onViewAnalysis={handleViewAnalysis}
             onOpenDetail={handleOpenDetail}
-            onRunAnalysis={handleRunAnalysis}
             agentLoading={agentLoading}
             agentError={agentError}
           />
@@ -300,7 +297,7 @@ Provide specific, data-backed findings from current web sources. Include signal 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-foreground flex">
-        <Sidebar currentView={currentView} onNavigate={handleNavigate} />
+        <Sidebar currentView={currentView} onNavigate={handleNavigate} onRunAnalysis={handleRunAnalysis} agentLoading={agentLoading} />
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card">
             <div className="flex items-center gap-3">
