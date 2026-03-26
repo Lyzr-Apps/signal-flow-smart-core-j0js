@@ -279,40 +279,116 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
     const id = a._id || ''
 
     recentAnalyses.push({
-      id, title: cleanText(summary, 60), brand: 'Analysis', market: 'See details', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
+      id, title: cleanText(summary, 60) || 'Web Analysis', brand: 'L\'Oréal', market: 'Global', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
     })
 
     for (const sp of specialists) {
       const recs = Array.isArray(sp?.recommendations) ? sp.recommendations : []
       const topRec = recs[0]
-      const findings = sp?.key_findings || ''
-      const domain = (sp?.domain || '').toLowerCase()
-      const urg = recs.some((r: any) => (r?.priority || '').toLowerCase() === 'critical') ? 'Critical' : recs.some((r: any) => (r?.priority || '').toLowerCase() === 'high') ? 'High' : 'Medium'
+      const findings = sp?.key_findings || sp?.findings || sp?.analysis || sp?.summary || ''
+      const domain = (sp?.domain || sp?.category || sp?.area || '').toLowerCase()
+      const spTitle = sp?.title || sp?.signal || cleanText(findings, 70)
+      const spBrand = sp?.brand || sp?.brands || 'L\'Oréal'
+      const spMarket = sp?.market || sp?.region || sp?.geography || 'Global'
+      const urg = recs.some((r: any) => (r?.priority || '').toLowerCase() === 'critical') ? 'Critical'
+        : recs.some((r: any) => (r?.priority || '').toLowerCase() === 'high') ? 'High' : 'Medium'
 
+      const relActions = recs.map((r: any) => ({
+        action: r?.action || r?.recommendation || '',
+        priority: r?.priority || r?.urgency || 'Medium',
+        owner: r?.owner || r?.team || 'Cross-functional',
+        rationale: r?.rationale || r?.reason || ''
+      }))
+
+      // Always create a signal from each specialist output
       signals.push({
-        id, title: cleanText(findings, 70), brand: sp?.domain || 'Cross-brand', market: 'Global', urgency: urg,
-        why: findings, nextStep: topRec?.action || 'Review full analysis', crossCutting: a.cross_cutting_themes || '', timestamp: a.createdAt || '',
-        detailSections: [{ label: 'Key Findings', content: findings }, { label: 'Recommended Action', content: topRec?.action || 'See full analysis' }],
-        relatedActions: recs.map((r: any) => ({ action: r?.action || '', priority: r?.priority || 'Medium', owner: 'Per analysis', rationale: r?.rationale || '' })),
+        id, title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, urgency: urg,
+        why: findings, nextStep: topRec?.action || topRec?.recommendation || 'Review full analysis',
+        crossCutting: a.cross_cutting_themes || '', timestamp: a.createdAt || '',
+        detailSections: [
+          { label: 'Key Findings', content: findings },
+          { label: 'Recommended Action', content: topRec?.action || topRec?.recommendation || 'See full analysis' },
+          ...(sp?.data_points ? [{ label: 'Supporting Data', content: Array.isArray(sp.data_points) ? sp.data_points.join('; ') : String(sp.data_points) }] : []),
+        ],
+        relatedActions: relActions,
       })
 
-      if (types.includes('opportunity') || domain.includes('opportunity') || domain.includes('market') || domain.includes('trend')) {
-        opportunities.push({ title: cleanText(findings, 70), brand: sp?.domain || 'Cross-brand', market: 'Global', why: findings, confidence: sp?.confidence || 'Medium', move: topRec?.action || '', scenarioId: id, detailSections: [{ label: 'Findings', content: findings }], relatedActions: recs.map((r: any) => ({ action: r?.action || '', priority: r?.priority || 'Medium', owner: 'Per analysis', rationale: r?.rationale || '' })) })
+      // Map to opportunities — broad keyword matching
+      const isOpp = types.includes('opportunity') || domain.includes('opportunity') || domain.includes('market')
+        || domain.includes('trend') || domain.includes('ingredient') || domain.includes('innovation')
+        || domain.includes('whitespace') || domain.includes('consumer') || domain.includes('growth')
+        || findings.toLowerCase().includes('opportunity') || findings.toLowerCase().includes('emerging')
+      if (isOpp) {
+        opportunities.push({
+          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket,
+          why: findings, confidence: sp?.confidence || urg, move: topRec?.action || topRec?.recommendation || '',
+          scenarioId: id,
+          detailSections: [{ label: 'Opportunity Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Next Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
+          relatedActions: relActions,
+        })
       }
-      if (types.includes('launch') || domain.includes('launch') || domain.includes('performance')) {
-        risks.push({ title: cleanText(findings, 70), brand: sp?.domain || 'Cross-brand', market: 'Global', severity: urg, cause: findings, action: topRec?.action || '', scenarioId: id, detailSections: [{ label: 'Findings', content: findings }], relatedActions: recs.map((r: any) => ({ action: r?.action || '', priority: r?.priority || 'Medium', owner: 'Per analysis', rationale: r?.rationale || '' })) })
+
+      // Map to risks — broad keyword matching
+      const isRisk = types.includes('launch') || types.includes('risk') || domain.includes('launch')
+        || domain.includes('performance') || domain.includes('competitor') || domain.includes('competitive')
+        || domain.includes('risk') || domain.includes('threat')
+        || findings.toLowerCase().includes('risk') || findings.toLowerCase().includes('underperform')
+        || findings.toLowerCase().includes('competitor')
+      if (isRisk) {
+        risks.push({
+          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
+          cause: findings, action: topRec?.action || topRec?.recommendation || '',
+          scenarioId: id,
+          detailSections: [{ label: 'Risk Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Mitigation Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
+          relatedActions: relActions,
+        })
       }
-      if (types.includes('claims') || domain.includes('claims') || domain.includes('compliance') || domain.includes('reputation') || domain.includes('integrity')) {
-        alerts.push({ title: cleanText(findings, 70), brand: sp?.domain || 'Cross-brand', market: 'Global', severity: urg, why: findings, response: topRec?.action || '', scenarioId: id, detailSections: [{ label: 'Findings', content: findings }], relatedActions: recs.map((r: any) => ({ action: r?.action || '', priority: r?.priority || 'Medium', owner: 'Per analysis', rationale: r?.rationale || '' })) })
+
+      // Map to alerts — broad keyword matching
+      const isAlert = types.includes('claims') || types.includes('reputation') || types.includes('safety')
+        || domain.includes('claims') || domain.includes('compliance') || domain.includes('reputation')
+        || domain.includes('integrity') || domain.includes('safety') || domain.includes('regulatory')
+        || domain.includes('sentiment')
+        || findings.toLowerCase().includes('concern') || findings.toLowerCase().includes('irritation')
+        || findings.toLowerCase().includes('safety') || findings.toLowerCase().includes('regulatory')
+      if (isAlert) {
+        alerts.push({
+          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
+          why: findings, response: topRec?.action || topRec?.recommendation || '',
+          scenarioId: id,
+          detailSections: [{ label: 'Alert Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Response Plan', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
+          relatedActions: relActions,
+        })
+      }
+
+      // If no category matched, add to opportunities as default (web data is usually opportunity-oriented)
+      if (!isOpp && !isRisk && !isAlert) {
+        opportunities.push({
+          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket,
+          why: findings, confidence: 'Medium', move: topRec?.action || topRec?.recommendation || '',
+          scenarioId: id,
+          detailSections: [{ label: 'Analysis', content: findings }],
+          relatedActions: relActions,
+        })
       }
     }
 
     for (const pa of pActions) {
-      actions.push({ title: pa?.action || '', priority: pa?.priority || 'Medium', owner: pa?.owner || 'TBD', impact: cleanText(summary, 120), timeline: 'Per analysis', scenarioId: id })
+      actions.push({
+        title: pa?.action || pa?.recommendation || pa?.title || '',
+        priority: pa?.priority || pa?.urgency || 'Medium',
+        owner: pa?.owner || pa?.team || 'Cross-functional',
+        impact: pa?.impact || pa?.rationale || cleanText(summary, 120),
+        timeline: pa?.timeline || pa?.timeframe || 'Per analysis',
+        scenarioId: id,
+      })
     }
   }
 
   signals.sort((a, b) => priorityOrder(a.urgency) - priorityOrder(b.urgency))
   actions.sort((a, b) => priorityOrder(a.priority) - priorityOrder(b.priority))
+  opportunities.sort((a, b) => priorityOrder(a.confidence) - priorityOrder(b.confidence))
+  risks.sort((a, b) => priorityOrder(a.severity) - priorityOrder(b.severity))
+  alerts.sort((a, b) => priorityOrder(a.severity) - priorityOrder(b.severity))
   return { signals, actions, opportunities, risks, alerts, recentAnalyses }
 }

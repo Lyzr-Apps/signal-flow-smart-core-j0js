@@ -62,7 +62,8 @@ export default function CategoryListView({ category, analyses, onOpenDetail }: C
   }
 
   const renderActions = () => {
-    const items = [...derived.actions, ...SEEDED_ACTIONS]
+    const hasReal = safeAnalyses.length > 0 && derived.actions.length > 0
+    const items = hasReal ? derived.actions : [...derived.actions, ...SEEDED_ACTIONS]
     const critical = items.filter(a => isHighPriority(a.priority))
     const other = items.filter(a => !isHighPriority(a.priority))
     return (
@@ -117,7 +118,8 @@ export default function CategoryListView({ category, analyses, onOpenDetail }: C
   }
 
   const renderOpportunities = () => {
-    const items = [...derived.opportunities, ...SEEDED_OPPORTUNITIES]
+    const hasReal = safeAnalyses.length > 0 && derived.opportunities.length > 0
+    const items = hasReal ? derived.opportunities : [...derived.opportunities, ...SEEDED_OPPORTUNITIES]
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {items.map((opp, i) => (
@@ -141,7 +143,8 @@ export default function CategoryListView({ category, analyses, onOpenDetail }: C
   }
 
   const renderRisks = () => {
-    const items = [...derived.risks, ...SEEDED_RISKS]
+    const hasReal = safeAnalyses.length > 0 && derived.risks.length > 0
+    const items = hasReal ? derived.risks : [...derived.risks, ...SEEDED_RISKS]
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {items.map((risk, i) => (
@@ -165,7 +168,8 @@ export default function CategoryListView({ category, analyses, onOpenDetail }: C
   }
 
   const renderAlerts = () => {
-    const items = [...derived.alerts, ...SEEDED_ALERTS]
+    const hasReal = safeAnalyses.length > 0 && derived.alerts.length > 0
+    const items = hasReal ? derived.alerts : [...derived.alerts, ...SEEDED_ALERTS]
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {items.map((alert, i) => (

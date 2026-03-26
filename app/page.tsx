@@ -98,16 +98,90 @@ export default function Page() {
     setActiveAgentId(WEB_AGENT_ID)
 
     try {
-      const message = `Conduct a comprehensive real-time beauty and cosmetics industry foresight analysis for L'Oreal. Search the web for the latest developments as of today. Cover:
+      const message = `Conduct a comprehensive real-time beauty and cosmetics industry foresight analysis for L'Oreal. Search the web for the latest developments as of today.
 
-1. Emerging skincare and haircare ingredient trends (peptides, retinoids, exosomes, niacinamide, ceramides, etc.)
-2. Competitor brand launches and campaigns (Estee Lauder, P&G Beauty, Unilever, Shiseido, Beiersdorf, and indie brands)
-3. Recent product launch performance and consumer reception
+You MUST respond in valid JSON format with this exact structure:
+{
+  "executive_summary": "2-3 sentence overview of the most important findings",
+  "signal_classifications": [
+    {"type": "Opportunity", "description": "..."},
+    {"type": "Competitive", "description": "..."},
+    {"type": "Launch", "description": "..."},
+    {"type": "Claims", "description": "..."},
+    {"type": "Consumer Insight", "description": "..."}
+  ],
+  "specialist_analyses": [
+    {
+      "domain": "Ingredient Trends & Innovation",
+      "title": "Short title for this finding",
+      "brand": "Relevant L'Oreal brand(s)",
+      "market": "Geographic market",
+      "key_findings": "Detailed findings with specific data points from web search",
+      "confidence": "High/Medium/Low",
+      "recommendations": [
+        {"action": "Specific action to take", "priority": "Critical/High/Medium/Low", "owner": "Team responsible", "rationale": "Why this matters", "timeline": "When to act"}
+      ]
+    },
+    {
+      "domain": "Competitive Intelligence & Market Threats",
+      "title": "Short title",
+      "brand": "Relevant brand",
+      "market": "Market",
+      "key_findings": "Competitive landscape findings with data",
+      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
+    },
+    {
+      "domain": "Consumer Sentiment & Social Trends",
+      "title": "Short title",
+      "brand": "Relevant brand",
+      "market": "Market",
+      "key_findings": "Social media and consumer sentiment data",
+      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
+    },
+    {
+      "domain": "Claims Safety & Regulatory Compliance",
+      "title": "Short title about safety/regulatory concern",
+      "brand": "Affected brand",
+      "market": "Market",
+      "key_findings": "Safety concerns, regulatory changes, or claims risks",
+      "recommendations": [{"action": "...", "priority": "Critical", "owner": "...", "rationale": "..."}]
+    },
+    {
+      "domain": "Launch Performance & Market Response",
+      "title": "Short title about launch/performance",
+      "brand": "Brand with launch",
+      "market": "Market",
+      "key_findings": "Product launch data and market reception",
+      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
+    },
+    {
+      "domain": "Market Opportunity & Whitespace",
+      "title": "Short title about opportunity",
+      "brand": "Best positioned brand",
+      "market": "Target market",
+      "key_findings": "Whitespace and growth opportunity analysis",
+      "confidence": "High",
+      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
+    }
+  ],
+  "priority_actions": [
+    {"action": "Most urgent action", "priority": "Critical", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
+    {"action": "Second action", "priority": "High", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
+    {"action": "Third action", "priority": "High", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
+    {"action": "Fourth action", "priority": "Medium", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"}
+  ],
+  "cross_cutting_themes": "Key themes spanning multiple domains"
+}
+
+Cover these areas with REAL current data from web search:
+1. Emerging ingredient trends (peptides, retinoids, exosomes, niacinamide, ceramides, bakuchiol, etc.)
+2. Competitor launches and campaigns (Estee Lauder, P&G Beauty, Unilever, Shiseido, Beiersdorf, indie brands)
+3. Product launch performance and consumer reception
 4. Ingredient safety concerns, regulatory changes, and claims risks
-5. Consumer sentiment shifts on social media, TikTok, Reddit, and beauty forums
-6. Market opportunities and whitespace areas
+5. Consumer sentiment on TikTok, Reddit, and beauty forums
+6. Market whitespace and growth opportunities
 
-Provide specific, data-backed findings from current web sources. Include signal classifications, specialist analyses across at least 4 domains, and prioritized action recommendations for L'Oreal portfolio brands.`
+Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources. Every specialist analysis must have a clear "title", "brand", "market", and at least 2 recommendations.`
 
       const result = await callAIAgent(message, WEB_AGENT_ID)
 
@@ -122,16 +196,29 @@ Provide specific, data-backed findings from current web sources. Include signal 
       const agentData = parsed?.result ?? parsed ?? {}
 
       const signalTypes = Array.isArray(agentData?.signal_classifications)
-        ? agentData.signal_classifications.map((s: any) => s?.type).filter(Boolean)
+        ? agentData.signal_classifications.map((s: any) => s?.type || s?.category).filter(Boolean)
         : []
+
+      // Ensure signal types cover all categories for proper routing in deriveFromAnalyses
+      const defaultTypes = ['Opportunity', 'Competitive', 'Launch', 'Claims', 'Consumer Insight']
+      const mergedTypes = [...new Set([...signalTypes, ...defaultTypes])]
+
+      const specialistOutputs = Array.isArray(agentData?.specialist_analyses)
+        ? agentData.specialist_analyses
+        : Array.isArray(agentData?.analyses) ? agentData.analyses : []
+
+      const priorityActions = Array.isArray(agentData?.priority_actions)
+        ? agentData.priority_actions
+        : Array.isArray(agentData?.actions) ? agentData.actions
+        : Array.isArray(agentData?.recommendations) ? agentData.recommendations : []
 
       const analysisPayload = {
         signal_id: '',
-        orchestrator_summary: agentData?.executive_summary ?? '',
-        specialist_outputs: Array.isArray(agentData?.specialist_analyses) ? agentData.specialist_analyses : [],
-        signal_types: signalTypes,
-        priority_actions: Array.isArray(agentData?.priority_actions) ? agentData.priority_actions : [],
-        cross_cutting_themes: agentData?.cross_cutting_themes ?? '',
+        orchestrator_summary: agentData?.executive_summary || agentData?.summary || '',
+        specialist_outputs: specialistOutputs,
+        signal_types: mergedTypes,
+        priority_actions: priorityActions,
+        cross_cutting_themes: agentData?.cross_cutting_themes || agentData?.themes || '',
       }
 
       let savedAnalysis: any = { ...analysisPayload, createdAt: new Date().toISOString() }

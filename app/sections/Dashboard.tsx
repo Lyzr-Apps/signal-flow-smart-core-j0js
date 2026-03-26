@@ -24,26 +24,27 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
   const hasRealData = safeAnalyses.length > 0
   const derived = useMemo(() => deriveFromAnalyses(safeAnalyses), [safeAnalyses])
 
-  const allSignals = [...derived.signals, ...SEEDED_SIGNALS]
+  // When real data exists, show it first; fall back to seeded data only if no real data
+  const allSignals = hasRealData && derived.signals.length > 0 ? derived.signals : [...derived.signals, ...SEEDED_SIGNALS]
   const topSignal = allSignals.filter(s => isHighPriority(s.urgency))[0] || allSignals[0]
 
-  const allActions = [...derived.actions, ...SEEDED_ACTIONS]
+  const allActions = hasRealData && derived.actions.length > 0 ? derived.actions : [...derived.actions, ...SEEDED_ACTIONS]
   const topAction = allActions.filter(a => isHighPriority(a.priority))[0] || allActions[0]
 
-  const allOpps = [...derived.opportunities, ...SEEDED_OPPORTUNITIES]
+  const allOpps = hasRealData && derived.opportunities.length > 0 ? derived.opportunities : [...derived.opportunities, ...SEEDED_OPPORTUNITIES]
   const topOpp = allOpps.filter(o => isHighPriority(o.confidence))[0] || allOpps[0]
 
-  const allRisks = [...derived.risks, ...SEEDED_RISKS]
+  const allRisks = hasRealData && derived.risks.length > 0 ? derived.risks : [...derived.risks, ...SEEDED_RISKS]
   const topRisk = allRisks.filter(r => isHighPriority(r.severity))[0] || allRisks[0]
 
-  const allAlerts = [...derived.alerts, ...SEEDED_ALERTS]
+  const allAlerts = hasRealData && derived.alerts.length > 0 ? derived.alerts : [...derived.alerts, ...SEEDED_ALERTS]
   const topAlert = allAlerts.filter(a => isHighPriority(a.severity))[0] || allAlerts[0]
 
-  const recentAnalyses = [...derived.recentAnalyses, ...SEEDED_ANALYSES]
+  const recentAnalyses = hasRealData && derived.recentAnalyses.length > 0 ? derived.recentAnalyses : [...derived.recentAnalyses, ...SEEDED_ANALYSES]
   const topAnalysis = recentAnalyses[0]
 
   const criticalCount = allSignals.filter(s => s.urgency.toLowerCase() === 'critical').length + allRisks.filter(r => r.severity.toLowerCase() === 'critical').length + allAlerts.filter(a => a.severity.toLowerCase() === 'critical').length
-  const totalAnalyses = safeAnalyses.length + SEEDED_ANALYSES.length
+  const totalAnalyses = safeAnalyses.length + (hasRealData ? 0 : SEEDED_ANALYSES.length)
 
   // Click handlers
   const openSignal = (sig: SeededSignal) => {
@@ -119,7 +120,7 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
           {[
             { label: 'Time to Opportunity', value: hasRealData ? '< 2h' : '< 4h', sub: 'Signal-to-insight speed', icon: RiTimeLine },
             { label: 'Time to First Action', value: hasRealData ? '< 8h' : '< 12h', sub: 'Insight-to-recommendation', icon: RiFlashlightLine },
-            { label: 'Analyses Generated', value: String(totalAnalyses), sub: `${safeAnalyses.length} live + ${SEEDED_ANALYSES.length} seeded`, icon: RiLineChartLine },
+            { label: 'Analyses Generated', value: String(totalAnalyses), sub: hasRealData ? `${safeAnalyses.length} live analyses` : `${SEEDED_ANALYSES.length} seeded scenarios`, icon: RiLineChartLine },
             { label: 'Open Critical Signals', value: String(criticalCount), sub: 'Require immediate attention', icon: RiAlertLine },
           ].map((kpi, i) => {
             const Icon = kpi.icon

@@ -14,6 +14,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    if (!body.owner_user_id) {
+      body.owner_user_id = 'system';
+    }
     const Analysis = await getAnalysisModel();
     const analysis = await Analysis.create(body);
     return NextResponse.json({ success: true, data: analysis });
