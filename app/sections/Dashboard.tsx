@@ -121,9 +121,9 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: 'Signals Requiring Review',
+              label: 'Priority Developments',
               value: String(allSignals.length),
-              sub: `${allSignals.filter(s => isHighPriority(s.urgency)).length} high priority`,
+              sub: `${allSignals.filter(s => isHighPriority(s.urgency)).length} require review`,
               icon: RiEyeLine,
               accent: allSignals.filter(s => isHighPriority(s.urgency)).length > 0 ? 'text-amber-400' : 'text-foreground',
             },
