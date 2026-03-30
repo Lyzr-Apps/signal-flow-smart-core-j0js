@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiTimeLine, RiFlashlightLine, RiLineChartLine, RiAlertLine, RiArrowRightUpLine, RiShieldLine, RiErrorWarningLine, RiFileTextLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine } from 'react-icons/ri'
+import { RiEyeLine, RiFlashlightLine, RiLineChartLine, RiAlertLine, RiArrowRightUpLine, RiShieldLine, RiErrorWarningLine, RiFileTextLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_ANALYSES,
@@ -120,10 +120,34 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
       <div className="px-8 pt-7 pb-2">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Time to Opportunity', value: useReal ? '< 2h' : '< 4h', sub: 'Signal-to-insight speed', icon: RiTimeLine },
-            { label: 'Time to First Action', value: useReal ? '< 8h' : '< 12h', sub: 'Insight-to-recommendation', icon: RiFlashlightLine },
-            { label: 'Analyses Generated', value: String(totalAnalyses), sub: useReal ? `${safeAnalyses.length} live analyses` : `${SEEDED_ANALYSES.length} sample scenarios`, icon: RiLineChartLine },
-            { label: 'Open Critical Signals', value: String(criticalCount), sub: 'Require immediate attention', icon: RiAlertLine },
+            {
+              label: 'Signals Requiring Review',
+              value: String(allSignals.length),
+              sub: `${allSignals.filter(s => isHighPriority(s.urgency)).length} high priority`,
+              icon: RiEyeLine,
+              accent: allSignals.filter(s => isHighPriority(s.urgency)).length > 0 ? 'text-amber-400' : 'text-foreground',
+            },
+            {
+              label: 'Opportunities Ready for Validation',
+              value: String(allOpps.length),
+              sub: `${allOpps.filter(o => isHighPriority(o.confidence)).length} high confidence`,
+              icon: RiArrowRightUpLine,
+              accent: allOpps.length > 0 ? 'text-emerald-400' : 'text-foreground',
+            },
+            {
+              label: 'Launches Needing Intervention',
+              value: String(allRisks.length),
+              sub: `${allRisks.filter(r => r.severity.toLowerCase() === 'critical').length} critical`,
+              icon: RiErrorWarningLine,
+              accent: allRisks.filter(r => r.severity.toLowerCase() === 'critical').length > 0 ? 'text-red-400' : 'text-foreground',
+            },
+            {
+              label: 'Risks Requiring Escalation',
+              value: String(criticalCount),
+              sub: `Across signals, risks & alerts`,
+              icon: RiShieldLine,
+              accent: criticalCount > 0 ? 'text-red-400' : 'text-foreground',
+            },
           ].map((kpi, i) => {
             const Icon = kpi.icon
             return (
@@ -132,7 +156,7 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
                   <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase leading-tight">{kpi.label}</p>
                   <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
-                <p className="text-2xl font-serif tracking-wide text-foreground">{kpi.value}</p>
+                <p className={`text-2xl font-serif tracking-wide ${kpi.accent}`}>{kpi.value}</p>
                 <p className="text-[10px] text-muted-foreground tracking-wide mt-1">{kpi.sub}</p>
               </div>
             )
