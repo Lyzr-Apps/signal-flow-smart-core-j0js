@@ -20,9 +20,9 @@ interface CategoryListViewProps {
 
 const CATEGORY_META: Record<CategoryType, { title: string; icon: any; color: string }> = {
   actions: { title: 'Recommended Actions', icon: RiFlashlightLine, color: 'text-primary' },
-  opportunities: { title: 'Active Opportunities', icon: RiArrowRightUpLine, color: 'text-emerald-400' },
-  risks: { title: 'Launch Risks', icon: RiErrorWarningLine, color: 'text-red-400' },
-  alerts: { title: 'Claims / Reputation Alerts', icon: RiShieldLine, color: 'text-red-400' },
+  opportunities: { title: 'Growth Opportunities', icon: RiArrowRightUpLine, color: 'text-emerald-400' },
+  risks: { title: 'Demand Risks', icon: RiErrorWarningLine, color: 'text-red-400' },
+  alerts: { title: 'Market Alerts', icon: RiShieldLine, color: 'text-red-400' },
 }
 
 export default function CategoryListView({ category, analyses, onOpenDetail, hasRunAnalysis }: CategoryListViewProps) {

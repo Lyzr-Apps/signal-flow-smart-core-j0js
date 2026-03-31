@@ -15,7 +15,7 @@ export default function AuthScreen() {
             L&apos;OR&Eacute;AL
           </h1>
           <p className="text-muted-foreground text-sm tracking-widest uppercase">
-            Dynamic Foresight System
+            Demand Sensor
           </p>
         </div>
         <Card className="border-border bg-card">

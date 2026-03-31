@@ -5,7 +5,7 @@ import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
 import fetchWrapper from '@/lib/fetchWrapper'
 import { Badge } from '@/components/ui/badge'
-import { RiRadarLine, RiLoader4Line } from 'react-icons/ri'
+import { RiRadarLine, RiLoader4Line, RiSearchLine } from 'react-icons/ri'
 
 import Sidebar from './sections/Sidebar'
 import Dashboard from './sections/Dashboard'
@@ -13,6 +13,9 @@ import CategoryListView from './sections/CategoryListView'
 import AnalysisResult from './sections/AnalysisResult'
 import AnalysisHistory from './sections/AnalysisHistory'
 import DetailView from './sections/DetailView'
+import MarketSignals from './sections/MarketSignals'
+import DemandView from './sections/DemandView'
+import AgentChat from './sections/AgentChat'
 import type { DetailItem } from './sections/DetailView'
 
 const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
@@ -68,6 +71,8 @@ export default function Page() {
   const [agentLoading, setAgentLoading] = useState(false)
   const [agentError, setAgentError] = useState<string | null>(null)
   const [hasRunAnalysis, setHasRunAnalysis] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchLoading, setSearchLoading] = useState(false)
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -93,13 +98,17 @@ export default function Page() {
 
   const displayAnalyses = analyses
 
-  const handleRunAnalysis = async () => {
+  const runWebAnalysis = async (query?: string) => {
     setAgentError(null)
     setAgentLoading(true)
     setActiveAgentId(WEB_AGENT_ID)
 
     try {
-      const message = `Conduct a comprehensive real-time beauty and cosmetics industry foresight analysis for L'Oreal. Search the web for the latest developments as of today.
+      const basePrompt = query
+        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape.`
+        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal. Search the web for the latest developments as of today.`
+
+      const message = `${basePrompt}
 
 You MUST respond in valid JSON format with this exact structure:
 {
@@ -114,13 +123,13 @@ You MUST respond in valid JSON format with this exact structure:
   "specialist_analyses": [
     {
       "domain": "Ingredient Trends & Innovation",
-      "title": "Short title for this finding",
+      "title": "Short action-oriented title for this finding",
       "brand": "Relevant L'Oreal brand(s)",
-      "market": "Geographic market",
+      "market": "Geographic market (use full names like Southeast Asia, not abbreviations)",
       "key_findings": "Detailed findings with specific data points from web search",
       "confidence": "High/Medium/Low",
       "recommendations": [
-        {"action": "Specific action to take", "priority": "Critical/High/Medium/Low", "owner": "Team responsible", "rationale": "Why this matters", "timeline": "When to act"}
+        {"action": "Specific action to take", "priority": "Critical/High/Medium/Low", "owner": "Team responsible (Product, Marketing, Planning, or Manufacturing)", "rationale": "Why this matters", "timeline": "When to act"}
       ]
     },
     {
@@ -174,6 +183,12 @@ You MUST respond in valid JSON format with this exact structure:
   "cross_cutting_themes": "Key themes spanning multiple domains"
 }
 
+IMPORTANT LANGUAGE RULES:
+- Use full geographic names: "Southeast Asia" not "SEA", "Latin America" or "LATAM"
+- Use short, action-oriented titles: "Format Fix Needed" not "Product Format Optimization Required"
+- Make recommendations team-specific: Product, Marketing, Planning, or Manufacturing
+- Include confidence levels and supporting evidence with percentages
+
 Cover these areas with REAL current data from web search:
 1. Emerging ingredient trends (peptides, retinoids, exosomes, niacinamide, ceramides, bakuchiol, etc.)
 2. Competitor launches and campaigns (Estee Lauder, P&G Beauty, Unilever, Shiseido, Beiersdorf, indie brands)
@@ -182,12 +197,12 @@ Cover these areas with REAL current data from web search:
 5. Consumer sentiment on TikTok, Reddit, and beauty forums
 6. Market whitespace and growth opportunities
 
-Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources. Every specialist analysis must have a clear "title", "brand", "market", and at least 2 recommendations.`
+Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources.`
 
       const result = await callAIAgent(message, WEB_AGENT_ID)
 
       if (!result?.success) {
-        setAgentError(result?.error ?? 'Web analysis failed. Please try again.')
+        setAgentError(result?.error ?? 'Analysis failed. Please try again.')
         setAgentLoading(false)
         setActiveAgentId(null)
         return
@@ -200,7 +215,6 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
         ? agentData.signal_classifications.map((s: any) => s?.type || s?.category).filter(Boolean)
         : []
 
-      // Ensure signal types cover all categories for proper routing in deriveFromAnalyses
       const defaultTypes = ['Opportunity', 'Competitive', 'Launch', 'Claims', 'Consumer Insight']
       const mergedTypes = [...new Set([...signalTypes, ...defaultTypes])]
 
@@ -214,7 +228,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
         : Array.isArray(agentData?.recommendations) ? agentData.recommendations : []
 
       const analysisPayload = {
-        signal_id: '',
+        signal_id: query || '',
         orchestrator_summary: agentData?.executive_summary || agentData?.summary || '',
         specialist_outputs: specialistOutputs,
         signal_types: mergedTypes,
@@ -222,7 +236,6 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
         cross_cutting_themes: agentData?.cross_cutting_themes || agentData?.themes || '',
       }
 
-      let savedAnalysis: any = { ...analysisPayload, createdAt: new Date().toISOString() }
       try {
         const analysisRes = await fetchWrapper('/api/analyses', {
           method: 'POST',
@@ -232,10 +245,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
         if (analysisRes) {
           const ct = analysisRes.headers.get('content-type') || ''
           if (ct.includes('application/json')) {
-            const analysisData = await analysisRes.json()
-            if (analysisData?.data) {
-              savedAnalysis = analysisData.data
-            }
+            await analysisRes.json()
           }
         }
       } catch (e) {
@@ -249,7 +259,18 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
     } finally {
       setAgentLoading(false)
       setActiveAgentId(null)
+      setSearchLoading(false)
     }
+  }
+
+  const handleRunAnalysis = () => runWebAnalysis()
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim() || agentLoading) return
+    setSearchLoading(true)
+    setCurrentView('dashboard')
+    runWebAnalysis(searchQuery.trim())
   }
 
   const handleViewAnalysis = (analysis: AnalysisData) => {
@@ -321,37 +342,54 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             hasRunAnalysis={hasRunAnalysis}
           />
         )
+      case 'market-signals':
+        return (
+          <MarketSignals
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
+          />
+        )
+      case 'demand-overview':
+        return (
+          <DemandView
+            subView="overview"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
+          />
+        )
+      case 'demand-opportunities':
+        return (
+          <DemandView
+            subView="opportunities"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
+          />
+        )
+      case 'demand-risks':
+        return (
+          <DemandView
+            subView="risks"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
+          />
+        )
+      case 'demand-planning':
+        return (
+          <DemandView
+            subView="planning"
+            analyses={displayAnalyses}
+            onOpenDetail={handleOpenDetail}
+            hasRunAnalysis={hasRunAnalysis}
+          />
+        )
       case 'actions-list':
         return (
           <CategoryListView
             category="actions"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'opportunities-list':
-        return (
-          <CategoryListView
-            category="opportunities"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'risks-list':
-        return (
-          <CategoryListView
-            category="risks"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'alerts-list':
-        return (
-          <CategoryListView
-            category="alerts"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
             hasRunAnalysis={hasRunAnalysis}
@@ -393,34 +431,52 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
       <div className="min-h-screen bg-background text-foreground flex">
         <Sidebar currentView={currentView} onNavigate={handleNavigate} onRunAnalysis={handleRunAnalysis} agentLoading={agentLoading} />
         <div className="flex-1 flex flex-col min-h-screen">
-          <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card">
-            <div className="flex items-center gap-3">
+          <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card gap-4">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <h2 className="font-serif text-sm tracking-[0.18em] text-foreground uppercase">
-                L&apos;Or&eacute;al Foresight
+                L&apos;Or&eacute;al Demand Sensor
               </h2>
-              <span className="text-[9px] tracking-[0.15em] text-muted-foreground uppercase">Powered by BlueVerse</span>
               {activeAgentId && (
                 <Badge variant="outline" className="text-[10px] tracking-wider border-primary/40 text-primary animate-pulse">
                   <RiLoader4Line className="h-3 w-3 mr-1 animate-spin" />
-                  Analyzing
+                  Scanning
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground tracking-wide">
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="flex-1 max-w-xl">
+              <div className="relative">
+                <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by trend, region, product, competitor, or market signal"
+                  className="w-full bg-secondary/50 border border-border pl-9 pr-4 py-1.5 text-[12px] text-foreground tracking-wide placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+                  disabled={agentLoading}
+                />
+                {searchLoading && (
+                  <RiLoader4Line className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary animate-spin" />
+                )}
+              </div>
+            </form>
+
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground tracking-wide flex-shrink-0">
               <RiRadarLine className="h-3.5 w-3.5 text-primary" />
-              <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Searching the web...' : 'System ready'}</span>
+              <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Scanning the web...' : 'System ready'}</span>
             </div>
           </header>
           {renderContent()}
           <div className="px-6 py-2.5 border-t border-border bg-card flex items-center justify-between">
             <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
-              Strategic Intelligence Platform
+              Demand Intelligence Platform
             </p>
             <p className="text-[9px] text-muted-foreground tracking-[0.12em]">
-              BlueVerse Signal Orchestration
+              BlueVerse Demand Sensing
             </p>
           </div>
         </div>
+        <AgentChat />
       </div>
     </ErrorBoundary>
   )
