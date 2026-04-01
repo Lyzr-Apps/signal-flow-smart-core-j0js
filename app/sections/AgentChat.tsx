@@ -79,9 +79,43 @@ export default function AgentChat() {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center py-8">
-                <RiRadarLine className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-[12px] text-muted-foreground tracking-wide">Ask about market trends, competitor activity, demand shifts, or any insight on the dashboard.</p>
+              <div className="py-6">
+                <RiRadarLine className="h-8 w-8 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 text-center">Suggested Questions</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    "What competitor activity should L'Or\u00e9al respond to first?",
+                    "Which demand signals show the highest growth potential?",
+                    "What are the biggest risks to current product launches?",
+                    "What ingredient trends are emerging in premium skincare?"
+                  ].map((prompt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInput(prompt)
+                        setMessages(prev => [...prev, { role: 'user', content: prompt }])
+                        setLoading(true)
+                        const systemPrompt = `You are a demand intelligence assistant for L'Oreal. The user is viewing a demand sensing dashboard. Answer their question using real-time web data. Be concise, specific, and action-oriented. Use simple business language. Avoid abbreviations like SEA — write "Southeast Asia" instead. Question: ${prompt}`
+                        callAIAgent(systemPrompt, WEB_AGENT_ID).then(result => {
+                          const text = result?.response?.result?.text
+                            || result?.response?.message
+                            || (typeof result?.response === 'string' ? result.response : '')
+                            || 'I was unable to retrieve an answer. Please try rephrasing your question.'
+                          const cleaned = typeof text === 'string' ? text.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '') : String(text)
+                          setMessages(prev => [...prev, { role: 'assistant', content: cleaned }])
+                        }).catch(() => {
+                          setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+                        }).finally(() => {
+                          setLoading(false)
+                          setInput('')
+                        })
+                      }}
+                      className="bg-secondary/50 border border-border hover:border-primary/40 hover:bg-secondary transition-all p-3 text-left"
+                    >
+                      <span className="text-[11px] text-foreground/70 tracking-wide leading-relaxed">{prompt}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {messages.map((msg, i) => (

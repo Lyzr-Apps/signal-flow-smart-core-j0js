@@ -472,7 +472,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
               Demand Intelligence Platform
             </p>
             <p className="text-[9px] text-muted-foreground tracking-[0.12em]">
-              BlueVerse Demand Sensing
+              L&apos;Or&eacute;al Market Intelligence
             </p>
           </div>
         </div>

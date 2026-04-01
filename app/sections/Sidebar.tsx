@@ -45,12 +45,9 @@ export default function Sidebar({ currentView, onNavigate, onRunAnalysis, agentL
         <p className="text-[17px] font-serif tracking-[0.14em] text-primary mt-0.5 leading-tight">
           Demand Sensor
         </p>
-        <div className="flex items-center gap-1.5 mt-2.5">
-          <RiRadarLine className="h-3 w-3 text-muted-foreground" />
-          <p className="text-[9px] tracking-[0.18em] text-muted-foreground uppercase">
-            Powered by BlueVerse
-          </p>
-        </div>
+        <p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase mt-2.5">
+          Market Intelligence
+        </p>
       </div>
 
       {/* Run Analysis Button */}
