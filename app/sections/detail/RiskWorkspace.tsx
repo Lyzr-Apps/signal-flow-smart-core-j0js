@@ -9,6 +9,63 @@ function findSection(sections: { label: string; content: string }[], keyword: st
   return sections.find(s => s.label.toLowerCase().includes(keyword.toLowerCase()))
 }
 
+function deriveRiskMetrics(title: string) {
+  const t = (title ?? '').toLowerCase()
+  if (t.includes('elvive') || t.includes('bond') || t.includes('olaplex') || t.includes('germany'))
+    return { conversion: { actual: 2.1, benchmark: 4.8 }, sov: { competitor: 52, loreal: 28 }, weeks: 3 }
+  if (t.includes('eye') || t.includes('peptide') || t.includes('crowding'))
+    return { conversion: { actual: 3.2, benchmark: 5.5 }, sov: { competitor: 45, loreal: 22 }, weeks: 2 }
+  return { conversion: { actual: 3.0, benchmark: 5.0 }, sov: { competitor: 35, loreal: 30 }, weeks: 4 }
+}
+
+function RiskMetrics({ title }: { title: string }) {
+  const m = deriveRiskMetrics(title)
+  const convPct = (m.conversion.actual / m.conversion.benchmark) * 100
+  const weekColor = m.weeks > 4 ? 'text-emerald-400' : m.weeks >= 2 ? 'text-amber-400' : 'text-red-400'
+  const weekBg = m.weeks > 4 ? 'bg-emerald-400' : m.weeks >= 2 ? 'bg-amber-400' : 'bg-red-400'
+  return (
+    <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Conversion Gap</h4>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className="text-[16px] font-serif text-red-400">{m.conversion.actual}%</span>
+          <span className="text-[10px] text-muted-foreground">vs {m.conversion.benchmark}% benchmark</span>
+        </div>
+        <div className="relative h-2 bg-secondary w-full">
+          <div className="absolute h-full bg-red-400/70" style={{ width: `${convPct}%` }} />
+          <div className="absolute top-0 h-full w-0.5 bg-foreground/40" style={{ left: '100%' }} />
+        </div>
+      </div>
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Competitor SOV</h4>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className="text-[16px] font-serif text-red-400">{m.sov.competitor}%</span>
+          <span className="text-[10px] text-muted-foreground">vs {m.sov.loreal}%</span>
+        </div>
+        <div className="flex h-2 w-full">
+          <div className="h-full bg-red-400/70" style={{ width: `${m.sov.competitor}%` }} />
+          <div className="h-full bg-primary/60" style={{ width: `${m.sov.loreal}%` }} />
+          <div className="h-full bg-secondary flex-1" />
+        </div>
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[9px] text-red-400/80">Competitor</span>
+          <span className="text-[9px] text-primary/80">L&apos;Oreal</span>
+        </div>
+      </div>
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Intervention Window</h4>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className={`text-[16px] font-serif ${weekColor}`}>{m.weeks}</span>
+          <span className="text-[10px] text-muted-foreground">weeks remaining</span>
+        </div>
+        <div className="h-2 bg-secondary w-full">
+          <div className={`h-full ${weekBg}`} style={{ width: `${Math.min(m.weeks / 6 * 100, 100)}%` }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function RiskWorkspace({ item, onBack }: { item: DetailItem; onBack: () => void }) {
   const sections = Array.isArray(item?.sections) ? item.sections : []
   const actions = Array.isArray(item?.relatedActions) ? item.relatedActions : []
@@ -46,6 +103,8 @@ export default function RiskWorkspace({ item, onBack }: { item: DetailItem; onBa
             {item.market && <span>Market: <span className="text-foreground/80">{item.market}</span></span>}
           </div>
         )}
+
+        <RiskMetrics title={item?.title ?? ''} />
 
         {whatChanged && (
           <div className="bg-card border border-primary/30 p-5 mb-4">

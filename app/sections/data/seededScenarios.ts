@@ -313,45 +313,38 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         relatedActions: relActions,
       })
 
-      // Map to opportunities — broad keyword matching
-      const isOpp = types.includes('opportunity') || domain.includes('opportunity') || domain.includes('market')
-        || domain.includes('trend') || domain.includes('ingredient') || domain.includes('innovation')
-        || domain.includes('whitespace') || domain.includes('consumer') || domain.includes('growth')
-        || findings.toLowerCase().includes('opportunity') || findings.toLowerCase().includes('emerging')
-      if (isOpp) {
-        opportunities.push({
-          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket,
-          why: findings, confidence: sp?.confidence || urg, move: topRec?.action || topRec?.recommendation || '',
-          scenarioId: id,
-          detailSections: [{ label: 'Opportunity Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Next Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
-          relatedActions: relActions,
-        })
+      // Score each category to classify into EXACTLY ONE (mutually exclusive)
+      const fl = findings.toLowerCase()
+      let alertScore = 0
+      let riskScore = 0
+      let oppScore = 0
+
+      // Alert indicators
+      if (types.includes('claims') || types.includes('reputation') || types.includes('safety')) alertScore += 3
+      if (domain.includes('claims') || domain.includes('compliance') || domain.includes('reputation') || domain.includes('safety') || domain.includes('regulatory')) alertScore += 3
+      if (domain.includes('sentiment')) alertScore += 2
+      if (fl.includes('concern') || fl.includes('irritation') || fl.includes('safety') || fl.includes('regulatory') || fl.includes('backlash') || fl.includes('recall')) alertScore += 2
+
+      // Risk indicators
+      if (types.includes('launch') || types.includes('risk')) riskScore += 3
+      if (domain.includes('launch') || domain.includes('performance') || domain.includes('competitive') || domain.includes('competitor') || domain.includes('risk') || domain.includes('threat')) riskScore += 3
+      if (fl.includes('underperform') || fl.includes('declining') || fl.includes('losing share')) riskScore += 2
+      if (fl.includes('competitor') || fl.includes('risk')) riskScore += 1
+
+      // Opportunity indicators
+      if (types.includes('opportunity')) oppScore += 3
+      if (domain.includes('opportunity') || domain.includes('whitespace') || domain.includes('innovation') || domain.includes('growth')) oppScore += 3
+      if (domain.includes('market') || domain.includes('trend') || domain.includes('ingredient') || domain.includes('consumer')) oppScore += 2
+      if (fl.includes('opportunity') || fl.includes('emerging') || fl.includes('whitespace') || fl.includes('growing')) oppScore += 1
+
+      // Classify into the highest-scoring category (mutually exclusive)
+      const maxScore = Math.max(alertScore, riskScore, oppScore)
+      if (maxScore === 0) {
+        // No strong signal — default to opportunity
+        oppScore = 1
       }
 
-      // Map to risks — broad keyword matching
-      const isRisk = types.includes('launch') || types.includes('risk') || domain.includes('launch')
-        || domain.includes('performance') || domain.includes('competitor') || domain.includes('competitive')
-        || domain.includes('risk') || domain.includes('threat')
-        || findings.toLowerCase().includes('risk') || findings.toLowerCase().includes('underperform')
-        || findings.toLowerCase().includes('competitor')
-      if (isRisk) {
-        risks.push({
-          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
-          cause: findings, action: topRec?.action || topRec?.recommendation || '',
-          scenarioId: id,
-          detailSections: [{ label: 'Risk Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Mitigation Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
-          relatedActions: relActions,
-        })
-      }
-
-      // Map to alerts — broad keyword matching
-      const isAlert = types.includes('claims') || types.includes('reputation') || types.includes('safety')
-        || domain.includes('claims') || domain.includes('compliance') || domain.includes('reputation')
-        || domain.includes('integrity') || domain.includes('safety') || domain.includes('regulatory')
-        || domain.includes('sentiment')
-        || findings.toLowerCase().includes('concern') || findings.toLowerCase().includes('irritation')
-        || findings.toLowerCase().includes('safety') || findings.toLowerCase().includes('regulatory')
-      if (isAlert) {
+      if (alertScore > 0 && alertScore >= riskScore && alertScore >= oppScore) {
         alerts.push({
           title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
           why: findings, response: topRec?.action || topRec?.recommendation || '',
@@ -359,15 +352,20 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
           detailSections: [{ label: 'Alert Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Response Plan', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
           relatedActions: relActions,
         })
-      }
-
-      // If no category matched, add to opportunities as default (web data is usually opportunity-oriented)
-      if (!isOpp && !isRisk && !isAlert) {
+      } else if (riskScore > 0 && riskScore >= oppScore) {
+        risks.push({
+          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
+          cause: findings, action: topRec?.action || topRec?.recommendation || '',
+          scenarioId: id,
+          detailSections: [{ label: 'Risk Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Mitigation Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
+          relatedActions: relActions,
+        })
+      } else {
         opportunities.push({
           title: cleanText(spTitle, 70), brand: spBrand, market: spMarket,
-          why: findings, confidence: 'Medium', move: topRec?.action || topRec?.recommendation || '',
+          why: findings, confidence: sp?.confidence || urg, move: topRec?.action || topRec?.recommendation || '',
           scenarioId: id,
-          detailSections: [{ label: 'Analysis', content: findings }],
+          detailSections: [{ label: 'Opportunity Analysis', content: findings }, ...(recs.length > 1 ? [{ label: 'Next Steps', content: recs.map((r: any) => r?.action || r?.recommendation || '').filter(Boolean).join('. ') }] : [])],
           relatedActions: relActions,
         })
       }

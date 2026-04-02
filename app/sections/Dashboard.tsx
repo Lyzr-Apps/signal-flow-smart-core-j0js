@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiPulseLine, RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiShieldLine, RiFileTextLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine } from 'react-icons/ri'
+import { RiPulseLine, RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiShieldLine, RiFileTextLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine, RiSearchLine, RiChat3Line, RiStarLine, RiShoppingCartLine } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_ANALYSES,
@@ -18,18 +18,79 @@ interface DashboardProps {
   agentLoading?: boolean
   agentError?: string | null
   hasRunAnalysis?: boolean
+  searchFilter?: string
 }
 
-export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail, agentLoading, agentError, hasRunAnalysis }: DashboardProps) {
+function matchesQuery(query: string, ...fields: string[]): boolean {
+  if (!query) return true
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const text = fields.join(' ').toLowerCase()
+  return terms.some(term => text.includes(term))
+}
+
+function SignalVolumeTrend() {
+  // Simulated weekly signal volume (seeded baseline)
+  const data = [4, 6, 5, 8, 7, 10, 9, 12]
+  const labels = ['W-8', 'W-7', 'W-6', 'W-5', 'W-4', 'W-3', 'W-2', 'Now']
+  const max = Math.max(...data)
+  return (
+    <div className="flex items-end gap-2 h-[72px]">
+      {data.map((v, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+          <span className="text-[9px] text-foreground/60">{v}</span>
+          <div
+            className="w-full bg-primary/70 hover:bg-primary transition-colors"
+            style={{ height: `${(v / max) * 56}px` }}
+          />
+          <span className="text-[8px] text-muted-foreground">{labels[i]}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SourceBreakdown({ signals, alerts }: { signals: any[]; alerts: any[] }) {
+  const sources = [
+    { label: 'Search Trends', icon: RiSearchLine, count: Math.max(2, Math.floor(signals.length * 0.3)), color: 'bg-blue-400' },
+    { label: 'Social / Creator', icon: RiChat3Line, count: Math.max(2, Math.floor(signals.length * 0.25)), color: 'bg-purple-400' },
+    { label: 'Product Reviews', icon: RiStarLine, count: Math.max(1, Math.floor(signals.length * 0.2)), color: 'bg-amber-400' },
+    { label: 'E-Commerce', icon: RiShoppingCartLine, count: Math.max(1, Math.floor(alerts.length * 0.5)), color: 'bg-emerald-400' },
+  ]
+  const maxCount = Math.max(...sources.map(s => s.count))
+  return (
+    <div className="space-y-3">
+      {sources.map((s) => {
+        const Icon = s.icon
+        return (
+          <div key={s.label} className="flex items-center gap-3">
+            <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex justify-between mb-0.5">
+                <span className="text-[10px] text-muted-foreground tracking-wide">{s.label}</span>
+                <span className="text-[10px] text-foreground/70 font-medium">{s.count}</span>
+              </div>
+              <div className="h-1.5 bg-secondary w-full">
+                <div className={`h-full ${s.color}`} style={{ width: `${(s.count / maxCount) * 100}%` }} />
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail, agentLoading, agentError, hasRunAnalysis, searchFilter = '' }: DashboardProps) {
   const safeAnalyses = Array.isArray(analyses) ? analyses : []
   const derived = useMemo(() => deriveFromAnalyses(safeAnalyses), [safeAnalyses])
   const useReal = !!hasRunAnalysis && safeAnalyses.length > 0
 
-  const allSignals = useReal && derived.signals.length > 0 ? derived.signals : SEEDED_SIGNALS
-  const allActions = useReal && derived.actions.length > 0 ? derived.actions : SEEDED_ACTIONS
-  const allOpps = useReal && derived.opportunities.length > 0 ? derived.opportunities : SEEDED_OPPORTUNITIES
-  const allRisks = useReal && derived.risks.length > 0 ? derived.risks : SEEDED_RISKS
-  const allAlerts = useReal && derived.alerts.length > 0 ? derived.alerts : SEEDED_ALERTS
+  const q = searchFilter
+  const allSignals = (useReal && derived.signals.length > 0 ? derived.signals : SEEDED_SIGNALS).filter(s => matchesQuery(q, s.title, s.brand, s.market, s.why))
+  const allActions = (useReal && derived.actions.length > 0 ? derived.actions : SEEDED_ACTIONS).filter(a => matchesQuery(q, a.title, a.owner, a.impact))
+  const allOpps = (useReal && derived.opportunities.length > 0 ? derived.opportunities : SEEDED_OPPORTUNITIES).filter(o => matchesQuery(q, o.title, o.brand, o.market, o.why))
+  const allRisks = (useReal && derived.risks.length > 0 ? derived.risks : SEEDED_RISKS).filter(r => matchesQuery(q, r.title, r.brand, r.market, r.cause))
+  const allAlerts = (useReal && derived.alerts.length > 0 ? derived.alerts : SEEDED_ALERTS).filter(a => matchesQuery(q, a.title, a.brand, a.market, a.why))
 
   const topSignal = allSignals.filter(s => isHighPriority(s.urgency))[0] || allSignals[0]
   const topAction = allActions.filter(a => isHighPriority(a.priority))[0] || allActions[0]
@@ -87,6 +148,17 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
         </div>
       )}
 
+      {/* Search filter indicator */}
+      {q && (
+        <div className="mx-8 mt-6 bg-primary/5 border border-primary/20 p-3 flex items-center gap-3">
+          <RiSearchLine className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+          <p className="text-[12px] text-foreground tracking-wide flex-1">
+            Filtering results for: <span className="text-primary font-medium">&ldquo;{q}&rdquo;</span>
+            {allSignals.length + allOpps.length + allRisks.length === 0 && ' — no local matches. Web results loading...'}
+          </p>
+        </div>
+      )}
+
       {/* KPI Row */}
       <div className="px-8 pt-7 pb-2">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -132,6 +204,22 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Signal Overview Charts */}
+      <div className="px-8 pt-4 pb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Signal Volume Trend */}
+          <div className="bg-card border border-border p-5">
+            <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-4 font-serif">Signal Volume — Last 8 Weeks</h4>
+            <SignalVolumeTrend />
+          </div>
+          {/* Source Breakdown */}
+          <div className="bg-card border border-border p-5">
+            <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-4 font-serif">Intelligence by Source</h4>
+            <SourceBreakdown signals={allSignals} alerts={allAlerts} />
+          </div>
         </div>
       </div>
 

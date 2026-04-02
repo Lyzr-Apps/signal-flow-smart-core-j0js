@@ -6,6 +6,9 @@ import parseLLMJson from '@/lib/jsonParser'
 import fetchWrapper from '@/lib/fetchWrapper'
 import { Badge } from '@/components/ui/badge'
 import { RiRadarLine, RiLoader4Line, RiSearchLine } from 'react-icons/ri'
+import {
+  SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
+} from './sections/data/seededScenarios'
 
 import Sidebar from './sections/Sidebar'
 import Dashboard from './sections/Dashboard'
@@ -96,6 +99,8 @@ export default function Page() {
     fetchAnalyses()
   }, [fetchAnalyses])
 
+  // Filter seeded data by search query relevance
+  const [searchFilter, setSearchFilter] = useState('')
   const displayAnalyses = analyses
 
   const runWebAnalysis = async (query?: string) => {
@@ -263,12 +268,16 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
     }
   }
 
-  const handleRunAnalysis = () => runWebAnalysis()
+  const handleRunAnalysis = () => {
+    setSearchFilter('')
+    runWebAnalysis()
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim() || agentLoading) return
     setSearchLoading(true)
+    setSearchFilter(searchQuery.trim())
     setCurrentView('dashboard')
     runWebAnalysis(searchQuery.trim())
   }
@@ -321,6 +330,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentLoading={agentLoading}
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
+            searchFilter={searchFilter}
           />
         )
       case 'detail':
@@ -340,6 +350,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentLoading={agentLoading}
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
+            searchFilter={searchFilter}
           />
         )
       case 'market-signals':
@@ -421,6 +432,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentLoading={agentLoading}
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
+            searchFilter={searchFilter}
           />
         )
     }

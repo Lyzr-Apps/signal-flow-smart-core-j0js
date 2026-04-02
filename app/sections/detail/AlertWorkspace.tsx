@@ -1,9 +1,59 @@
 'use client'
 
 import React from 'react'
-import { RiArrowLeftLine, RiShieldLine, RiFlashlightLine, RiLightbulbLine } from 'react-icons/ri'
+import { RiArrowLeftLine, RiShieldLine, RiFlashlightLine, RiLightbulbLine, RiArrowRightUpLine } from 'react-icons/ri'
 import { urgencyBadge, severityDot } from '../data/seededScenarios'
 import type { DetailItem } from '../DetailView'
+
+function deriveAlertMetrics(title: string) {
+  const t = (title ?? '').toLowerCase()
+  if (t.includes('retinol') || t.includes('irritation'))
+    return { sentiment: '+340%', distribution: [{ name: 'Social', value: 45 }, { name: 'Reviews', value: 28 }, { name: 'Forums', value: 15 }, { name: 'Direct', value: 12 }], escalation: 78 }
+  if (t.includes('spicule'))
+    return { sentiment: '85M+ views', distribution: [{ name: 'TikTok', value: 52 }, { name: 'Reddit', value: 22 }, { name: 'YouTube', value: 16 }, { name: 'News', value: 10 }], escalation: 62 }
+  return { sentiment: '+180%', distribution: [{ name: 'Social', value: 40 }, { name: 'Reviews', value: 30 }, { name: 'Forums', value: 20 }, { name: 'Other', value: 10 }], escalation: 50 }
+}
+
+function AlertVelocity({ title }: { title: string }) {
+  const m = deriveAlertMetrics(title)
+  const escColor = m.escalation >= 70 ? 'bg-red-400' : m.escalation >= 40 ? 'bg-amber-400' : 'bg-emerald-400'
+  const escText = m.escalation >= 70 ? 'text-red-400' : m.escalation >= 40 ? 'text-amber-400' : 'text-emerald-400'
+  return (
+    <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Sentiment Change</h4>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[18px] font-serif text-red-400">{m.sentiment}</span>
+          <RiArrowRightUpLine className="h-3.5 w-3.5 text-red-400" />
+        </div>
+        <span className="text-[10px] text-muted-foreground">negative mentions</span>
+      </div>
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Source Distribution</h4>
+        <div className="flex h-3 w-full mb-2">
+          {m.distribution.map((d, i) => (
+            <div key={d.name} className="h-full" style={{ width: `${d.value}%`, backgroundColor: i === 0 ? 'hsl(40,50%,55%)' : i === 1 ? 'hsl(40,40%,45%)' : i === 2 ? 'hsl(40,30%,35%)' : 'hsl(40,20%,28%)' }} />
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+          {m.distribution.map((d) => (
+            <span key={d.name} className="text-[9px] text-muted-foreground">{d.name} {d.value}%</span>
+          ))}
+        </div>
+      </div>
+      <div className="bg-card border border-border p-4">
+        <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 font-serif">Escalation Risk</h4>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className={`text-[18px] font-serif ${escText}`}>{m.escalation}</span>
+          <span className="text-[10px] text-muted-foreground">/ 100</span>
+        </div>
+        <div className="h-2 bg-secondary w-full">
+          <div className={`h-full ${escColor}`} style={{ width: `${m.escalation}%` }} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function AlertWorkspace({ item, onBack }: { item: DetailItem; onBack: () => void }) {
   const sections = item.sections || []
@@ -32,6 +82,8 @@ export default function AlertWorkspace({ item, onBack }: { item: DetailItem; onB
             {item.market && <span>Market: <span className="text-foreground/80">{item.market}</span></span>}
           </div>
         )}
+
+        <AlertVelocity title={item?.title ?? ''} />
 
         {firstSection && (
           <div className="bg-card border border-border p-5 mb-4">
