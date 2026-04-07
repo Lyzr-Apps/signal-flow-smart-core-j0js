@@ -34,6 +34,7 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
       category: 'opportunity', title: opp.title, brand: opp.brand, market: opp.market, severity: opp.confidence,
       sections: opp.detailSections.length > 0 ? opp.detailSections : [{ label: 'What Changed', content: opp.why }, { label: 'What Teams Should Do', content: opp.move }],
       relatedActions: opp.relatedActions,
+      metrics: opp.metrics,
     })
   }
 
@@ -42,6 +43,7 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
       category: 'risk', title: risk.title, brand: risk.brand, market: risk.market, severity: risk.severity,
       sections: risk.detailSections.length > 0 ? risk.detailSections : [{ label: 'What Changed', content: risk.cause }, { label: 'What Teams Should Do', content: risk.action }],
       relatedActions: risk.relatedActions,
+      metrics: risk.metrics,
     })
   }
 

@@ -1,10 +1,9 @@
 'use client'
 
 import React from 'react'
-import SignalWorkspace from './detail/SignalWorkspace'
-import RiskWorkspace from './detail/RiskWorkspace'
-import AlertWorkspace from './detail/AlertWorkspace'
+import InsightWorkspace from './detail/InsightWorkspace'
 import ActionWorkspace from './detail/ActionWorkspace'
+import type { InsightMetrics } from './data/seededScenarios'
 
 export interface DetailItem {
   category: 'signal' | 'action' | 'opportunity' | 'risk' | 'alert' | 'analysis'
@@ -15,6 +14,7 @@ export interface DetailItem {
   sections: { label: string; content: string }[]
   relatedActions?: { action: string; priority: string; owner?: string; rationale?: string }[]
   sourceAnalysisId?: string
+  metrics?: InsightMetrics
 }
 
 interface DetailViewProps {
@@ -25,18 +25,14 @@ interface DetailViewProps {
 
 export default function DetailView({ item, onBack }: DetailViewProps) {
   switch (item.category) {
-    case 'signal':
-    case 'opportunity':
-      return <SignalWorkspace item={item} onBack={onBack} />
-    case 'risk':
-      return <RiskWorkspace item={item} onBack={onBack} />
-    case 'alert':
-      return <AlertWorkspace item={item} onBack={onBack} />
     case 'action':
       return <ActionWorkspace item={item} onBack={onBack} />
+    case 'signal':
+    case 'opportunity':
+    case 'risk':
+    case 'alert':
     case 'analysis':
-      return <SignalWorkspace item={item} onBack={onBack} />
     default:
-      return <SignalWorkspace item={item} onBack={onBack} />
+      return <InsightWorkspace item={item} onBack={onBack} />
   }
 }

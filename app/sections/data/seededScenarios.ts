@@ -1,5 +1,5 @@
 // Shared seeded foresight scenario data, types, and helpers
-// Used by Dashboard, CategoryListView, and workspace components
+// North America-focused demand intelligence data
 
 export interface AnalysisItem {
   _id?: string
@@ -12,11 +12,57 @@ export interface AnalysisItem {
   createdAt?: string
 }
 
-export interface SeededSignal { id: string; title: string; brand: string; market: string; urgency: string; why: string; nextStep: string; crossCutting: string; detailSections: { label: string; content: string }[]; relatedActions: { action: string; priority: string; owner: string; rationale: string }[]; timestamp: string }
+export interface InsightMetrics {
+  signalStrength: string
+  lorealTrend: number[]
+  competitorTrend: number[]
+  competitorName: string
+  competitorProduct: string
+  gapVsCompetitor: string
+  gapReason: string
+  demandImplication: string
+  confidence: string
+  supportingEvidence: string
+  teamActions: {
+    marketing: string
+    product: string
+    planning: string
+    manufacturing: string
+  }
+}
+
+export interface SeededSignal {
+  id: string; title: string; brand: string; market: string; urgency: string
+  why: string; nextStep: string; crossCutting: string
+  detailSections: { label: string; content: string }[]
+  relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
+  timestamp: string
+  metrics?: InsightMetrics
+}
+
 export interface SeededAction { title: string; priority: string; owner: string; impact: string; timeline: string; scenarioId: string }
-export interface SeededOpportunity { title: string; brand: string; market: string; why: string; confidence: string; move: string; scenarioId: string; detailSections: { label: string; content: string }[]; relatedActions: { action: string; priority: string; owner: string; rationale: string }[] }
-export interface SeededRisk { title: string; brand: string; market: string; severity: string; cause: string; action: string; scenarioId: string; detailSections: { label: string; content: string }[]; relatedActions: { action: string; priority: string; owner: string; rationale: string }[] }
-export interface SeededAlert { title: string; brand: string; market: string; severity: string; why: string; response: string; scenarioId: string; detailSections: { label: string; content: string }[]; relatedActions: { action: string; priority: string; owner: string; rationale: string }[] }
+
+export interface SeededOpportunity {
+  title: string; brand: string; market: string; why: string; confidence: string; move: string; scenarioId: string
+  detailSections: { label: string; content: string }[]
+  relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
+  metrics?: InsightMetrics
+}
+
+export interface SeededRisk {
+  title: string; brand: string; market: string; severity: string; cause: string; action: string; scenarioId: string
+  detailSections: { label: string; content: string }[]
+  relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
+  metrics?: InsightMetrics
+}
+
+export interface SeededAlert {
+  title: string; brand: string; market: string; severity: string; why: string; response: string; scenarioId: string
+  detailSections: { label: string; content: string }[]
+  relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
+  metrics?: InsightMetrics
+}
+
 export interface SeededAnalysis { id: string; title: string; brand: string; market: string; signalTypes: string[]; summary: string; timestamp: string; scenarioId: string }
 
 // ── Helpers ──
@@ -56,209 +102,438 @@ export function isHighPriority(p: string): boolean {
   return v === 'critical' || v === 'high'
 }
 
-// ── Priority Signals ──
+// ── Priority Signals (North America) ──
 export const SEEDED_SIGNALS: SeededSignal[] = [
   {
-    id: 's1', title: 'Peptide Scalp-Care Opportunity Emerging in Southeast Asia', brand: 'Garnier / Kerastase', market: 'Southeast Asia', urgency: 'High',
-    why: 'Search volume for "peptide scalp serum" is up 280% QoQ in Southeast Asia. Social discussion centres on scalp barrier health among 18-34 consumers. Current offerings are fragmented with no category leader.',
-    nextStep: 'Commission consumer research in Indonesia and Thailand to validate demand sizing and price sensitivity',
-    crossCutting: 'Preventive hair wellness is an emerging behaviour shift that connects scalp health, active ingredients, and self-care culture.',
-    timestamp: '2026-03-24T08:45:00Z',
+    id: 's1',
+    title: 'CeraVe Losing US Moisturizer Share to Cetaphil Relaunch',
+    brand: 'CeraVe',
+    market: 'United States',
+    urgency: 'Critical',
+    why: 'CeraVe US moisturizer market share dropped from 18.2% to 14.8% over 6 months as Cetaphil (Galderma) aggressively relaunched with dermatologist-endorsed campaign and updated packaging at Walmart and CVS.',
+    nextStep: 'Launch CeraVe counter-campaign with dermatologist endorsements and clinical data differentiation at US retail',
+    crossCutting: 'Mass skincare share is increasingly won by dermatologist credibility marketing rather than product reformulation.',
+    timestamp: '2026-04-01T09:00:00Z',
     detailSections: [
-      { label: 'What Changed', content: 'Search and social discussion around scalp barrier health and peptide-based scalp serums is rising in Southeast Asia, especially among younger consumers seeking preventive hair wellness routines. Current offerings are fragmented and education is still limited.' },
-      { label: 'Why It Was Flagged', content: 'This represents a whitespace opportunity where no major brand owns the category narrative. Consumer behaviour is shifting from reactive hair repair to preventive scalp wellness, and peptide-based formulations are the emerging science story driving interest.' },
-      { label: 'Market Intelligence', content: 'Google Trends data shows "scalp serum" search volume up 280% QoQ in Indonesia, Philippines, and Thailand. TikTok and Instagram Reels content around scalp-care routines is generating 3-5x higher engagement than traditional hair-care content.' },
-      { label: 'What Teams Should Do', content: 'Commission consumer research in Indonesia and Thailand to validate demand sizing and price sensitivity. Evaluate existing Kerastase and Garnier scalp-care formulations for Southeast Asia market adaptation.' },
+      { label: 'Market Signal', content: 'Cetaphil (Galderma) completed a full US relaunch with updated packaging, a $40M dermatologist endorsement campaign, and prominent endcap placement at Walmart, CVS, and Walgreens. Cetaphil Gentle Moisturizing Cream has moved from #4 to #2 in US mass moisturizer sales since January 2026.' },
+      { label: 'L\'Oreal Performance', content: 'CeraVe Moisturizing Cream US sales declined 12% YoY in Q1 2026. Share in US mass moisturizer dropped from 18.2% to 14.8%. TikTok-driven growth from 2023-2024 has plateaued as competitor spending increased.' },
+      { label: 'Competitor Performance', content: 'Cetaphil Gentle Moisturizing Cream US sales grew 28% YoY. Galderma invested heavily in US dermatologist partnerships (200+ practicing dermatologists) and reformulated with added niacinamide. Cetaphil now holds 16.1% US mass moisturizer share, up from 11.3%.' },
+      { label: 'Gap / Diagnosis', content: 'CeraVe is underperforming Cetaphil by -1.3pp in US share. Primary reason: Cetaphil\'s dermatologist campaign is more aggressive and credible. CeraVe\'s TikTok growth wave has normalized while Cetaphil is investing in traditional medical authority channels. CeraVe product efficacy perception remains strong but is not being communicated at point of sale.' },
+      { label: 'Demand Implication', content: 'US mass moisturizer market is $4.2B annually. Every 1pp of share = $42M revenue. CeraVe\'s 3.4pp decline represents approximately $143M in lost annual revenue opportunity if trend continues. Cetaphil\'s momentum at Walmart threatens CeraVe\'s #1 position in US mass skincare.' },
     ],
     relatedActions: [
-      { action: 'Commission scalp-care consumer research in Southeast Asia', priority: 'High', owner: 'Consumer Insights APAC', rationale: 'Validate market size and consumer willingness to pay before product development' },
-      { action: 'Evaluate peptide scalp serum formulation pipeline', priority: 'High', owner: 'R&D Hair Care', rationale: 'Determine time-to-market for peptide-based scalp product' },
-      { action: 'Map competitive landscape in Southeast Asia scalp-care', priority: 'Medium', owner: 'Strategy APAC', rationale: 'Identify gaps and positioning opportunities before committing resources' },
+      { action: 'Launch CeraVe dermatologist counter-campaign in US market', priority: 'Critical', owner: 'Marketing US', rationale: 'Match Cetaphil dermatologist spend before share loss accelerates' },
+      { action: 'Secure Walmart endcap placement for CeraVe Moisturizing Cream', priority: 'Critical', owner: 'Commercial US', rationale: 'Cetaphil gained endcap visibility; CeraVe needs parity' },
+      { action: 'Evaluate CeraVe Moisturizing Cream reformulation with niacinamide boost', priority: 'High', owner: 'R&D Skincare', rationale: 'Match Cetaphil\'s reformulation messaging with superior ingredient story' },
+      { action: 'Adjust Q2-Q3 CeraVe moisturizer demand forecast downward by 8%', priority: 'High', owner: 'Demand Planning US', rationale: 'Current trajectory suggests continued share pressure from Cetaphil' },
     ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [82, 80, 76, 72, 68, 65],
+      competitorTrend: [48, 55, 62, 70, 78, 85],
+      competitorName: 'Cetaphil (Galderma)',
+      competitorProduct: 'Cetaphil Gentle Moisturizing Cream',
+      gapVsCompetitor: '-1.3pp share, -$143M annual risk',
+      gapReason: 'Cetaphil dermatologist campaign outspending CeraVe; CeraVe TikTok growth plateaued; Walmart shelf placement lost',
+      demandImplication: 'CeraVe risks losing #1 US mass skincare position if share decline continues through H2 2026',
+      confidence: 'High',
+      supportingEvidence: 'Nielsen IQ US mass skincare data Q1 2026; Walmart shelf audit March 2026; Galderma investor presentation citing $40M US campaign',
+      teamActions: {
+        marketing: 'Launch $25M CeraVe dermatologist endorsement campaign by June 2026. Match Cetaphil\'s medical authority positioning.',
+        product: 'Fast-track CeraVe Moisturizing Cream niacinamide-enhanced formula. Target September 2026 shelf reset.',
+        planning: 'Reduce Q2-Q3 CeraVe moisturizer forecast by 8%. Increase promotional allocation at Walmart and CVS.',
+        manufacturing: 'Prepare for reformulated CeraVe Moisturizing Cream production run by August 2026. Ensure ingredient supply for niacinamide increase.',
+      },
+    },
   },
   {
-    id: 's2', title: 'The Ordinary Vitamin C Suspension Gaining SOV in UK Brightening', brand: "L'Oreal Paris", market: 'United Kingdom', urgency: 'Critical',
-    why: 'The Ordinary (DECIEM / Estée Lauder) has launched an updated Vitamin C Suspension 23% + HA Spheres with aggressive creator seeding and dermatologist endorsements in the UK. L\'Oréal Paris SOV in brightening has dropped 18 points in 4 weeks.',
-    nextStep: 'Accelerate UK Revitalift Clinical Vitamin C serum launch timeline and activate counter-narrative with owned clinical data',
-    crossCutting: 'Speed of competitive response in creator-led categories determines long-term SOV positioning.',
-    timestamp: '2026-03-23T14:20:00Z',
+    id: 's2',
+    title: 'Maybelline SuperStay Foundation Losing Share to e.l.f. Halo Glow in US',
+    brand: 'Maybelline',
+    market: 'United States',
+    urgency: 'Critical',
+    why: 'e.l.f. Beauty\'s Halo Glow Liquid Filter has captured significant US mass foundation share through aggressive TikTok creator strategy and $8 price point vs Maybelline SuperStay at $12-14.',
+    nextStep: 'Launch TikTok-first creator campaign for Maybelline SuperStay with competitive value messaging',
+    crossCutting: 'US mass color cosmetics are being disrupted by indie brands using social-first marketing at lower price points.',
+    timestamp: '2026-03-30T14:00:00Z',
     detailSections: [
-      { label: 'What Changed', content: 'The Ordinary (owned by Estée Lauder via DECIEM) has relaunched its Vitamin C Suspension 23% + HA Spheres in the UK with strong creator seeding, dermatologist-led content on TikTok and Instagram, and prominent retail placement at Boots and Space NK. Search and social attention are consolidating around The Ordinary\'s claims.' },
-      { label: 'Why It Was Flagged', content: 'The Ordinary\'s SOV in "brightening serum UK" search cluster has risen from 12% to 38% in 4 weeks. Their creator programme includes 40+ UK-based dermatology and skincare influencers. Retail placement includes Boots premium endcap and Space NK feature wall. At the £12 price point, they are undercutting L\'Oréal Paris Revitalift Clinical.' },
-      { label: 'Impact on L\'Oreal Paris', content: 'Our planned Q2 Revitalift Clinical 12% Pure Vitamin C launch in the UK is at risk of entering a market where The Ordinary\'s claims are already established. Without counter-positioning, the launch will appear reactive. The Ordinary\'s price advantage (£12 vs £30) requires a clinical efficacy differentiation strategy.' },
-      { label: 'What Teams Should Do', content: 'Accelerate UK Revitalift Clinical launch timeline by 3-4 weeks. Activate proprietary clinical trial data showing superior brightening efficacy at 12 weeks. Engage UK-based dermatologists for counter-narrative content before The Ordinary\'s narrative solidifies.' },
+      { label: 'Market Signal', content: 'e.l.f. Beauty Halo Glow Liquid Filter generated 2.1B+ TikTok views in Q1 2026. US mass foundation category shifted toward lightweight, skin-tint products. e.l.f. overall US prestige-adjacent mass makeup share grew from 8% to 14% in 12 months.' },
+      { label: 'L\'Oreal Performance', content: 'Maybelline SuperStay US foundation sales declined 15% YoY. SOV in US mass foundation dropped from 22% to 16%. Maybelline\'s value perception weakened as consumers perceive e.l.f. as comparable quality at lower price.' },
+      { label: 'Competitor Performance', content: 'e.l.f. Halo Glow Liquid Filter grew 185% YoY in US sales. e.l.f.\'s creator programme includes 500+ US-based micro-influencers with monthly product seeding. At $8 vs Maybelline\'s $12-14, price gap is driving trial among 18-24 consumers.' },
+      { label: 'Gap / Diagnosis', content: 'Maybelline is underperforming e.l.f. by -6pp in US foundation SOV. Primary reason: e.l.f.\'s TikTok creator volume is 4x Maybelline\'s. Secondary: price perception gap at $4-6 disadvantage. Maybelline\'s product quality scores are comparable, but discovery and trial are being won by e.l.f.' },
+      { label: 'Demand Implication', content: 'US mass foundation market is $2.8B. Maybelline\'s 6pp SOV decline represents ~$168M at risk. The shift to lightweight formulas favors e.l.f. Halo Glow\'s positioning. If Maybelline does not respond with a skin-tint SKU and creator strategy by Q3, further share loss is likely.' },
     ],
     relatedActions: [
-      { action: 'Accelerate UK Revitalift Clinical Vitamin C launch by 3-4 weeks', priority: 'Critical', owner: 'Brand Management UK', rationale: 'Prevent The Ordinary from solidifying category ownership in UK brightening' },
-      { action: 'Activate clinical data counter-narrative vs The Ordinary', priority: 'Critical', owner: 'Medical Affairs / PR', rationale: 'Differentiate on clinical evidence vs. The Ordinary\'s creator-led claims' },
-      { action: 'Secure Boots premium placement for Revitalift Clinical launch week', priority: 'High', owner: 'Commercial UK', rationale: 'Match The Ordinary\'s retail visibility at Boots and Space NK' },
+      { action: 'Launch 200+ creator TikTok campaign for Maybelline SuperStay', priority: 'Critical', owner: 'Digital Marketing US', rationale: 'Match e.l.f.\'s creator volume to protect US foundation SOV' },
+      { action: 'Develop Maybelline skin-tint SKU at $9-10 price point', priority: 'High', owner: 'Product Development', rationale: 'Address lightweight formula trend and close price gap vs e.l.f.' },
+      { action: 'Adjust Maybelline foundation demand forecast for US market', priority: 'High', owner: 'Demand Planning US', rationale: 'Account for continued e.l.f. share gains in Q2-Q3 planning' },
+      { action: 'Evaluate Maybelline trial-size foundation for Target and Ulta', priority: 'Medium', owner: 'Commercial US', rationale: 'Lower trial barrier to compete with e.l.f. price advantage' },
     ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [45, 42, 39, 36, 33, 30],
+      competitorTrend: [20, 28, 38, 50, 62, 75],
+      competitorName: 'e.l.f. Beauty',
+      competitorProduct: 'Halo Glow Liquid Filter',
+      gapVsCompetitor: '-6pp SOV, ~$168M at risk',
+      gapReason: 'e.l.f. TikTok creator volume 4x Maybelline; $4-6 price gap; lightweight formula trend favoring e.l.f.',
+      demandImplication: 'Further Maybelline foundation share erosion likely without competitive skin-tint launch and creator strategy by Q3 2026',
+      confidence: 'High',
+      supportingEvidence: 'Circana US mass cosmetics data Q1 2026; TikTok Analytics showing 2.1B views for Halo Glow; e.l.f. investor call citing 185% growth',
+      teamActions: {
+        marketing: 'Deploy $15M TikTok-first creator campaign with 200+ micro-influencers by May 2026.',
+        product: 'Fast-track Maybelline skin-tint development at $9-10 MSRP. Target August 2026 launch.',
+        planning: 'Reduce Maybelline full-coverage foundation forecast by 12%. Build skin-tint launch forecast.',
+        manufacturing: 'Prepare skin-tint production line. Evaluate co-pack options for accelerated timeline.',
+      },
+    },
   },
   {
-    id: 's5', title: 'Exosome Skincare Interest Accelerating in Premium Anti-Aging', brand: 'Lancome / Helena Rubinstein', market: 'South Korea / US / Europe', urgency: 'High',
-    why: 'Search and creator discussion around exosome-based skincare is accelerating among premium consumers. The narrative centres on advanced repair and regeneration, but consumer understanding is early and fragmented.',
-    nextStep: 'Evaluate exosome technology integration into Lancome Advanced Genifique pipeline and commission regulatory feasibility review',
-    crossCutting: 'Exosome technology bridges biotech and beauty in ways that could redefine premium anti-aging positioning.',
-    timestamp: '2026-03-22T11:30:00Z',
+    id: 's3',
+    title: 'Garnier Fructis Losing US Shelf Space to Native and Function of Beauty',
+    brand: 'Garnier',
+    market: 'United States / Canada',
+    urgency: 'High',
+    why: 'Garnier Fructis lost 6 SKU facings at Target in Q1 2026 shelf reset as Native (P&G) and Function of Beauty (Unilever) gained premium-clean positioning in US mass hair care.',
+    nextStep: 'Develop clean-positioned Garnier hair care line for US market and renegotiate Target shelf allocation',
+    crossCutting: 'US mass hair care is splitting into clean/premium-mass and value tiers, squeezing legacy natural brands.',
+    timestamp: '2026-03-28T11:00:00Z',
     detailSections: [
-      { label: 'What Changed', content: 'Search, social, and creator discussion around exosome-based skincare is accelerating among premium consumers. South Korean brands AmorePacific (AMOREPACIFIC Exosome Serum) and Sulwhasoo are leading clinical channel launches. US brands like Augustinus Bader are exploring exosome-adjacent positioning.' },
-      { label: 'Opportunity Assessment', content: 'Exosome skincare represents the next frontier in biotech beauty. AmorePacific and Sulwhasoo are first to market but confined to South Korean clinical channels. No global luxury brand has claimed the exosome narrative in mainstream premium skincare. Estée Lauder and Shiseido have not publicly announced exosome product development.' },
-      { label: 'Strategic Fit', content: 'Lancome Advanced Genifique and Helena Rubinstein Prodigy lines are well positioned to integrate exosome technology. Advanced Genifique\'s microbiome science positioning can naturally extend to exosome delivery. First-mover advantage against Estée Lauder (Advanced Night Repair) and Shiseido (Ultimune) is achievable.' },
-      { label: 'What Teams Should Do', content: 'Evaluate exosome technology integration into Advanced Genifique pipeline. Commission regulatory feasibility review for EU, US, and China markets. Begin science communication groundwork with key dermatology KOLs before AmorePacific or Estée Lauder claim the global narrative.' },
+      { label: 'Market Signal', content: 'Target Q1 2026 shelf reset removed 6 Garnier Fructis SKUs from US hair care planogram. Native Hair Care (P&G) gained 4 facings and Function of Beauty (Unilever) gained 5 facings. Clean and personalized positioning is winning US mass hair care shelf space.' },
+      { label: 'L\'Oreal Performance', content: 'Garnier Fructis US hair care revenue declined 9% YoY. Market share in US mass shampoo dropped from 12.1% to 9.8%. Brand perception scores for "clean" and "modern" declined among US women 18-34.' },
+      { label: 'Competitor Performance', content: 'Native Hair Care (P&G) grew 42% YoY in US with clean-ingredient positioning and recyclable packaging. Function of Beauty (Unilever) grew 31% with personalized formulations at Target. Both brands are taking share in the $8-12 premium-mass tier.' },
+      { label: 'Gap / Diagnosis', content: 'Garnier is underperforming by -2.3pp share in US mass shampoo. Primary reason: Garnier\'s "natural" positioning perceived as legacy compared to Native/Function of Beauty "clean" messaging. Secondary: Garnier pricing ($6-8) doesn\'t command premium but isn\'t low enough for pure value shoppers.' },
+      { label: 'Demand Implication', content: 'US mass hair care is $7.8B. Garnier\'s 2.3pp share decline = ~$180M revenue pressure. If Q3 shelf reset follows Q1 trajectory, further SKU losses at Target and Walmart are likely. Clean hair care is growing at 18% CAGR vs 3% for total mass hair care in US.' },
     ],
     relatedActions: [
-      { action: 'Evaluate exosome technology for Lancome Genifique pipeline', priority: 'High', owner: 'R&D Skincare Innovation', rationale: 'First global luxury brand to market with exosome claims will define category ahead of Estée Lauder and Shiseido' },
-      { action: 'Commission multi-market regulatory feasibility review', priority: 'High', owner: 'Regulatory Affairs', rationale: 'Exosome claims require careful navigation across EU, US, and China regulatory frameworks' },
-      { action: 'Begin KOL science communication programme', priority: 'Medium', owner: 'Medical Affairs', rationale: 'Build credibility infrastructure before AmorePacific or competitors expand globally' },
+      { action: 'Develop Garnier Clean+ hair care sub-line for US market', priority: 'High', owner: 'Product Development Hair Care', rationale: 'Address clean-hair positioning gap vs Native and Function of Beauty' },
+      { action: 'Renegotiate Target shelf allocation for Q3 reset', priority: 'High', owner: 'Commercial US', rationale: 'Prevent further SKU losses with new clean positioning and promotional commitments' },
+      { action: 'Shift Garnier US marketing budget from TV to digital creator content', priority: 'High', owner: 'Marketing US', rationale: 'Native and Function of Beauty are winning through social-first discovery' },
+      { action: 'Adjust Garnier Fructis US demand plan downward by 10%', priority: 'Medium', owner: 'Demand Planning US', rationale: 'Shelf space loss will reduce sell-through velocity' },
     ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [52, 48, 45, 42, 38, 35],
+      competitorTrend: [22, 28, 35, 42, 50, 58],
+      competitorName: 'Native (P&G) / Function of Beauty (Unilever)',
+      competitorProduct: 'Native Shampoo + Function of Beauty Customizable',
+      gapVsCompetitor: '-2.3pp share, ~$180M pressure',
+      gapReason: 'Garnier "natural" perceived as legacy vs "clean" positioning; pricing stuck in middle; lost 6 Target facings',
+      demandImplication: 'Further shelf space erosion likely at Target and Walmart Q3 reset without clean-positioned Garnier sub-line',
+      confidence: 'High',
+      supportingEvidence: 'Target shelf audit data Q1 2026; Circana US mass hair care Q1; P&G investor day citing 42% Native growth',
+      teamActions: {
+        marketing: 'Pivot Garnier US marketing to social-first clean messaging. Engage 100+ clean-beauty creators by June.',
+        product: 'Develop Garnier Clean+ 4-SKU line (shampoo, conditioner, mask, leave-in) with EWG-verified ingredients. Target Q4 2026.',
+        planning: 'Reduce Fructis US plan by 10%. Build Clean+ launch forecast based on Native pricing benchmarks.',
+        manufacturing: 'Source EWG-verified ingredients for Clean+ line. Evaluate recyclable packaging options to match Native.',
+      },
+    },
   },
 ]
 
-// ── Active Opportunities ──
+// ── Active Opportunities (North America) ──
 export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
   {
-    title: 'Peptide Scalp-Care Category Leadership in Southeast Asia', brand: 'Garnier / Kerastase', market: 'Southeast Asia', confidence: 'High',
-    why: 'No category leader exists in peptide scalp-care in Southeast Asia. Consumer search and social signals show strong and growing demand. The preventive hair wellness positioning aligns with regional self-care trends among 18-34 consumers.',
-    move: 'Fast-track peptide scalp serum development with Southeast Asia-specific formulation. Target Q4 2026 launch in Indonesia and Thailand with creator-led education campaign.',
-    scenarioId: 's1',
-    detailSections: [
-      { label: 'What Changed', content: 'Peptide scalp-care is an emerging category with no established leader in Southeast Asia. Consumer interest is driven by the shift from reactive hair repair to preventive scalp wellness.' },
-      { label: 'Market Sizing', content: 'The Southeast Asia scalp-care market is estimated at $340M and growing at 18% CAGR. Peptide-based products represent less than 5% of current offerings, indicating significant upside.' },
-      { label: 'Competitive Landscape', content: 'Current offerings are fragmented across local brands and K-beauty imports. No global brand has established a dominant position. Kerastase has existing scalp-care credibility that can be leveraged.' },
-    ],
-    relatedActions: [
-      { action: 'Fast-track peptide scalp serum for Southeast Asia', priority: 'High', owner: 'R&D Hair Care', rationale: 'First-mover advantage in category with no established leader' },
-      { action: 'Develop creator-led scalp education campaign', priority: 'High', owner: 'Digital Marketing APAC', rationale: 'Education is key; consumers are interested but knowledge is limited' },
-    ],
-  },
-  {
-    title: 'Ectoin Barrier-Support Positioning in Sensitive Skincare', brand: 'La Roche-Posay / CeraVe', market: 'Global', confidence: 'Medium',
-    why: 'Consumer and creator interest in ectoin is rising as barrier-repair remains important. La Roche-Posay and CeraVe have strong barrier-care positioning to leverage.',
-    move: 'Develop ectoin-enhanced formulation for existing barrier-care ranges. Position as next-generation ingredient story within established product lines.',
-    scenarioId: 's6',
-    detailSections: [
-      { label: 'What Changed', content: 'Ectoin is gaining traction as a barrier-support ingredient with rising consumer and creator interest in calming and environmental stress defense. Merck has expanded ectoin supply for cosmetic use, making formulation more accessible.' },
-      { label: 'Strategic Fit', content: 'La Roche-Posay Toleriane and CeraVe barrier ranges are natural homes for ectoin integration. Both brands have stronger dermatologist credibility than competitors Bioderma (Sensibio) and Avène (Tolérance) in this space.' },
-      { label: 'Competitive Window', content: 'Ectoin awareness is still early. Dr. Jart+ (Estée Lauder) has an ectoin product in South Korea, and Paula\'s Choice (Unilever) is testing ectoin formulations. Neither has scaled globally. Window is 12-18 months before Unilever or Estée Lauder move aggressively.' },
-    ],
-    relatedActions: [
-      { action: 'Evaluate ectoin formulation for La Roche-Posay Toleriane range', priority: 'Medium', owner: 'R&D Active Cosmetics', rationale: 'Leverage existing barrier-care positioning before Dr. Jart+ or Paula\'s Choice scale globally' },
-      { action: 'Develop ectoin ingredient education content', priority: 'Medium', owner: 'Medical Marketing', rationale: 'Build consumer understanding before Unilever or Estée Lauder establish ectoin narrative' },
-    ],
-  },
-  {
-    title: 'Copper Peptide Longevity Positioning in Premium Skincare', brand: 'Helena Rubinstein / Lancome', market: 'Global Premium', confidence: 'Medium',
-    why: 'Copper peptides are re-emerging in premium conversations linked to skin longevity and healthy aging. The framing is becoming more sophisticated and science-led.',
-    move: 'Develop copper peptide integration roadmap for Helena Rubinstein Prodigy line. Position as longevity-science ingredient rather than traditional repair.',
-    scenarioId: 's9',
-    detailSections: [
-      { label: 'What Changed', content: 'Copper peptides are reappearing in premium skincare conversations, now linked to skin longevity and healthy aging narratives. Dr. Pickart\'s GHK-Cu research is being widely cited on Reddit SkincareAddiction and dermatology YouTube channels.' },
-      { label: 'Consumer Insight', content: 'Premium skincare consumers aged 35-55 are increasingly interested in longevity-positioned products. Copper peptides offer a credible science story. Niod (DECIEM / Estée Lauder) Copper Amino Isolate Serum is the current reference product but positioned as niche.' },
-      { label: 'Competitive Landscape', content: 'Niod (Estée Lauder) has the only established copper peptide serum but lacks luxury positioning. La Prairie and Sisley have not entered the copper peptide space. Helena Rubinstein Prodigy could claim the luxury copper peptide narrative first.' },
-    ],
-    relatedActions: [
-      { action: 'Develop copper peptide integration for Helena Rubinstein Prodigy', priority: 'Medium', owner: 'R&D Premium Skincare', rationale: 'Claim luxury copper peptide positioning before La Prairie or Sisley enter the space' },
-      { action: 'Commission longevity positioning research', priority: 'Low', owner: 'Consumer Insights', rationale: 'Validate longevity framing resonance with premium consumers aged 35-55' },
-    ],
-  },
-]
-
-// ── Launch Risks ──
-export const SEEDED_RISKS: SeededRisk[] = [
-  {
-    title: 'Elvive Bond Repair Launch Underperforming vs Olaplex in Germany', brand: "L'Oreal Paris Elvive", market: 'Germany', severity: 'High',
-    cause: 'Elvive Bond Repair product page traffic is healthy but conversion is low on Douglas.de and dm.de. Reviews show confusion around benefit differentiation vs. Olaplex No.3 and existing Elvive Total Repair range. Creator support is limited.',
-    action: 'Conduct rapid UX audit of Douglas and dm product pages. Rebrief creator programme with clear Olaplex comparison messaging. Test A/B product page copy.',
-    scenarioId: 's3',
-    detailSections: [
-      { label: 'What Changed', content: 'L\'Oréal Paris Elvive Bond Repair is seeing weaker-than-expected traction in Germany e-commerce. Product page traffic on Douglas.de and dm.de is at 85% of target, but conversion is significantly below benchmark. Olaplex No.3 Hair Perfector continues to dominate the bond repair category in Germany.' },
-      { label: 'Performance Data', content: 'Product page visits at 85% of target, but add-to-cart rate is 2.1% vs. 4.8% benchmark. Early reviews (62 total) show 3.2/5 average rating with recurring themes of "not sure how this is different from Olaplex." Creator content volume at 30% of plan. Olaplex No.3 holds 52% share of the bond repair category on Douglas.de.' },
-      { label: 'Root Cause Assessment', content: 'Three contributing factors: (1) Benefit messaging does not clearly differentiate from Olaplex or existing Elvive Total Repair 5 range, (2) Creator briefs were generic and did not address the Olaplex comparison consumers are making, (3) At €13.99 vs Olaplex at €28, the price advantage is not being communicated effectively.' },
-      { label: 'What Teams Should Do', content: 'Conduct rapid UX audit of Douglas.de and dm.de product pages. Rebrief creator programme with clear "salon-grade bond repair at half the price" messaging. Consider limited-time trial pricing or bundle with Elvive shampoo to drive initial conversion.' },
-    ],
-    relatedActions: [
-      { action: 'Conduct rapid e-commerce UX audit on Douglas.de and dm.de', priority: 'High', owner: 'Digital Commerce Germany', rationale: 'Low conversion despite healthy traffic indicates product page messaging issues vs Olaplex' },
-      { action: 'Rebrief creator programme with Olaplex comparison messaging', priority: 'High', owner: 'Influencer Marketing Germany', rationale: 'Current creator content lacks benefit clarity vs the category leader' },
-      { action: 'Test A/B product page copy with price advantage messaging', priority: 'Medium', owner: 'E-Commerce Team Germany', rationale: 'Validate whether explicit Olaplex comparison or price messaging drives conversion' },
-    ],
-  },
-  {
-    title: 'Peptide Eye-Care Launch Crowded by Estée Lauder and Shiseido', brand: "L'Oreal Paris / Lancome", market: 'Global', severity: 'High',
-    cause: 'Estée Lauder Advanced Night Repair Eye with peptide complex and Shiseido Benefiance Wrinkle Smoothing Eye Cream have both intensified messaging with overlapping peptide claims. Category is crowded ahead of our launch.',
-    action: 'Reposition launch messaging away from generic peptide claims toward proprietary Pro-Retinol + Peptide technology narrative. Delay launch by 2-3 weeks to refine creative.',
-    scenarioId: 's7',
-    detailSections: [
-      { label: 'What Changed', content: 'L\'Oréal is preparing to launch a peptide eye-care product, but Estée Lauder (Advanced Night Repair Eye Supercharged Gel-Creme), Shiseido (Benefiance Wrinkle Smoothing Eye Cream), and Drunk Elephant (C-Tango Multivitamin Eye Cream) have all intensified peptide eye-care messaging in the past 8 weeks.' },
-      { label: 'Competitive Noise Assessment', content: 'Estée Lauder, Shiseido, and Drunk Elephant have launched or refreshed peptide eye-care products simultaneously. Total social mentions of "peptide eye cream" are up 420%, but consumer sentiment shows growing confusion. Estée Lauder is spending heavily on dermatologist endorsements for ANR Eye.' },
-      { label: 'Differentiation Gap', content: 'Current launch messaging relies on "peptide complex for eye area" which directly overlaps with Estée Lauder ANR Eye and Shiseido Benefiance claims. Internal clinical data shows superior results on dark circles (-40% in 4 weeks) and puffiness (-35%), but this is not reflected in planned comms.' },
-      { label: 'What Teams Should Do', content: 'Reposition launch messaging toward proprietary Pro-Retinol + Peptide technology. Leverage clinical data on dark circles and puffiness as clear differentiation vs Estée Lauder and Shiseido. Consider delaying launch by 2-3 weeks to refine creative.' },
-    ],
-    relatedActions: [
-      { action: 'Reposition peptide eye-care launch vs Estée Lauder and Shiseido', priority: 'High', owner: 'Brand Strategy', rationale: 'Generic peptide claims will not cut through Estée Lauder ANR Eye and Shiseido Benefiance noise' },
-      { action: 'Activate clinical differentiation data (dark circles -40%, puffiness -35%)', priority: 'High', owner: 'Medical Affairs / PR', rationale: 'Proprietary clinical results are the strongest lever against Estée Lauder claims' },
-      { action: 'Evaluate launch timeline adjustment (2-3 weeks)', priority: 'Medium', owner: 'Brand Management', rationale: 'Better to launch with strong differentiation than rush into a crowded narrative' },
-    ],
-  },
-]
-
-// ── Claims / Reputation Alerts ──
-export const SEEDED_ALERTS: SeededAlert[] = [
-  {
-    title: 'Retinol Irritation Concern Building in France', brand: 'La Roche-Posay / Vichy', market: 'France', severity: 'Critical',
-    why: 'Review and social chatter show rising concern around irritation and improper use of a retinol product. No formal safety issue is confirmed, but consumer interpretation is turning negative.',
-    response: 'Issue updated usage guidance with dermatologist-backed education. Proactively address concerns through owned channels before media picks up the narrative.',
+    title: 'Peptide Skincare Demand Growing 180% YoY in US Market',
+    brand: 'L\'Oreal Paris / CeraVe',
+    market: 'United States',
+    confidence: 'High',
+    why: 'US peptide skincare searches grew 180% YoY. The Ordinary Buffet dominates but CeraVe and L\'Oreal Paris have stronger mass-market distribution to capture growth.',
+    move: 'Launch CeraVe Peptide Moisturizer and L\'Oreal Paris peptide serum for US mass market by Q3 2026.',
     scenarioId: 's4',
     detailSections: [
-      { label: 'What Changed', content: 'Review and social chatter in France show rising concern around irritation and improper use of a retinol product. Consumer interpretation is turning negative.' },
-      { label: 'Sentiment Analysis', content: 'Negative sentiment around retinol irritation has increased 340% in French social channels over 6 weeks. Key themes: "too strong for daily use," "burned my skin." 23% of recent reviews mention irritation.' },
-      { label: 'Risk Assessment', content: 'While no pharmacovigilance signal is confirmed, the consumer perception risk is significant. If a French media outlet picks up the narrative, it could impact the broader retinol portfolio.' },
-      { label: 'What Teams Should Do', content: 'Issue updated usage guidance with dermatologist-backed content. Proactively address concerns through owned social channels. Brief customer service teams. Monitor for escalation.' },
+      { label: 'Market Signal', content: 'Google Trends shows "peptide serum" and "peptide moisturizer" US search volume up 180% YoY. TikTok #peptideskincare has 1.2B views. Consumer interest is shifting from retinol toward peptides as a gentler anti-aging alternative.' },
+      { label: 'L\'Oreal Performance', content: 'L\'Oreal Paris Revitalift and CeraVe currently have no dedicated peptide-positioned products in US market. L\'Oreal Paris anti-aging US sales are flat YoY. CeraVe has strong brand equity but no peptide offering.' },
+      { label: 'Competitor Performance', content: 'The Ordinary Buffet (Estee Lauder/DECIEM) dominates US peptide skincare at $17.50 with 340% sales growth. Olay Regenerist Peptide 24 (P&G) holds 22% SOV in US mass peptide. Neutrogena Rapid Wrinkle Repair Peptide (Kenvue) launched in January 2026.' },
+      { label: 'Gap / Diagnosis', content: 'L\'Oreal has 0% share in the fastest-growing US anti-aging segment. The Ordinary\'s price point ($17.50) leaves room for CeraVe at $15-18 and L\'Oreal Paris at $20-25. CeraVe\'s dermatologist credibility is a differentiator vs The Ordinary.' },
+      { label: 'Demand Implication', content: 'US peptide skincare market projected at $890M for 2026, growing to $1.4B by 2028. L\'Oreal capturing even 15% share = $134M incremental revenue. CeraVe and L\'Oreal Paris together could capture 20%+ given distribution advantage at Walmart, Target, and CVS.' },
     ],
     relatedActions: [
-      { action: 'Issue updated retinol usage guidance in France', priority: 'Critical', owner: 'Medical Affairs France', rationale: 'Proactive education is essential before narrative escalates' },
-      { action: 'Activate dermatologist-backed content on owned channels', priority: 'Critical', owner: 'Digital Marketing France', rationale: 'Counter negative UGC with authoritative guidance' },
-      { action: 'Brief customer service teams on retinol talking points', priority: 'High', owner: 'Consumer Relations', rationale: 'Ensure consistent and reassuring response to inquiries' },
+      { action: 'Fast-track CeraVe Peptide Moisturizer development for US launch', priority: 'High', owner: 'R&D Skincare', rationale: 'CeraVe has strongest brand equity to compete with The Ordinary in peptide space' },
+      { action: 'Develop L\'Oreal Paris peptide serum for US mass anti-aging', priority: 'High', owner: 'Product Development', rationale: 'Fill critical portfolio gap in fastest-growing US anti-aging category' },
     ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [10, 10, 11, 12, 12, 13],
+      competitorTrend: [15, 22, 35, 52, 68, 85],
+      competitorName: 'The Ordinary (Estee Lauder)',
+      competitorProduct: 'Buffet Multi-Technology Peptide Serum',
+      gapVsCompetitor: '0% share vs category growing 180% YoY',
+      gapReason: 'No dedicated peptide product in L\'Oreal US portfolio; The Ordinary dominates via ingredient transparency and price',
+      demandImplication: '$890M US peptide skincare market in 2026. L\'Oreal missing 100% of category growth. CeraVe + L\'Oreal Paris can capture 20%+ share.',
+      confidence: 'High',
+      supportingEvidence: 'Google Trends US peptide search data; Circana US skincare category; The Ordinary Q4 2025 earnings citing 340% Buffet growth',
+      teamActions: {
+        marketing: 'Prepare peptide education campaign for CeraVe US launch. Partner with dermatology TikTok creators.',
+        product: 'Develop CeraVe Peptide Moisturizer ($15-18) and L\'Oreal Paris Revitalift Peptide Serum ($20-25). Target Q3 2026.',
+        planning: 'Build peptide launch demand forecast based on The Ordinary sales trajectory. Target 15% share by Q2 2027.',
+        manufacturing: 'Secure peptide complex supply. Prepare production for 2M units initial CeraVe run.',
+      },
+    },
   },
   {
-    title: 'Spicule Ingredient Backlash Risks Spillover to Active Skincare Category', brand: 'La Roche-Posay / CeraVe / Vichy', market: 'Global', severity: 'High',
-    why: 'Korean beauty brands promoting spicule-based exfoliation are generating viral TikTok content showing extreme skin reactions. Consumer backlash is creating broader hesitation around "clinical-strength" and "active" skincare ingredients, which could affect La Roche-Posay Retinol B3 and CeraVe SA Smoothing ranges.',
-    response: 'Monitor spicule sentiment closely. Prepare proactive safety communication for La Roche-Posay and CeraVe active ranges. Engage dermatology KOLs to distinguish proven actives from unregulated trends.',
-    scenarioId: 's8',
+    title: 'Men\'s Grooming Premium Segment Growing 22% in US',
+    brand: 'Kiehl\'s / L\'Oreal Men Expert',
+    market: 'United States / Canada',
+    confidence: 'Medium',
+    why: 'US men\'s prestige skincare grew 22% YoY to $1.1B. Kiehl\'s has strong men\'s credibility but limited dedicated marketing vs Clinique for Men and Harry\'s.',
+    move: 'Launch dedicated Kiehl\'s Men\'s skincare campaign and expand L\'Oreal Men Expert distribution at Target and Ulta.',
+    scenarioId: 's5',
     detailSections: [
-      { label: 'What Changed', content: 'Multiple Korean beauty brands (notably Abib and Medicube) are promoting spicule-based skincare that causes visible peeling. TikTok creators are amplifying extreme skin reactions without context, generating 85M+ views. Consumer sentiment is turning against "strong actives" broadly.' },
-      { label: 'Consumer Sentiment', content: '"Spicule skincare reaction" and "spicule burn" are trending queries globally. Viral TikTok videos from @dermdoctor and @skincarebyhyram have called out safety concerns. The backlash is creating spillover hesitation toward retinol, AHA/BHA, and other proven active ingredients.' },
-      { label: 'Portfolio Implications', content: 'La Roche-Posay Retinol B3 Serum, CeraVe SA Smoothing Cleanser, and Vichy LiftActiv Retinol ranges could face consumer hesitation if "active ingredients = irritation" narrative broadens. No L\'Oréal portfolio brand uses spicules, but the association risk is real.' },
-      { label: 'What Teams Should Do', content: 'Monitor spicule sentiment across all markets. Prepare proactive safety communication distinguishing dermatologist-recommended actives (retinol, niacinamide, salicylic acid) from unregulated trends. Engage dermatology KOLs to reinforce La Roche-Posay and CeraVe safety credentials.' },
+      { label: 'Market Signal', content: 'US men\'s prestige skincare grew 22% YoY to $1.1B in 2025. Male skincare routine adoption among US men 25-40 increased from 34% to 48% over 2 years. Social media driving awareness with #mensskincare at 890M TikTok views.' },
+      { label: 'L\'Oreal Performance', content: 'Kiehl\'s US men\'s skincare sales grew 8% YoY but underperformed category growth of 22%. L\'Oreal Men Expert has limited US retail distribution (primarily Amazon and Walmart). Combined L\'Oreal men\'s skincare US share is approximately 11%.' },
+      { label: 'Competitor Performance', content: 'Clinique for Men (Estee Lauder) grew 18% in US prestige. Harry\'s expanded from razors into skincare at Target with 15% YoY growth. Every Man Jack (Dr. Bronner\'s) grew 25% in US mass natural men\'s segment.' },
+      { label: 'Gap / Diagnosis', content: 'L\'Oreal is underperforming the US men\'s skincare category by -14pp growth rate. Kiehl\'s has brand permission but limited marketing investment. L\'Oreal Men Expert lacks US retail visibility outside Amazon. The gap is marketing investment and distribution, not product quality.' },
+      { label: 'Demand Implication', content: 'US men\'s skincare is $1.1B and growing at 22% CAGR. L\'Oreal capturing an additional 5pp share = $55M incremental. Kiehl\'s prestige positioning and L\'Oreal Men Expert mass pricing create two-tier capture strategy.' },
     ],
     relatedActions: [
-      { action: 'Establish spicule sentiment monitoring for La Roche-Posay and CeraVe', priority: 'High', owner: 'Social Listening Team', rationale: 'Early warning if anti-active narrative spreads to retinol or salicylic acid products' },
-      { action: 'Prepare proactive ingredient safety communication for active ranges', priority: 'Medium', owner: 'Corporate Communications', rationale: 'Ready-to-deploy messaging distinguishing proven actives from unregulated trends' },
-      { action: 'Engage dermatology KOLs to reinforce active ingredient safety', priority: 'Medium', owner: 'Medical Affairs', rationale: 'Authoritative voices can counter uninformed creator content and protect portfolio positioning' },
+      { action: 'Launch Kiehl\'s men\'s skincare campaign at Nordstrom and Sephora US', priority: 'Medium', owner: 'Marketing US Prestige', rationale: 'Kiehl\'s has highest men\'s brand affinity but needs dedicated investment' },
+      { action: 'Expand L\'Oreal Men Expert US distribution to Target and Ulta', priority: 'Medium', owner: 'Commercial US', rationale: 'L\'Oreal Men Expert is underrepresented in US mass/masstige retail' },
     ],
+    metrics: {
+      signalStrength: 'Moderate',
+      lorealTrend: [40, 42, 43, 44, 45, 47],
+      competitorTrend: [30, 35, 40, 46, 52, 58],
+      competitorName: 'Clinique for Men (Estee Lauder)',
+      competitorProduct: 'Clinique for Men Maximum Hydrator',
+      gapVsCompetitor: '-14pp growth rate gap vs category',
+      gapReason: 'Kiehl\'s limited marketing spend on men\'s; L\'Oreal Men Expert low US distribution; competitor creator content stronger',
+      demandImplication: '$55M incremental opportunity capturing 5pp additional share in US men\'s skincare',
+      confidence: 'Medium',
+      supportingEvidence: 'NPD US prestige men\'s beauty data 2025; TikTok analytics; Target buyer feedback on L\'Oreal Men Expert distribution',
+      teamActions: {
+        marketing: 'Launch Kiehl\'s US men\'s campaign with male grooming creators. Budget: $8M for H2 2026.',
+        product: 'Evaluate L\'Oreal Men Expert line extension for US: SPF moisturizer and eye cream. Target Q1 2027.',
+        planning: 'Build US men\'s skincare growth forecast. Target 16% combined share by end 2027.',
+        manufacturing: 'Ensure L\'Oreal Men Expert US SKU availability for expanded retail distribution.',
+      },
+    },
+  },
+  {
+    title: 'Body Care Premiumization Wave in US Mass Market',
+    brand: 'CeraVe / La Roche-Posay',
+    market: 'United States',
+    confidence: 'High',
+    why: 'US premium body care grew 35% YoY as consumers trade up from basic lotions. CeraVe and La Roche-Posay have dermatologist credibility to capture premium mass body care share.',
+    move: 'Launch CeraVe Body Serum and La Roche-Posay body care extension at $12-18 price tier in US drugstore and mass.',
+    scenarioId: 's6',
+    detailSections: [
+      { label: 'Market Signal', content: 'US premium body care (products $12+) grew 35% YoY in 2025. TikTok #bodyskincare reached 2.4B views. Consumer behavior shifting from basic moisturizing to "skinification" of body care with active ingredients like niacinamide, AHA, and ceramides.' },
+      { label: 'L\'Oreal Performance', content: 'CeraVe Moisturizing Cream is used as body care but not marketed as premium body skincare. CeraVe SA Smoothing Cleanser has crossover body use. La Roche-Posay Lipikar is positioned as therapeutic, not premium body care. Combined body care revenue for both brands is approximately $280M in US.' },
+      { label: 'Competitor Performance', content: 'Necessaire (Unilever) grew 52% in US prestige body care. Dove Body Love (Unilever) captured premium mass positioning with 28% growth. Tree Hut body scrubs grew 45% at Target. Skinfix (Hain Celestial) expanded body care at Sephora.' },
+      { label: 'Gap / Diagnosis', content: 'L\'Oreal is underexploiting body care. CeraVe and La Roche-Posay have strongest dermatologist credibility in US skincare but lack dedicated premium body care SKUs. Gap is product portfolio, not brand permission. Consumers already use CeraVe face products on body but want dedicated formulations.' },
+      { label: 'Demand Implication', content: 'US premium body care market is $3.2B and growing at 35% CAGR. A CeraVe body serum and La Roche-Posay body care extension could capture $200M+ in year-one US sales based on existing brand distribution.' },
+    ],
+    relatedActions: [
+      { action: 'Develop CeraVe Body Serum with ceramides + niacinamide for US', priority: 'High', owner: 'R&D Active Cosmetics', rationale: 'CeraVe has strongest US brand permission to enter premium body care' },
+      { action: 'Extend La Roche-Posay body care line for US drugstore channel', priority: 'Medium', owner: 'Product Development', rationale: 'LRP Lipikar has therapeutic credibility; premium body extension is natural' },
+    ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [45, 48, 50, 53, 55, 58],
+      competitorTrend: [18, 25, 35, 48, 62, 78],
+      competitorName: 'Necessaire / Dove Body Love (Unilever)',
+      competitorProduct: 'Necessaire Body Serum + Dove Body Love Intensive Care',
+      gapVsCompetitor: 'No dedicated premium body care SKUs vs category growing 35%',
+      gapReason: 'CeraVe/LRP positioned as face-first brands; no dedicated body care with active ingredients at $12-18 price',
+      demandImplication: '$200M+ year-one opportunity for CeraVe body serum given existing US distribution at Walmart, Target, CVS',
+      confidence: 'High',
+      supportingEvidence: 'Circana US body care Q4 2025; TikTok body skincare trend data; Unilever earnings citing 52% Necessaire growth',
+      teamActions: {
+        marketing: 'Launch "CeraVe Body" campaign with dermatologist body-care education. Budget: $12M for US launch.',
+        product: 'Develop CeraVe Body Serum (ceramides + niacinamide, $14.99) and Body Lotion SPF ($16.99). Target Q3 2026.',
+        planning: 'Build US body care launch forecast: 8M units year-one. Secure Walmart, Target, CVS shelf space.',
+        manufacturing: 'Prepare dedicated body care production line. Scale for 8M+ unit initial run.',
+      },
+    },
   },
 ]
 
-// ── Recommended Actions ──
-export const SEEDED_ACTIONS: SeededAction[] = [
-  { title: 'Issue updated retinol usage guidance in France', priority: 'Critical', owner: 'Medical Affairs France', impact: 'Prevents consumer perception crisis around La Roche-Posay and Vichy retinol safety before French media amplification', timeline: 'Immediate', scenarioId: 's4' },
-  { title: 'Accelerate UK Revitalift Clinical Vitamin C launch vs The Ordinary', priority: 'Critical', owner: 'Brand Management UK', impact: 'Prevents The Ordinary (Estée Lauder) from solidifying category ownership in UK brightening serums', timeline: '3-4 weeks', scenarioId: 's2' },
-  { title: 'Commission scalp-care consumer research in Southeast Asia', priority: 'High', owner: 'Consumer Insights APAC', impact: 'Validates market sizing for Garnier/Kerastase peptide scalp-care opportunity before product development', timeline: '6-8 weeks', scenarioId: 's1' },
-  { title: 'Conduct rapid UX audit for Elvive Bond Repair on Douglas.de', priority: 'High', owner: 'Digital Commerce Germany', impact: 'Addresses low conversion vs Olaplex No.3 despite healthy traffic on German e-commerce', timeline: '2 weeks', scenarioId: 's3' },
-  { title: 'Reposition peptide eye-care launch vs Estée Lauder ANR Eye', priority: 'High', owner: 'Brand Strategy', impact: 'Ensures differentiation against Estée Lauder and Shiseido in crowded peptide eye-care market', timeline: 'Before launch', scenarioId: 's7' },
-  { title: 'Evaluate exosome technology for Lancome Genifique pipeline', priority: 'High', owner: 'R&D Skincare Innovation', impact: 'First global luxury brand to market with exosome positioning defines the category ahead of Sulwhasoo and AmorePacific', timeline: 'Q3 2026 review', scenarioId: 's5' },
-  { title: 'Evaluate ectoin formulation for La Roche-Posay Toleriane range', priority: 'Medium', owner: 'R&D Active Cosmetics', impact: 'Leverages existing barrier-care positioning with next-gen ingredient ahead of Bioderma and Avène', timeline: '12-18 months', scenarioId: 's6' },
-  { title: 'Develop copper peptide integration for Helena Rubinstein Prodigy', priority: 'Medium', owner: 'R&D Premium Skincare', impact: 'Captures longevity positioning in premium anti-aging before La Prairie and Sisley', timeline: '2027 pipeline', scenarioId: 's9' },
+// ── Launch Risks (North America) ──
+export const SEEDED_RISKS: SeededRisk[] = [
+  {
+    title: 'L\'Oreal Paris Revitalift Declining vs Olay Regenerist and Neutrogena in US Anti-Aging',
+    brand: 'L\'Oreal Paris',
+    market: 'United States',
+    severity: 'High',
+    cause: 'L\'Oreal Paris Revitalift US anti-aging sales declined 11% YoY while Olay Regenerist (P&G) grew 14% and Neutrogena Rapid Wrinkle Repair (Kenvue) grew 9%. Revitalift messaging perceived as dated compared to competitors.',
+    action: 'Reposition Revitalift with clinical data campaign and refresh product messaging for US consumer',
+    scenarioId: 's7',
+    detailSections: [
+      { label: 'Market Signal', content: 'US mass anti-aging skincare is $3.8B and growing at 7% CAGR. Consumer preference is shifting toward clinically-validated anti-aging claims with specific ingredient callouts (retinol, peptides, vitamin C). Generic "anti-aging" messaging is losing relevance.' },
+      { label: 'L\'Oreal Performance', content: 'Revitalift US sales declined 11% YoY. SOV in US mass anti-aging dropped from 19% to 15%. Revitalift brand perception for "innovation" is down 8 points vs 2024. The line is perceived as reliable but not exciting among US consumers 35-55.' },
+      { label: 'Competitor Performance', content: 'Olay Regenerist (P&G) grew 14% YoY driven by Micro-Sculpting Cream reformulation and heavy US TV + digital investment. Neutrogena Rapid Wrinkle Repair (Kenvue) grew 9% with retinol-first messaging. RoC Retinol Correxion grew 22% in US prestige-adjacent.' },
+      { label: 'Gap / Diagnosis', content: 'Revitalift is underperforming Olay by -25pp in growth rate. Primary reason: Olay\'s "clinically proven" messaging is more specific and credible than Revitalift\'s generic anti-aging claims. Secondary: Olay invested $60M in US advertising vs Revitalift\'s estimated $35M.' },
+      { label: 'Demand Implication', content: 'Revitalift risks dropping below 14% US anti-aging share by Q4 2026 without intervention. Every 1pp share loss = $38M. Current trajectory suggests $76M annual revenue risk. P&G and Kenvue are both increasing US anti-aging investment.' },
+    ],
+    relatedActions: [
+      { action: 'Relaunch Revitalift with clinical-data-first messaging in US', priority: 'High', owner: 'Brand Strategy US', rationale: 'Match Olay and Neutrogena\'s clinically-validated claim approach' },
+      { action: 'Increase Revitalift US media spend by 40% for H2 2026', priority: 'High', owner: 'Media Planning US', rationale: 'Close the $25M advertising gap vs Olay Regenerist' },
+      { action: 'Adjust Revitalift US demand forecast downward by 8%', priority: 'Medium', owner: 'Demand Planning US', rationale: 'Account for continued share pressure from Olay and Neutrogena' },
+    ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [72, 68, 65, 62, 58, 55],
+      competitorTrend: [55, 58, 62, 66, 72, 78],
+      competitorName: 'Olay Regenerist (P&G)',
+      competitorProduct: 'Olay Regenerist Micro-Sculpting Cream',
+      gapVsCompetitor: '-4pp share gap, $76M annual risk',
+      gapReason: 'Olay\'s clinical messaging stronger; Olay outspending by $25M in US media; Revitalift perceived as dated',
+      demandImplication: 'Revitalift risks dropping below 14% US share by Q4 without clinical messaging refresh and increased media investment',
+      confidence: 'High',
+      supportingEvidence: 'Circana US anti-aging Q1 2026; P&G 10-K citing Olay US growth; US media spend estimates from Kantar',
+      teamActions: {
+        marketing: 'Relaunch Revitalift with "Clinically Proven" campaign. Increase US media budget from $35M to $50M.',
+        product: 'Reformulate Revitalift Vitamin C Serum with higher concentration. Launch Q4 2026.',
+        planning: 'Reduce Revitalift forecast by 8% for Q2-Q3. Increase forecast for reformulated launch Q4.',
+        manufacturing: 'Prepare for reformulated Revitalift production. Secure stabilized vitamin C supply.',
+      },
+    },
+  },
+  {
+    title: 'Elvive Bond Repair Underperforming vs Olaplex at US Retailers',
+    brand: 'L\'Oreal Paris Elvive',
+    market: 'United States',
+    severity: 'High',
+    cause: 'Elvive Bond Repair launched in US but conversion at Ulta and Target is 2.4% vs 5.1% category benchmark. Reviews show consumer confusion vs Olaplex No.3 which holds 48% US bond repair share.',
+    action: 'Rebrief Elvive Bond Repair messaging with Olaplex comparison data and accelerate creator programme',
+    scenarioId: 's8',
+    detailSections: [
+      { label: 'Market Signal', content: 'US bond repair hair care is a $620M category growing 28% YoY. Consumer demand driven by salon-quality treatment products entering mass retail. Olaplex No.3 Hair Perfector remains category-defining product with 48% share.' },
+      { label: 'L\'Oreal Performance', content: 'Elvive Bond Repair US product page conversion at Ulta is 2.4% vs 5.1% category benchmark. At Target, 2.1% vs 4.6% benchmark. Review volume is low (189 reviews, 3.4/5 average). Common review theme: "how is this different from Olaplex?".' },
+      { label: 'Competitor Performance', content: 'Olaplex No.3 holds 48% US bond repair share with 4.6/5 rating and 12,400+ reviews at Ulta. K18 Leave-In Repair Mask grew 65% YoY with strong salon-to-retail crossover. Bondi Boost (Henkel) growing 28% at Target.' },
+      { label: 'Gap / Diagnosis', content: 'Elvive Bond Repair underperforming category benchmark by -2.7pp conversion rate. Primary reason: messaging does not differentiate from Olaplex — consumers see "bond repair" and default to category leader. At $8.99 vs Olaplex $30, the price advantage is significant but not communicated.' },
+      { label: 'Demand Implication', content: 'US bond repair is $620M. Elvive Bond Repair is on track for only $18M year-one vs $45M plan. Without messaging fix, the gap will widen. The $21 price advantage vs Olaplex is the strongest lever but requires clear communication.' },
+    ],
+    relatedActions: [
+      { action: 'Rebrief Elvive Bond Repair US messaging with Olaplex comparison', priority: 'High', owner: 'Brand Marketing US', rationale: 'Address consumer confusion by explicitly positioning against Olaplex on efficacy + price' },
+      { action: 'Launch Elvive Bond Repair creator programme at US Ulta and Target', priority: 'High', owner: 'Digital Marketing US', rationale: 'Build review volume and social proof against Olaplex dominance' },
+      { action: 'Adjust Elvive Bond Repair US forecast from $45M to $22M', priority: 'Medium', owner: 'Demand Planning US', rationale: 'Current trajectory at 40% of plan; revised forecast needed for supply planning' },
+    ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [30, 32, 28, 25, 22, 20],
+      competitorTrend: [65, 68, 70, 72, 74, 76],
+      competitorName: 'Olaplex',
+      competitorProduct: 'Olaplex No.3 Hair Perfector',
+      gapVsCompetitor: '-2.7pp conversion, -26pp share gap',
+      gapReason: 'Messaging doesn\'t differentiate from Olaplex; $21 price advantage not communicated; low review volume (189 vs 12,400+)',
+      demandImplication: 'Elvive Bond Repair tracking to $18M vs $45M US year-one plan. Messaging fix needed to capture $21 price advantage.',
+      confidence: 'High',
+      supportingEvidence: 'Ulta product page analytics; Target conversion data; Olaplex 10-K citing 48% US bond repair share',
+      teamActions: {
+        marketing: 'Rebrief creator programme: "salon bond repair at $8.99." Target 500 reviews in 60 days.',
+        product: 'Evaluate bundle pricing (shampoo + conditioner + treatment at $19.99) to drive trial vs Olaplex\'s $30.',
+        planning: 'Revise forecast to $22M. Increase promotional spend allocation by $3M.',
+        manufacturing: 'Reduce initial production run. Prepare for promotional bundle SKU.',
+      },
+    },
+  },
 ]
 
-// ── Recent Analyses ──
+// ── Claims / Reputation Alerts (North America) ──
+export const SEEDED_ALERTS: SeededAlert[] = [
+  {
+    title: 'PFAS-Free Claims Pressure Building on US Cosmetics Brands',
+    brand: 'Maybelline / L\'Oreal Paris / NYX',
+    market: 'United States',
+    severity: 'Critical',
+    why: 'California, New York, and Washington have enacted PFAS bans in cosmetics effective 2025-2026. Consumer awareness of PFAS in cosmetics surged 420% on US social media. Multiple L\'Oreal brands face reformulation requirements.',
+    response: 'Accelerate PFAS-free reformulation across US color cosmetics portfolio and prepare consumer communication strategy',
+    scenarioId: 's9',
+    detailSections: [
+      { label: 'Market Signal', content: 'Three US states (California, New York, Washington) enacted cosmetics PFAS bans in 2025-2026. Congressional PFAS-Free Cosmetics Act is advancing in US Senate. Consumer searches for "PFAS-free makeup" grew 420% YoY. Influencers and consumer advocates are naming specific brands in PFAS content.' },
+      { label: 'L\'Oreal Performance', content: 'L\'Oreal has committed to PFAS-free formulations globally by 2027, but US consumer awareness of this timeline is low. Maybelline SuperStay and NYX matte products have faced consumer questions about PFAS content on TikTok and Reddit. No confirmed PFAS issues but perception risk is real.' },
+      { label: 'Competitor Performance', content: 'Credo Beauty and Follain (now closed, legacy impact) established PFAS-free as clean beauty standard. bareMinerals (Shiseido) is marketing PFAS-free prominently. e.l.f. Beauty proactively certified PFAS-free across full US line and is using it as competitive messaging.' },
+      { label: 'Gap / Diagnosis', content: 'L\'Oreal is trailing e.l.f. and bareMinerals in US PFAS-free communication. No L\'Oreal brand is actively marketing PFAS-free claims. Gap is communication speed, not product safety — L\'Oreal reformulation is underway but consumer messaging has not kept pace with competitor claims.' },
+      { label: 'Demand Implication', content: 'US clean beauty market is $11.6B. PFAS concern is the top consumer safety issue in US cosmetics. Brands perceived as slow to address PFAS risk losing share among US women 25-40 who over-index on ingredient safety. L\'Oreal\'s 2027 timeline may be too slow for US market perception.' },
+    ],
+    relatedActions: [
+      { action: 'Accelerate PFAS-free reformulation timeline for US color cosmetics', priority: 'Critical', owner: 'R&D Color Cosmetics', rationale: 'US state bans require compliance; consumer pressure demands faster action than 2027 global timeline' },
+      { action: 'Launch proactive PFAS-free communication for US brands', priority: 'Critical', owner: 'Corporate Communications US', rationale: 'e.l.f. and bareMinerals are using PFAS-free as competitive weapon; silence is being read as delay' },
+      { action: 'Prepare regulatory compliance documentation for California and New York', priority: 'High', owner: 'Regulatory Affairs US', rationale: 'Ensure all US-sold SKUs meet state-level PFAS requirements by effective dates' },
+    ],
+    metrics: {
+      signalStrength: 'Strong',
+      lorealTrend: [50, 48, 46, 44, 42, 40],
+      competitorTrend: [30, 38, 48, 58, 68, 80],
+      competitorName: 'e.l.f. Beauty',
+      competitorProduct: 'Full US line (PFAS-free certified)',
+      gapVsCompetitor: 'e.l.f. PFAS-free certified since 2024; L\'Oreal targeting 2027',
+      gapReason: 'L\'Oreal reformulation timeline (2027) is slower than US regulatory timeline and consumer expectation; e.l.f. already using PFAS-free as marketing lever',
+      demandImplication: 'Risk of share loss among ingredient-conscious US consumers (35% of mass cosmetics shoppers). $11.6B US clean beauty market at stake.',
+      confidence: 'High',
+      supportingEvidence: 'California SB484 PFAS ban; Congressional PFAS-Free Cosmetics Act S.4524; e.l.f. investor day PFAS-free certification; Google Trends US PFAS cosmetics data',
+      teamActions: {
+        marketing: 'Prepare proactive PFAS-free messaging templates for Maybelline, L\'Oreal Paris, NYX US social channels.',
+        product: 'Accelerate US priority SKU reformulation from 2027 to Q2 2026. Prioritize Maybelline SuperStay and NYX matte products.',
+        planning: 'Model demand impact scenarios for PFAS regulatory compliance. Budget $15M for reformulation acceleration.',
+        manufacturing: 'Source PFAS-free alternative raw materials. Prepare production line changeover for reformulated US SKUs.',
+      },
+    },
+  },
+  {
+    title: 'Sunscreen Chemical Filter Safety Debate Resurging in US Media',
+    brand: 'La Roche-Posay / CeraVe',
+    market: 'United States',
+    severity: 'High',
+    why: 'US media and consumer discussion around chemical sunscreen ingredients (oxybenzone, avobenzone) has resurged in Q1 2026 following new FDA study data. Consumer preference shifting toward mineral/hybrid formulations.',
+    response: 'Accelerate La Roche-Posay and CeraVe mineral sunscreen US launches and prepare science-based consumer education',
+    scenarioId: 's10',
+    detailSections: [
+      { label: 'Market Signal', content: 'FDA released updated study data on chemical sunscreen absorption in Q1 2026. Consumer searches for "mineral sunscreen" grew 140% YoY in US. TikTok dermatologists are increasingly recommending mineral-only sunscreens. Hawaii and Key West oxybenzone bans influencing mainland US perception.' },
+      { label: 'L\'Oreal Performance', content: 'La Roche-Posay Anthelios is the #1 dermatologist-recommended US sunscreen brand. However, several top-selling SKUs use chemical filters. CeraVe sunscreens also use predominantly chemical filters. Combined US sunscreen revenue is approximately $340M.' },
+      { label: 'Competitor Performance', content: 'EltaMD (Colgate-Palmolive) grew 32% in US with mineral-forward positioning. Supergoop! launched mineral collection growing 45% YoY. Neutrogena (Kenvue) reformulated key US sunscreens to mineral/hybrid. Australian Gold mineral sunscreens grew 38% at Target.' },
+      { label: 'Gap / Diagnosis', content: 'La Roche-Posay and CeraVe are behind in US mineral sunscreen SKU count. EltaMD and Supergoop! have stronger mineral positioning. Gap is portfolio balance — L\'Oreal brands have mineral options but chemical-filter SKUs dominate US shelf presence. Consumer perception risk if chemical filter concerns escalate.' },
+      { label: 'Demand Implication', content: 'US sunscreen market is $2.7B. Mineral segment growing at 28% vs 4% for chemical. If L\'Oreal doesn\'t expand mineral sunscreen portfolio, risks losing share in the fastest-growing US sun care segment. La Roche-Posay\'s dermatologist credibility is strong enough to lead this pivot.' },
+    ],
+    relatedActions: [
+      { action: 'Accelerate La Roche-Posay mineral sunscreen launches for US', priority: 'High', owner: 'Product Development', rationale: 'La Roche-Posay has strongest US derm credibility to lead mineral sunscreen pivot' },
+      { action: 'Prepare science-based consumer education on sunscreen safety', priority: 'High', owner: 'Medical Affairs US', rationale: 'Proactive education prevents narrative from damaging La Roche-Posay and CeraVe US sales' },
+      { action: 'Expand CeraVe mineral sunscreen line for US drugstore channel', priority: 'Medium', owner: 'R&D Sun Care', rationale: 'CeraVe distribution at CVS, Walgreens, Walmart can drive mineral sunscreen accessibility' },
+    ],
+    metrics: {
+      signalStrength: 'Moderate',
+      lorealTrend: [70, 68, 65, 63, 60, 58],
+      competitorTrend: [25, 32, 40, 50, 60, 72],
+      competitorName: 'EltaMD (Colgate-Palmolive) / Supergoop!',
+      competitorProduct: 'EltaMD UV Clear + Supergoop! Mineral Collection',
+      gapVsCompetitor: 'Mineral SKU count: L\'Oreal 4 vs EltaMD 8 vs Supergoop! 6 in US',
+      gapReason: 'Chemical filter SKUs dominate L\'Oreal US sunscreen shelf; competitors pivoted to mineral earlier; FDA study amplifying consumer concern',
+      demandImplication: 'US mineral sunscreen growing at 28% CAGR. L\'Oreal\'s $340M US sunscreen revenue at risk if chemical filter perception worsens.',
+      confidence: 'Medium',
+      supportingEvidence: 'FDA GRASE proposed rule update; Google Trends US mineral sunscreen; EltaMD and Supergoop! sales data from retailer reports',
+      teamActions: {
+        marketing: 'Prepare "Science of Sun Protection" campaign for La Roche-Posay US. Launch proactively before summer 2026.',
+        product: 'Develop 3 new mineral/hybrid sunscreen SKUs for La Roche-Posay and 2 for CeraVe. Target Q2 2026.',
+        planning: 'Shift US sunscreen forecast mix: increase mineral allocation from 15% to 35% of production.',
+        manufacturing: 'Secure zinc oxide and titanium dioxide supply for expanded mineral sunscreen production.',
+      },
+    },
+  },
+]
+
+// ── Recommended Actions (North America) ──
+export const SEEDED_ACTIONS: SeededAction[] = [
+  { title: 'Launch CeraVe dermatologist counter-campaign vs Cetaphil in US', priority: 'Critical', owner: 'Marketing US', impact: 'Prevent further CeraVe market share erosion vs Cetaphil relaunch in US mass moisturizer ($143M at risk)', timeline: 'Immediate — launch by May 2026', scenarioId: 's1' },
+  { title: 'Accelerate PFAS-free reformulation for US color cosmetics portfolio', priority: 'Critical', owner: 'R&D Color Cosmetics', impact: 'Ensure regulatory compliance and protect consumer trust for Maybelline, L\'Oreal Paris, NYX in US market', timeline: 'Accelerate from 2027 to Q2 2026', scenarioId: 's9' },
+  { title: 'Launch 200+ creator TikTok campaign for Maybelline SuperStay vs e.l.f.', priority: 'Critical', owner: 'Digital Marketing US', impact: 'Counter e.l.f. Halo Glow SOV gains in US mass foundation ($168M at risk)', timeline: 'Launch by May 2026', scenarioId: 's2' },
+  { title: 'Develop Garnier Clean+ hair care sub-line for US market', priority: 'High', owner: 'Product Development Hair Care', impact: 'Address clean-hair positioning gap vs Native (P&G) and Function of Beauty (Unilever) at Target', timeline: 'Target Q4 2026 launch', scenarioId: 's3' },
+  { title: 'Fast-track CeraVe Peptide Moisturizer for US launch', priority: 'High', owner: 'R&D Skincare', impact: 'Enter fastest-growing US anti-aging segment ($890M peptide market, 0% current share)', timeline: 'Target Q3 2026', scenarioId: 's4' },
+  { title: 'Relaunch Revitalift with clinical-data campaign in US', priority: 'High', owner: 'Brand Strategy US', impact: 'Counter Olay Regenerist and Neutrogena growth in US anti-aging ($76M annual risk)', timeline: 'H2 2026', scenarioId: 's7' },
+  { title: 'Rebrief Elvive Bond Repair US messaging vs Olaplex', priority: 'High', owner: 'Brand Marketing US', impact: 'Improve conversion from 2.4% toward 5.1% benchmark; capture $21 price advantage vs Olaplex', timeline: '4-6 weeks', scenarioId: 's8' },
+  { title: 'Accelerate La Roche-Posay mineral sunscreen launches for US', priority: 'Medium', owner: 'Product Development', impact: 'Protect $340M US sunscreen revenue as mineral segment grows at 28% CAGR', timeline: 'Q2 2026', scenarioId: 's10' },
+]
+
+// ── Recent Analyses (North America) ──
 export const SEEDED_ANALYSES: SeededAnalysis[] = [
-  { id: 'sa1', title: 'Peptide Scalp-Care Opportunity Assessment', brand: 'Garnier / Kerastase', market: 'Southeast Asia', signalTypes: ['Opportunity', 'Consumer Insight'], summary: 'Identified emerging peptide scalp-care whitespace in Southeast Asia with no category leader. Consumer demand is driven by preventive wellness behaviour among 18-34 demographic.', timestamp: '2026-03-24T08:45:00Z', scenarioId: 's1' },
-  { id: 'sa2', title: 'The Ordinary Vitamin C Competitive Response for UK', brand: "L'Oreal Paris", market: 'United Kingdom', signalTypes: ['Competitive', 'Launch'], summary: 'The Ordinary (Estée Lauder / DECIEM) has captured early SOV in UK brightening serums with Vitamin C Suspension 23%. Recommended accelerating Revitalift Clinical launch and activating clinical data counter-narrative.', timestamp: '2026-03-23T14:20:00Z', scenarioId: 's2' },
-  { id: 'sa3', title: 'Elvive Bond Repair vs Olaplex Performance Review', brand: "L'Oreal Paris Elvive", market: 'Germany', signalTypes: ['Launch', 'Performance'], summary: 'Elvive Bond Repair underperforming vs Olaplex No.3 in German e-commerce on Douglas.de and dm.de. Root causes: weak benefit differentiation, insufficient creator support, unexploited price advantage.', timestamp: '2026-03-22T16:10:00Z', scenarioId: 's3' },
-  { id: 'sa4', title: 'France Retinol Irritation Sentiment Analysis', brand: 'La Roche-Posay / Vichy', market: 'France', signalTypes: ['Claims', 'Reputation'], summary: 'Rising negative sentiment around retinol irritation in France affecting La Roche-Posay Retinol B3 and Vichy LiftActiv Retinol. No safety signal confirmed, but consumer perception requires proactive management.', timestamp: '2026-03-22T11:30:00Z', scenarioId: 's4' },
-  { id: 'sa5', title: 'Exosome Skincare Strategic Assessment', brand: 'Lancome / Helena Rubinstein', market: 'Global Premium', signalTypes: ['Opportunity', 'Innovation'], summary: 'Exosome technology represents the next frontier in biotech beauty. South Korean brands (AmorePacific, Sulwhasoo) are first to market but in clinical channels only. Recommended evaluating Lancome Genifique pipeline integration.', timestamp: '2026-03-21T09:00:00Z', scenarioId: 's5' },
-  { id: 'sa6', title: 'Peptide Eye-Care Crowding by Estée Lauder and Shiseido', brand: "L'Oreal Paris / Lancome", market: 'Global', signalTypes: ['Launch', 'Competitive'], summary: 'Peptide eye-care category experiencing narrative crowding from Estée Lauder ANR Eye, Shiseido Benefiance, and Drunk Elephant C-Tango. Recommended repositioning toward proprietary Pro-Retinol + Peptide technology.', timestamp: '2026-03-20T15:30:00Z', scenarioId: 's7' },
+  { id: 'sa1', title: 'CeraVe vs Cetaphil US Moisturizer Competitive Assessment', brand: 'CeraVe', market: 'United States', signalTypes: ['Competitive', 'Launch'], summary: 'Cetaphil relaunch driving share gains against CeraVe in US mass moisturizer. CeraVe share dropped from 18.2% to 14.8% as Cetaphil invested $40M in dermatologist campaign.', timestamp: '2026-04-01T09:00:00Z', scenarioId: 's1' },
+  { id: 'sa2', title: 'Maybelline Foundation vs e.l.f. US Competitive Review', brand: 'Maybelline', market: 'United States', signalTypes: ['Competitive', 'Consumer Insight'], summary: 'e.l.f. Halo Glow Liquid Filter capturing US foundation share from Maybelline through TikTok creator strategy and $8 price advantage.', timestamp: '2026-03-30T14:00:00Z', scenarioId: 's2' },
+  { id: 'sa3', title: 'Garnier US Shelf Space Loss Assessment', brand: 'Garnier', market: 'United States / Canada', signalTypes: ['Competitive', 'Performance'], summary: 'Garnier Fructis lost 6 SKU facings at Target Q1 2026 as Native (P&G) and Function of Beauty (Unilever) gained premium-clean positioning.', timestamp: '2026-03-28T11:00:00Z', scenarioId: 's3' },
+  { id: 'sa4', title: 'US Peptide Skincare Opportunity Assessment', brand: 'L\'Oreal Paris / CeraVe', market: 'United States', signalTypes: ['Opportunity', 'Innovation'], summary: 'US peptide skincare growing 180% YoY. The Ordinary Buffet dominates but L\'Oreal has zero dedicated peptide products. $890M market opportunity.', timestamp: '2026-03-26T10:00:00Z', scenarioId: 's4' },
+  { id: 'sa5', title: 'Revitalift vs Olay Regenerist US Performance Review', brand: 'L\'Oreal Paris', market: 'United States', signalTypes: ['Launch', 'Performance'], summary: 'Revitalift US sales declining 11% YoY while Olay Regenerist growing 14%. Messaging and media spend gap driving divergence.', timestamp: '2026-03-24T15:00:00Z', scenarioId: 's7' },
+  { id: 'sa6', title: 'US PFAS Regulatory Impact Assessment', brand: 'Maybelline / L\'Oreal Paris / NYX', market: 'United States', signalTypes: ['Claims', 'Regulatory'], summary: 'Three US states enacted PFAS bans. Consumer awareness surged 420%. e.l.f. using PFAS-free certification as competitive lever.', timestamp: '2026-03-22T08:00:00Z', scenarioId: 's9' },
 ]
 
 // ── Derive dynamic intelligence from real analyses ──
@@ -279,7 +554,7 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
     const id = a._id || ''
 
     recentAnalyses.push({
-      id, title: cleanText(summary, 60) || 'Web Analysis', brand: 'L\'Oréal', market: 'Global', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
+      id, title: cleanText(summary, 60) || 'Web Analysis', brand: 'L\'Oreal', market: 'North America', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
     })
 
     for (const sp of specialists) {
@@ -288,8 +563,8 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
       const findings = sp?.key_findings || sp?.findings || sp?.analysis || sp?.summary || ''
       const domain = (sp?.domain || sp?.category || sp?.area || '').toLowerCase()
       const spTitle = sp?.title || sp?.signal || cleanText(findings, 70)
-      const spBrand = sp?.brand || sp?.brands || 'L\'Oréal'
-      const spMarket = sp?.market || sp?.region || sp?.geography || 'Global'
+      const spBrand = sp?.brand || sp?.brands || 'L\'Oreal'
+      const spMarket = sp?.market || sp?.region || sp?.geography || 'United States'
       const urg = recs.some((r: any) => (r?.priority || '').toLowerCase() === 'critical') ? 'Critical'
         : recs.some((r: any) => (r?.priority || '').toLowerCase() === 'high') ? 'High' : 'Medium'
 
@@ -300,15 +575,14 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         rationale: r?.rationale || r?.reason || ''
       }))
 
-      // Always create a signal from each specialist output
       signals.push({
         id, title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, urgency: urg,
         why: findings, nextStep: topRec?.action || topRec?.recommendation || 'Review full analysis',
         crossCutting: a.cross_cutting_themes || '', timestamp: a.createdAt || '',
         detailSections: [
-          { label: 'Key Findings', content: findings },
+          { label: 'Market Signal', content: findings },
           { label: 'Recommended Action', content: topRec?.action || topRec?.recommendation || 'See full analysis' },
-          ...(sp?.data_points ? [{ label: 'Supporting Data', content: Array.isArray(sp.data_points) ? sp.data_points.join('; ') : String(sp.data_points) }] : []),
+          ...(sp?.data_points ? [{ label: 'Supporting Evidence', content: Array.isArray(sp.data_points) ? sp.data_points.join('; ') : String(sp.data_points) }] : []),
         ],
         relatedActions: relActions,
       })
@@ -319,30 +593,23 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
       let riskScore = 0
       let oppScore = 0
 
-      // Alert indicators
       if (types.includes('claims') || types.includes('reputation') || types.includes('safety')) alertScore += 3
       if (domain.includes('claims') || domain.includes('compliance') || domain.includes('reputation') || domain.includes('safety') || domain.includes('regulatory')) alertScore += 3
       if (domain.includes('sentiment')) alertScore += 2
       if (fl.includes('concern') || fl.includes('irritation') || fl.includes('safety') || fl.includes('regulatory') || fl.includes('backlash') || fl.includes('recall')) alertScore += 2
 
-      // Risk indicators
       if (types.includes('launch') || types.includes('risk')) riskScore += 3
       if (domain.includes('launch') || domain.includes('performance') || domain.includes('competitive') || domain.includes('competitor') || domain.includes('risk') || domain.includes('threat')) riskScore += 3
       if (fl.includes('underperform') || fl.includes('declining') || fl.includes('losing share')) riskScore += 2
       if (fl.includes('competitor') || fl.includes('risk')) riskScore += 1
 
-      // Opportunity indicators
       if (types.includes('opportunity')) oppScore += 3
       if (domain.includes('opportunity') || domain.includes('whitespace') || domain.includes('innovation') || domain.includes('growth')) oppScore += 3
       if (domain.includes('market') || domain.includes('trend') || domain.includes('ingredient') || domain.includes('consumer')) oppScore += 2
       if (fl.includes('opportunity') || fl.includes('emerging') || fl.includes('whitespace') || fl.includes('growing')) oppScore += 1
 
-      // Classify into the highest-scoring category (mutually exclusive)
       const maxScore = Math.max(alertScore, riskScore, oppScore)
-      if (maxScore === 0) {
-        // No strong signal — default to opportunity
-        oppScore = 1
-      }
+      if (maxScore === 0) oppScore = 1
 
       if (alertScore > 0 && alertScore >= riskScore && alertScore >= oppScore) {
         alerts.push({

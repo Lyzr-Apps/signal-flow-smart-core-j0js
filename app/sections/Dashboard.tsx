@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiPulseLine, RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiShieldLine, RiFileTextLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine, RiSearchLine, RiChat3Line, RiStarLine, RiShoppingCartLine } from 'react-icons/ri'
+import { RiPulseLine, RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine, RiSearchLine, RiLineChartLine, RiPercentLine, RiBarChartGroupedLine } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
-  SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_ANALYSES,
-  type AnalysisItem, type SeededSignal, type SeededAction, type SeededOpportunity, type SeededRisk, type SeededAlert, type SeededAnalysis,
+  SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
+  type AnalysisItem, type SeededSignal, type SeededAction, type SeededOpportunity, type SeededRisk, type SeededAlert,
 } from './data/seededScenarios'
 import type { DetailItem } from './DetailView'
 
@@ -28,58 +28,6 @@ function matchesQuery(query: string, ...fields: string[]): boolean {
   return terms.some(term => text.includes(term))
 }
 
-function SignalVolumeTrend() {
-  // Simulated weekly signal volume (seeded baseline)
-  const data = [4, 6, 5, 8, 7, 10, 9, 12]
-  const labels = ['W-8', 'W-7', 'W-6', 'W-5', 'W-4', 'W-3', 'W-2', 'Now']
-  const max = Math.max(...data)
-  return (
-    <div className="flex items-end gap-2 h-[72px]">
-      {data.map((v, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[9px] text-foreground/60">{v}</span>
-          <div
-            className="w-full bg-primary/70 hover:bg-primary transition-colors"
-            style={{ height: `${(v / max) * 56}px` }}
-          />
-          <span className="text-[8px] text-muted-foreground">{labels[i]}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function SourceBreakdown({ signals, alerts }: { signals: any[]; alerts: any[] }) {
-  const sources = [
-    { label: 'Search Trends', icon: RiSearchLine, count: Math.max(2, Math.floor(signals.length * 0.3)), color: 'bg-blue-400' },
-    { label: 'Social / Creator', icon: RiChat3Line, count: Math.max(2, Math.floor(signals.length * 0.25)), color: 'bg-purple-400' },
-    { label: 'Product Reviews', icon: RiStarLine, count: Math.max(1, Math.floor(signals.length * 0.2)), color: 'bg-amber-400' },
-    { label: 'E-Commerce', icon: RiShoppingCartLine, count: Math.max(1, Math.floor(alerts.length * 0.5)), color: 'bg-emerald-400' },
-  ]
-  const maxCount = Math.max(...sources.map(s => s.count))
-  return (
-    <div className="space-y-3">
-      {sources.map((s) => {
-        const Icon = s.icon
-        return (
-          <div key={s.label} className="flex items-center gap-3">
-            <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-            <div className="flex-1">
-              <div className="flex justify-between mb-0.5">
-                <span className="text-[10px] text-muted-foreground tracking-wide">{s.label}</span>
-                <span className="text-[10px] text-foreground/70 font-medium">{s.count}</span>
-              </div>
-              <div className="h-1.5 bg-secondary w-full">
-                <div className={`h-full ${s.color}`} style={{ width: `${(s.count / maxCount) * 100}%` }} />
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail, agentLoading, agentError, hasRunAnalysis, searchFilter = '' }: DashboardProps) {
   const safeAnalyses = Array.isArray(analyses) ? analyses : []
   const derived = useMemo(() => deriveFromAnalyses(safeAnalyses), [safeAnalyses])
@@ -97,12 +45,12 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
   const topOpp = allOpps.filter(o => isHighPriority(o.confidence))[0] || allOpps[0]
   const topRisk = allRisks.filter(r => isHighPriority(r.severity))[0] || allRisks[0]
 
-  // Click handlers
   const openSignal = (sig: SeededSignal) => {
     onOpenDetail({
       category: 'signal', title: sig.title, brand: sig.brand, market: sig.market, severity: sig.urgency,
       sections: sig.detailSections.length > 0 ? sig.detailSections : [{ label: 'What Changed', content: sig.why }, { label: 'What Teams Should Do', content: sig.nextStep }],
       relatedActions: sig.relatedActions,
+      metrics: sig.metrics,
     })
   }
 
@@ -118,6 +66,7 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
       category: 'opportunity', title: opp.title, brand: opp.brand, market: opp.market, severity: opp.confidence,
       sections: opp.detailSections.length > 0 ? opp.detailSections : [{ label: 'What Changed', content: opp.why }, { label: 'What Teams Should Do', content: opp.move }],
       relatedActions: opp.relatedActions,
+      metrics: opp.metrics,
     })
   }
 
@@ -126,17 +75,17 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
       category: 'risk', title: risk.title, brand: risk.brand, market: risk.market, severity: risk.severity,
       sections: risk.detailSections.length > 0 ? risk.detailSections : [{ label: 'What Changed', content: risk.cause }, { label: 'What Teams Should Do', content: risk.action }],
       relatedActions: risk.relatedActions,
+      metrics: risk.metrics,
     })
   }
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {/* Agent loading / error banner */}
       {agentLoading && (
         <div className="mx-8 mt-6 bg-primary/5 border border-primary/20 p-3 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin flex-shrink-0" />
           <div>
-            <p className="text-[12px] text-foreground tracking-wide">Scanning the web for real-time market intelligence...</p>
+            <p className="text-[12px] text-foreground tracking-wide">Scanning North America market intelligence...</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">This typically takes 30-60 seconds. Results will appear across all sections.</p>
           </div>
         </div>
@@ -148,7 +97,6 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
         </div>
       )}
 
-      {/* Search filter indicator */}
       {q && (
         <div className="mx-8 mt-6 bg-primary/5 border border-primary/20 p-3 flex items-center gap-3">
           <RiSearchLine className="h-3.5 w-3.5 text-primary flex-shrink-0" />
@@ -159,37 +107,37 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
         </div>
       )}
 
-      {/* KPI Row */}
+      {/* Business KPI Row */}
       <div className="px-8 pt-7 pb-2">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: 'Market Changes Detected',
-              value: String(allSignals.length),
-              sub: `${allSignals.filter(s => isHighPriority(s.urgency)).length} require review`,
-              icon: RiPulseLine,
-              accent: allSignals.filter(s => isHighPriority(s.urgency)).length > 0 ? 'text-amber-400' : 'text-foreground',
-            },
-            {
-              label: 'Demand Opportunities',
-              value: String(allOpps.length),
-              sub: `${allOpps.filter(o => isHighPriority(o.confidence)).length} ready for validation`,
+              label: 'Sales Lift from Signal-Led Actions',
+              value: '+8.3%',
+              sub: 'vs 2.1% baseline growth',
               icon: RiArrowRightUpLine,
-              accent: allOpps.length > 0 ? 'text-emerald-400' : 'text-foreground',
+              accent: 'text-emerald-400',
             },
             {
-              label: 'Demand Risks',
-              value: String(allRisks.length),
-              sub: `${allRisks.filter(r => r.severity.toLowerCase() === 'critical').length} need escalation`,
-              icon: RiErrorWarningLine,
-              accent: allRisks.filter(r => r.severity.toLowerCase() === 'critical').length > 0 ? 'text-red-400' : 'text-foreground',
+              label: 'Signal-to-Campaign ROI',
+              value: '3.2x',
+              sub: 'signal-driven campaigns vs standard',
+              icon: RiLineChartLine,
+              accent: 'text-primary',
             },
             {
-              label: 'Actions to Review',
-              value: String(allActions.filter(a => isHighPriority(a.priority)).length),
-              sub: `${allActions.length} total recommendations`,
-              icon: RiFlashlightLine,
-              accent: allActions.filter(a => isHighPriority(a.priority)).length > 0 ? 'text-primary' : 'text-foreground',
+              label: 'Demand Capture Rate',
+              value: '72%',
+              sub: 'of identified opportunities actioned',
+              icon: RiPercentLine,
+              accent: 'text-blue-400',
+            },
+            {
+              label: 'Forecast Accuracy Improvement',
+              value: '+12pp',
+              sub: 'vs prior quarter baseline',
+              icon: RiBarChartGroupedLine,
+              accent: 'text-amber-400',
             },
           ].map((kpi, i) => {
             const Icon = kpi.icon
@@ -204,22 +152,6 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* Signal Overview Charts */}
-      <div className="px-8 pt-4 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Signal Volume Trend */}
-          <div className="bg-card border border-border p-5">
-            <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-4 font-serif">Signal Volume — Last 8 Weeks</h4>
-            <SignalVolumeTrend />
-          </div>
-          {/* Source Breakdown */}
-          <div className="bg-card border border-border p-5">
-            <h4 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-4 font-serif">Intelligence by Source</h4>
-            <SourceBreakdown signals={allSignals} alerts={allAlerts} />
-          </div>
         </div>
       </div>
 
@@ -254,7 +186,6 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
 
         {/* Growth Opportunities + Demand Risks side by side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          {/* Growth Opportunities */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -282,7 +213,6 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
             )}
           </div>
 
-          {/* Demand Risks */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

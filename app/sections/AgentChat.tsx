@@ -32,7 +32,7 @@ export default function AgentChat() {
     setLoading(true)
 
     try {
-      const prompt = `You are a demand intelligence assistant for L'Oreal. The user is viewing a demand sensing dashboard. Answer their question using real-time web data. Be concise, specific, and action-oriented. Use simple business language. Avoid abbreviations like SEA — write "Southeast Asia" instead. Question: ${q}`
+      const prompt = `You are a demand intelligence assistant for L'Oreal, focused on North America (United States and Canada). The user is viewing a demand sensing dashboard. Answer their question using real-time web data. Be concise, specific, and action-oriented. Use simple business language. Default to US/Canada market context unless another market is explicitly asked about. Name specific competitor brands and products. For each insight, explain: the market signal, L'Oreal performance, competitor performance, the gap, and what teams should do. Question: ${q}`
       const result = await callAIAgent(prompt, WEB_AGENT_ID)
       const text = result?.response?.result?.text
         || result?.response?.message
@@ -84,10 +84,10 @@ export default function AgentChat() {
                 <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3 text-center">Suggested Questions</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    "What competitor activity should L'Or\u00e9al respond to first?",
-                    "Which demand signals show the highest growth potential?",
-                    "What are the biggest risks to current product launches?",
-                    "What ingredient trends are emerging in premium skincare?"
+                    "What US competitor moves should L'Or\u00e9al respond to first?",
+                    "Which North America demand signals show the highest growth?",
+                    "What are the top risks to US product launches right now?",
+                    "What skincare ingredient trends are emerging in the US market?"
                   ].map((prompt, idx) => (
                     <button
                       key={idx}
@@ -95,7 +95,7 @@ export default function AgentChat() {
                         setInput(prompt)
                         setMessages(prev => [...prev, { role: 'user', content: prompt }])
                         setLoading(true)
-                        const systemPrompt = `You are a demand intelligence assistant for L'Oreal. The user is viewing a demand sensing dashboard. Answer their question using real-time web data. Be concise, specific, and action-oriented. Use simple business language. Avoid abbreviations like SEA — write "Southeast Asia" instead. Question: ${prompt}`
+                        const systemPrompt = `You are a demand intelligence assistant for L'Oreal, focused on North America (United States and Canada). The user is viewing a demand sensing dashboard. Answer their question using real-time web data. Be concise, specific, and action-oriented. Use simple business language. Default to US/Canada market context unless another market is explicitly asked about. Name specific competitor brands and products. For each insight, explain: the market signal, L'Oreal performance, competitor performance, the gap, and what teams should do. Question: ${prompt}`
                         callAIAgent(systemPrompt, WEB_AGENT_ID).then(result => {
                           const text = result?.response?.result?.text
                             || result?.response?.message

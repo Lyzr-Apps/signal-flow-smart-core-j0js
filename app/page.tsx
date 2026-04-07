@@ -110,8 +110,8 @@ export default function Page() {
 
     try {
       const basePrompt = query
-        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape.`
-        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal. Search the web for the latest developments as of today.`
+        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in North America (United States and Canada) unless another market is explicitly mentioned in the query.`
+        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in North America (United States and Canada). Search the web for the latest developments as of today.`
 
       const message = `${basePrompt}
 
@@ -189,18 +189,27 @@ You MUST respond in valid JSON format with this exact structure:
 }
 
 IMPORTANT LANGUAGE RULES:
-- Use full geographic names: "Southeast Asia" not "SEA", "Latin America" or "LATAM"
+- Default market is North America (United States and Canada) unless another market is explicitly requested
+- Use full geographic names: "United States" not "US", "North America" not "NA"
 - Use short, action-oriented titles: "Format Fix Needed" not "Product Format Optimization Required"
-- Make recommendations team-specific: Product, Marketing, Planning, or Manufacturing
+- Make recommendations team-specific: Marketing, Product/R&D, Planning, or Manufacturing/Supply
 - Include confidence levels and supporting evidence with percentages
+- For every insight, include: L'Oreal brand performance, specific competitor brand + product name, gap vs competitor, reason for gap, and demand implication
 
-Cover these areas with REAL current data from web search:
-1. Emerging ingredient trends (peptides, retinoids, exosomes, niacinamide, ceramides, bakuchiol, etc.)
-2. Competitor launches and campaigns (Estee Lauder, P&G Beauty, Unilever, Shiseido, Beiersdorf, indie brands)
-3. Product launch performance and consumer reception
-4. Ingredient safety concerns, regulatory changes, and claims risks
-5. Consumer sentiment on TikTok, Reddit, and beauty forums
-6. Market whitespace and growth opportunities
+Cover these areas with REAL current data from web search, focusing on North America:
+1. Emerging ingredient trends in US market (peptides, retinoids, niacinamide, ceramides, bakuchiol, etc.)
+2. Competitor launches and campaigns in US/Canada (P&G/Olay, Estee Lauder/The Ordinary, Unilever, e.l.f., Kenvue/Neutrogena, Galderma/Cetaphil)
+3. Product launch performance and US consumer reception
+4. Ingredient safety concerns, US regulatory changes (PFAS, FDA sunscreen rules), and claims risks
+5. Consumer sentiment on US TikTok, Reddit, and beauty forums
+6. US market whitespace and growth opportunities
+
+For each specialist analysis, clearly state:
+- Which specific L'Oreal brand is impacted
+- Which specific competitor brand and product is relevant
+- How L'Oreal is performing vs the competitor (with data)
+- Why there is a gap
+- What this means for demand in North America
 
 Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources.`
 
@@ -463,7 +472,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
                 <input
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search by trend, region, product, competitor, or market signal"
+                  placeholder="Search US trends, brands, competitors, or market signals..."
                   className="w-full bg-secondary/50 border border-border pl-9 pr-4 py-1.5 text-[12px] text-foreground tracking-wide placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
                   disabled={agentLoading}
                 />

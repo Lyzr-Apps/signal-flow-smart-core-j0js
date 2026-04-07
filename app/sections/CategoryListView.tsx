@@ -44,6 +44,7 @@ export default function CategoryListView({ category, analyses, onOpenDetail, has
       category: 'opportunity', title: opp.title, brand: opp.brand, market: opp.market, severity: opp.confidence,
       sections: opp.detailSections.length > 0 ? opp.detailSections : [{ label: 'Why It Matters', content: opp.why }, { label: 'Suggested Move', content: opp.move }],
       relatedActions: opp.relatedActions,
+      metrics: opp.metrics,
     })
   }
 
@@ -52,6 +53,7 @@ export default function CategoryListView({ category, analyses, onOpenDetail, has
       category: 'risk', title: risk.title, brand: risk.brand, market: risk.market, severity: risk.severity,
       sections: risk.detailSections.length > 0 ? risk.detailSections : [{ label: 'Likely Cause', content: risk.cause }, { label: 'Immediate Action', content: risk.action }],
       relatedActions: risk.relatedActions,
+      metrics: risk.metrics,
     })
   }
 
@@ -60,6 +62,7 @@ export default function CategoryListView({ category, analyses, onOpenDetail, has
       category: 'alert', title: alert.title, brand: alert.brand, market: alert.market, severity: alert.severity,
       sections: alert.detailSections.length > 0 ? alert.detailSections : [{ label: 'Why It Matters', content: alert.why }, { label: 'Recommended Response', content: alert.response }],
       relatedActions: alert.relatedActions,
+      metrics: alert.metrics,
     })
   }
 

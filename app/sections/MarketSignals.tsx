@@ -2,13 +2,13 @@
 
 import React, { useMemo } from 'react'
 import {
-  RiSearchLine, RiChat3Line, RiStarLine, RiShoppingCartLine,
+  RiSearchLine, RiChat3Line, RiShoppingCartLine,
   RiStoreLine, RiSpyLine, RiArrowUpSLine, RiArrowDownSLine,
   RiSignalTowerLine, RiArrowRightSLine,
 } from 'react-icons/ri'
 import {
-  urgencyBadge, cleanText, deriveFromAnalyses,
-  SEEDED_SIGNALS,
+  urgencyBadge, cleanText,
+  SEEDED_SIGNALS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
   type AnalysisItem, type SeededSignal,
 } from './data/seededScenarios'
 import type { DetailItem } from './DetailView'
@@ -37,7 +37,6 @@ interface MarketEvidence {
 const SOURCE_META: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bg: string; dot: string }> = {
   search: { label: 'Search Trends', icon: RiSearchLine, color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20', dot: 'bg-blue-400' },
   social: { label: 'Social Conversations', icon: RiChat3Line, color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20', dot: 'bg-purple-400' },
-  reviews: { label: 'Product Reviews', icon: RiStarLine, color: 'text-amber-400', bg: 'bg-amber-400/10 border-amber-400/20', dot: 'bg-amber-400' },
   ecommerce: { label: 'E-Commerce Activity', icon: RiShoppingCartLine, color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20', dot: 'bg-emerald-400' },
   retail: { label: 'Retail Performance', icon: RiStoreLine, color: 'text-primary', bg: 'bg-primary/10 border-primary/20', dot: 'bg-primary' },
   competitor: { label: 'Competitor Activity', icon: RiSpyLine, color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/20', dot: 'bg-red-400' },
@@ -45,112 +44,112 @@ const SOURCE_META: Record<string, { label: string; icon: React.ComponentType<{ c
 
 const SEEDED_MARKET_SIGNALS: MarketEvidence[] = [
   {
-    title: '"Scalp serum" search volume +280% QoQ in Southeast Asia',
+    title: '"Peptide serum" US search volume +180% YoY',
     source: 'search',
-    metric: '+280% QoQ',
+    metric: '+180% YoY',
     direction: 'up',
-    brand: 'Garnier / Kerastase',
-    market: 'Southeast Asia',
+    brand: 'CeraVe / L\'Oreal Paris',
+    market: 'United States',
     urgency: 'High',
-    summary: 'Google Trends shows accelerating interest in scalp serums across Indonesia, Philippines, and Thailand among 18-34 consumers.',
-    linkedInsight: 'Peptide Scalp-Care Opportunity Emerging in Southeast Asia',
-    linkedSignalId: 's1',
-    trend: [18, 25, 38, 52, 72, 95],
-  },
-  {
-    title: 'The Ordinary Vitamin C SOV surged from 12% to 38% in UK brightening',
-    source: 'competitor',
-    metric: '38% SOV',
-    direction: 'up',
-    brand: "L'Oreal Paris",
-    market: 'United Kingdom',
-    urgency: 'Critical',
-    summary: 'DECIEM creator seeding and Boots endcap placement driving rapid share-of-voice gain in UK brightening serums.',
-    linkedInsight: 'The Ordinary Vitamin C Suspension Gaining SOV in UK Brightening',
-    linkedSignalId: 's2',
-    trend: [12, 18, 24, 30, 35, 38],
-    isNegative: true,
-  },
-  {
-    title: 'Retinol irritation mentions +340% in French social channels',
-    source: 'social',
-    metric: '+340%',
-    direction: 'up',
-    brand: 'La Roche-Posay / Vichy',
-    market: 'France',
-    urgency: 'Critical',
-    summary: 'Negative sentiment around retinol burning and daily-use concerns rising across French social media. 23% of recent reviews mention irritation.',
-    linkedInsight: 'Retinol Irritation Concern Building in France',
+    summary: 'Google Trends shows accelerating US consumer interest in peptide-based skincare. The Ordinary Buffet dominates current peptide search results. CeraVe and L\'Oreal Paris have no dedicated peptide product.',
+    linkedInsight: 'Peptide Skincare Demand Growing 180% YoY in US Market',
     linkedSignalId: 's4',
-    trend: [15, 22, 35, 52, 78, 98],
+    trend: [15, 22, 35, 52, 68, 85],
+  },
+  {
+    title: 'Cetaphil US moisturizer share surged from 11.3% to 16.1%',
+    source: 'competitor',
+    metric: '+4.8pp share',
+    direction: 'up',
+    brand: 'CeraVe',
+    market: 'United States',
+    urgency: 'Critical',
+    summary: 'Galderma invested $40M in US dermatologist campaign for Cetaphil relaunch. CeraVe share dropped from 18.2% to 14.8% as Cetaphil gained Walmart endcap visibility.',
+    linkedInsight: 'CeraVe Losing US Moisturizer Share to Cetaphil Relaunch',
+    linkedSignalId: 's1',
+    trend: [48, 55, 62, 70, 78, 85],
     isNegative: true,
   },
   {
-    title: 'Elvive Bond Repair conversion 2.1% vs 4.8% benchmark on Douglas.de',
-    source: 'ecommerce',
-    metric: '2.1% CVR',
-    direction: 'down',
-    brand: 'Elvive',
-    market: 'Germany',
-    urgency: 'High',
-    summary: 'Product page traffic healthy at 85% of target but add-to-cart rate severely underperforming. Reviews show confusion vs Olaplex.',
-    linkedInsight: 'Elvive Bond Repair Launch Underperforming vs Olaplex in Germany',
-    linkedSignalId: 's3',
-    trend: [85, 76, 64, 56, 48, 42],
+    title: 'e.l.f. Halo Glow TikTok views surpass 2.1B in US',
+    source: 'social',
+    metric: '2.1B views',
+    direction: 'up',
+    brand: 'Maybelline',
+    market: 'United States',
+    urgency: 'Critical',
+    summary: 'e.l.f. Halo Glow Liquid Filter dominating US TikTok beauty with 500+ creator partnerships. Maybelline SuperStay SOV in US foundation dropped from 22% to 16%.',
+    linkedInsight: 'Maybelline SuperStay Foundation Losing Share to e.l.f. Halo Glow in US',
+    linkedSignalId: 's2',
+    trend: [20, 35, 50, 68, 82, 95],
+    isNegative: true,
   },
   {
-    title: '"Peptide eye cream" social mentions +420% globally',
-    source: 'social',
-    metric: '+420%',
-    direction: 'up',
-    brand: "L'Oreal Paris / Lancome",
-    market: 'Global',
+    title: 'Garnier Fructis lost 6 SKU facings at Target Q1 shelf reset',
+    source: 'retail',
+    metric: '-6 facings',
+    direction: 'down',
+    brand: 'Garnier',
+    market: 'United States',
     urgency: 'High',
-    summary: 'Estee Lauder ANR Eye, Shiseido Benefiance, and Drunk Elephant intensifying peptide eye-care messaging. Category crowding ahead of launch.',
-    linkedInsight: 'Peptide Eye-Care Launch Crowded by Estee Lauder and Shiseido',
-    linkedSignalId: 's7',
+    summary: 'Target Q1 2026 shelf reset removed 6 Garnier Fructis SKUs. Native Hair Care (P&G) gained 4 facings and Function of Beauty (Unilever) gained 5.',
+    linkedInsight: 'Garnier Fructis Losing US Shelf Space to Native and Function of Beauty',
+    linkedSignalId: 's3',
+    trend: [52, 48, 42, 38, 35, 30],
+  },
+  {
+    title: '"PFAS-free makeup" US searches +420% as state bans take effect',
+    source: 'search',
+    metric: '+420% YoY',
+    direction: 'up',
+    brand: 'Maybelline / L\'Oreal Paris / NYX',
+    market: 'United States',
+    urgency: 'Critical',
+    summary: 'California, New York, and Washington PFAS bans driving consumer awareness surge. e.l.f. Beauty proactively certified PFAS-free across full US line.',
+    linkedInsight: 'PFAS-Free Claims Pressure Building on US Cosmetics Brands',
+    linkedSignalId: 's9',
     trend: [15, 25, 40, 58, 78, 95],
     isNegative: true,
   },
   {
-    title: 'Exosome skincare search interest accelerating in Korea and US',
-    source: 'search',
-    metric: '+1260% YoY',
-    direction: 'up',
-    brand: 'Lancome',
-    market: 'South Korea / US',
-    urgency: 'High',
-    summary: 'AmorePacific and Sulwhasoo leading clinical channel launches. No global luxury brand has claimed the exosome narrative yet.',
-    linkedInsight: 'Exosome Skincare Interest Accelerating in Premium Anti-Aging',
-    linkedSignalId: 's5',
-    trend: [5, 8, 14, 25, 42, 68],
-  },
-  {
-    title: '"Spicule burn" trending globally with 85M+ TikTok views',
-    source: 'social',
-    metric: '85M+ views',
-    direction: 'up',
-    brand: 'Cross-portfolio',
-    market: 'Global',
-    urgency: 'High',
-    summary: 'Viral backlash against spicule exfoliation creating broader consumer hesitation toward clinical-strength actives including retinol and AHA/BHA.',
-    linkedInsight: 'Spicule Ingredient Backlash Risks Spillover to Active Skincare Category',
-    linkedSignalId: 's8',
-    trend: [8, 18, 35, 55, 72, 88],
-    isNegative: true,
-  },
-  {
-    title: 'Olaplex No.3 holds 52% bond repair share on Douglas.de',
-    source: 'reviews',
-    metric: '52% share',
+    title: 'Olaplex No.3 holds 48% US bond repair share at Ulta',
+    source: 'ecommerce',
+    metric: '48% share',
     direction: 'flat',
     brand: 'Elvive',
-    market: 'Germany',
-    urgency: 'Medium',
-    summary: 'Olaplex dominance on Douglas.de remains entrenched. 62 Elvive reviews averaging 3.2/5 with recurring "not sure how different from Olaplex" theme.',
-    linkedInsight: 'Elvive Bond Repair Launch Underperforming vs Olaplex in Germany',
-    linkedSignalId: 's3',
-    trend: [48, 49, 50, 51, 52, 52],
+    market: 'United States',
+    urgency: 'High',
+    summary: 'Elvive Bond Repair conversion at 2.4% vs 5.1% US category benchmark. Reviews show confusion vs Olaplex pricing ($8.99 vs $30).',
+    linkedInsight: 'Elvive Bond Repair Underperforming vs Olaplex at US Retailers',
+    linkedSignalId: 's8',
+    trend: [48, 48, 49, 48, 48, 48],
+  },
+  {
+    title: '"Mineral sunscreen" US searches +140% following FDA study update',
+    source: 'search',
+    metric: '+140% YoY',
+    direction: 'up',
+    brand: 'La Roche-Posay / CeraVe',
+    market: 'United States',
+    urgency: 'High',
+    summary: 'FDA updated study data on chemical sunscreen absorption. Consumer preference shifting toward mineral/hybrid formulations. EltaMD and Supergoop! gaining share.',
+    linkedInsight: 'Sunscreen Chemical Filter Safety Debate Resurging in US Media',
+    linkedSignalId: 's10',
+    trend: [25, 32, 42, 55, 68, 82],
+  },
+  {
+    title: 'Olay Regenerist US anti-aging SOV grew from 18% to 24% in 6 months',
+    source: 'competitor',
+    metric: '+6pp SOV',
+    direction: 'up',
+    brand: 'L\'Oreal Paris',
+    market: 'United States',
+    urgency: 'High',
+    summary: 'Olay Regenerist Micro-Sculpting Cream reformulation and $60M US media spend driving share gains. Revitalift US anti-aging SOV declined from 19% to 15%.',
+    linkedInsight: 'L\'Oreal Paris Revitalift Declining vs Olay Regenerist and Neutrogena in US Anti-Aging',
+    linkedSignalId: 's7',
+    trend: [18, 19, 20, 21, 23, 24],
+    isNegative: true,
   },
 ]
 
@@ -175,8 +174,16 @@ function Sparkline({ data, negative }: { data: number[]; negative?: boolean }) {
   )
 }
 
-function findLinkedSignal(id: string): SeededSignal | undefined {
-  return SEEDED_SIGNALS.find(s => s.id === id)
+function findLinkedContext(id: string) {
+  const sig = SEEDED_SIGNALS.find(s => s.id === id)
+  if (sig) return { type: 'signal' as const, data: sig }
+  const opp = SEEDED_OPPORTUNITIES.find(o => o.scenarioId === id)
+  if (opp) return { type: 'opportunity' as const, data: opp }
+  const risk = SEEDED_RISKS.find(r => r.scenarioId === id)
+  if (risk) return { type: 'risk' as const, data: risk }
+  const alert = SEEDED_ALERTS.find(a => a.scenarioId === id)
+  if (alert) return { type: 'alert' as const, data: alert }
+  return null
 }
 
 export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis }: MarketSignalsProps) {
@@ -191,20 +198,70 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis }
   }, [signals])
 
   const openSignal = (ev: MarketEvidence) => {
-    const linked = findLinkedSignal(ev.linkedSignalId)
-    if (linked) {
-      onOpenDetail({
-        category: 'signal',
-        title: linked.title,
-        brand: linked.brand,
-        market: linked.market,
-        severity: linked.urgency,
-        sections: linked.detailSections.length > 0 ? linked.detailSections : [
-          { label: 'What Changed', content: linked.why },
-          { label: 'Recommended Next Step', content: linked.nextStep },
-        ],
-        relatedActions: linked.relatedActions,
-      })
+    const ctx = findLinkedContext(ev.linkedSignalId)
+    if (ctx) {
+      const d = ctx.data
+      if (ctx.type === 'signal') {
+        const sig = d as SeededSignal
+        onOpenDetail({
+          category: 'signal',
+          title: sig.title,
+          brand: sig.brand,
+          market: sig.market,
+          severity: sig.urgency,
+          sections: sig.detailSections.length > 0 ? sig.detailSections : [
+            { label: 'What Changed', content: sig.why },
+            { label: 'Recommended Next Step', content: sig.nextStep },
+          ],
+          relatedActions: sig.relatedActions,
+          metrics: sig.metrics,
+        })
+      } else if (ctx.type === 'opportunity') {
+        const opp = d as typeof SEEDED_OPPORTUNITIES[number]
+        onOpenDetail({
+          category: 'opportunity',
+          title: opp.title,
+          brand: opp.brand,
+          market: opp.market,
+          severity: opp.confidence,
+          sections: opp.detailSections.length > 0 ? opp.detailSections : [
+            { label: 'Why Now', content: opp.why },
+            { label: 'Recommended Move', content: opp.move },
+          ],
+          relatedActions: opp.relatedActions,
+          metrics: opp.metrics,
+        })
+      } else if (ctx.type === 'risk') {
+        const risk = d as typeof SEEDED_RISKS[number]
+        onOpenDetail({
+          category: 'risk',
+          title: risk.title,
+          brand: risk.brand,
+          market: risk.market,
+          severity: risk.severity,
+          sections: risk.detailSections.length > 0 ? risk.detailSections : [
+            { label: 'Root Cause', content: risk.cause },
+            { label: 'Mitigation', content: risk.action },
+          ],
+          relatedActions: risk.relatedActions,
+          metrics: risk.metrics,
+        })
+      } else if (ctx.type === 'alert') {
+        const alert = d as typeof SEEDED_ALERTS[number]
+        onOpenDetail({
+          category: 'alert',
+          title: alert.title,
+          brand: alert.brand,
+          market: alert.market,
+          severity: alert.severity,
+          sections: alert.detailSections.length > 0 ? alert.detailSections : [
+            { label: 'Why This Matters', content: alert.why },
+            { label: 'Recommended Response', content: alert.response },
+          ],
+          relatedActions: alert.relatedActions,
+          metrics: alert.metrics,
+        })
+      }
     } else {
       onOpenDetail({
         category: 'signal',
@@ -221,7 +278,7 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis }
     }
   }
 
-  const sourceOrder: Array<'search' | 'social' | 'reviews' | 'ecommerce' | 'retail' | 'competitor'> = ['search', 'social', 'reviews', 'ecommerce', 'retail', 'competitor']
+  const sourceOrder: Array<'search' | 'social' | 'ecommerce' | 'retail' | 'competitor'> = ['search', 'social', 'ecommerce', 'retail', 'competitor']
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -230,7 +287,7 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis }
           <RiSignalTowerLine className="h-5 w-5 text-primary" />
           <h2 className="font-serif text-lg tracking-[0.1em] text-foreground uppercase">Market Signals</h2>
         </div>
-        <p className="text-[12px] text-muted-foreground tracking-wide mb-5">External demand evidence driving intelligence</p>
+        <p className="text-[12px] text-muted-foreground tracking-wide mb-5">North America demand evidence driving intelligence</p>
 
         <div className="flex items-center gap-2 mb-5 flex-wrap">
           {sourceOrder.map(key => {
