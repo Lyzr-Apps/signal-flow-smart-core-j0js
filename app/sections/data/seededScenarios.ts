@@ -29,6 +29,12 @@ export interface InsightMetrics {
     planning: string
     manufacturing: string
   }
+  sources: {
+    name: string
+    type: string
+    claim: string
+    verified: boolean
+  }[]
 }
 
 export interface SeededSignal {
@@ -144,6 +150,12 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
         planning: 'Reduce Q2-Q3 CeraVe moisturizer forecast by 8%. Increase promotional allocation at Walmart and CVS.',
         manufacturing: 'Prepare for reformulated CeraVe Moisturizing Cream production run by August 2026. Ensure ingredient supply for niacinamide increase.',
       },
+      sources: [
+        { name: 'Nielsen IQ US Mass Skincare Q1 2026', type: 'Ecommerce / Retailer Data', claim: 'CeraVe share dropped from 18.2% to 14.8% in US mass moisturizer', verified: true },
+        { name: 'Walmart Shelf Audit March 2026', type: 'Ecommerce / Retailer Data', claim: 'Cetaphil gained endcap placement at Walmart, CVS, Walgreens', verified: true },
+        { name: 'Galderma Investor Presentation 2026', type: 'Competitor Filings', claim: '$40M US dermatologist endorsement campaign for Cetaphil', verified: true },
+        { name: 'TikTok Brand Mention Tracking', type: 'Social / Creator Content', claim: 'CeraVe TikTok-driven growth has plateaued since mid-2025', verified: true },
+      ],
     },
   },
   {
@@ -186,6 +198,12 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
         planning: 'Reduce Maybelline full-coverage foundation forecast by 12%. Build skin-tint launch forecast.',
         manufacturing: 'Prepare skin-tint production line. Evaluate co-pack options for accelerated timeline.',
       },
+      sources: [
+        { name: 'Circana US Mass Cosmetics Q1 2026', type: 'Ecommerce / Retailer Data', claim: 'Maybelline SuperStay foundation sales declined 15% YoY', verified: true },
+        { name: 'TikTok Analytics Dashboard', type: 'Social / Creator Content', claim: 'e.l.f. Halo Glow Liquid Filter generated 2.1B+ TikTok views in Q1 2026', verified: true },
+        { name: 'e.l.f. Beauty Q3 2025 Earnings Call', type: 'Competitor Filings', claim: 'Halo Glow Liquid Filter grew 185% YoY in US sales', verified: true },
+        { name: 'Target & Ulta Shelf Tracking', type: 'Ecommerce / Retailer Data', claim: 'e.l.f. SOV in US mass foundation grew from 8% to 14%', verified: true },
+      ],
     },
   },
   {
@@ -228,6 +246,12 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
         planning: 'Reduce Fructis US plan by 10%. Build Clean+ launch forecast based on Native pricing benchmarks.',
         manufacturing: 'Source EWG-verified ingredients for Clean+ line. Evaluate recyclable packaging options to match Native.',
       },
+      sources: [
+        { name: 'Target Planogram Shelf Audit Q1 2026', type: 'Ecommerce / Retailer Data', claim: 'Garnier lost 6 SKU facings; Native gained 4, Function of Beauty gained 5', verified: true },
+        { name: 'Google Trends US Clean Beauty', type: 'Google Trends', claim: 'Clean beauty searches growing at 18% CAGR in US', verified: true },
+        { name: 'P&G 2026 Investor Day', type: 'Competitor Filings', claim: 'Native Hair Care reported 42% US growth', verified: true },
+        { name: 'Reddit r/HairCare Sentiment', type: 'Social / Creator Content', claim: 'Garnier perceived as legacy natural brand vs clean competitors', verified: false },
+      ],
     },
   },
 ]
@@ -270,6 +294,12 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         planning: 'Build peptide launch demand forecast based on The Ordinary sales trajectory. Target 15% share by Q2 2027.',
         manufacturing: 'Secure peptide complex supply. Prepare production for 2M units initial CeraVe run.',
       },
+      sources: [
+        { name: 'Google Trends US Peptide Searches', type: 'Google Trends', claim: 'Peptide serum and peptide moisturizer US search volume up 180% YoY', verified: true },
+        { name: 'TikTok #peptideskincare', type: 'Social / Creator Content', claim: '1.2B views on peptide skincare content', verified: true },
+        { name: 'Circana US Skincare Category Data', type: 'Ecommerce / Retailer Data', claim: 'The Ordinary Buffet achieved 340% sales growth', verified: true },
+        { name: 'The Ordinary Q4 2025 Earnings', type: 'Competitor Filings', claim: 'The Ordinary Buffet dominates US peptide skincare category', verified: true },
+      ],
     },
   },
   {
@@ -308,6 +338,11 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         planning: 'Build US men\'s skincare growth forecast. Target 16% combined share by end 2027.',
         manufacturing: 'Ensure L\'Oreal Men Expert US SKU availability for expanded retail distribution.',
       },
+      sources: [
+        { name: 'NPD US Prestige Men\'s Beauty 2025', type: 'Ecommerce / Retailer Data', claim: 'US men\'s prestige skincare grew 22% YoY to $1.1B', verified: true },
+        { name: 'TikTok #mensskincare Analytics', type: 'Social / Creator Content', claim: '#mensskincare reached 890M TikTok views', verified: true },
+        { name: 'Target Buyer Feedback', type: 'Ecommerce / Retailer Data', claim: 'L\'Oreal Men Expert has limited US retail distribution', verified: false },
+      ],
     },
   },
   {
@@ -346,6 +381,11 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         planning: 'Build US body care launch forecast: 8M units year-one. Secure Walmart, Target, CVS shelf space.',
         manufacturing: 'Prepare dedicated body care production line. Scale for 8M+ unit initial run.',
       },
+      sources: [
+        { name: 'Circana US Body Care Q4 2025', type: 'Ecommerce / Retailer Data', claim: 'US premium body care ($12+) grew 35% YoY', verified: true },
+        { name: 'TikTok #bodyskincare Analytics', type: 'Social / Creator Content', claim: '#bodyskincare reached 2.4B views on TikTok', verified: true },
+        { name: 'Unilever 2025 Annual Earnings', type: 'Competitor Filings', claim: 'Necessaire grew 52% in US prestige body care', verified: true },
+      ],
     },
   },
 ]
@@ -389,6 +429,11 @@ export const SEEDED_RISKS: SeededRisk[] = [
         planning: 'Reduce Revitalift forecast by 8% for Q2-Q3. Increase forecast for reformulated launch Q4.',
         manufacturing: 'Prepare for reformulated Revitalift production. Secure stabilized vitamin C supply.',
       },
+      sources: [
+        { name: 'Circana US Anti-Aging Q1 2026', type: 'Ecommerce / Retailer Data', claim: 'Revitalift US sales declined 11% YoY; SOV dropped from 19% to 15%', verified: true },
+        { name: 'P&G 2025 10-K Filing', type: 'Competitor Filings', claim: 'Olay Regenerist grew 14% YoY in US market', verified: true },
+        { name: 'Kantar US Media Spend Estimates', type: 'Real-time Web Research', claim: 'Olay outspending Revitalift by $25M in US advertising', verified: false },
+      ],
     },
   },
   {
@@ -428,6 +473,12 @@ export const SEEDED_RISKS: SeededRisk[] = [
         planning: 'Revise forecast to $22M. Increase promotional spend allocation by $3M.',
         manufacturing: 'Reduce initial production run. Prepare for promotional bundle SKU.',
       },
+      sources: [
+        { name: 'Ulta Product Page Analytics', type: 'Ecommerce / Retailer Data', claim: 'Elvive Bond Repair conversion at 2.4% vs 5.1% category benchmark', verified: true },
+        { name: 'Target eCommerce Conversion Data', type: 'Ecommerce / Retailer Data', claim: 'Elvive 2.1% conversion vs 4.6% benchmark at Target', verified: true },
+        { name: 'Olaplex 2025 10-K Filing', type: 'Competitor Filings', claim: 'Olaplex holds 48% US bond repair market share', verified: true },
+        { name: 'Ulta & Target Consumer Reviews', type: 'Product Reviews', claim: '189 reviews, 3.4/5 average; consumer confusion vs Olaplex', verified: true },
+      ],
     },
   },
 ]
@@ -471,6 +522,12 @@ export const SEEDED_ALERTS: SeededAlert[] = [
         planning: 'Model demand impact scenarios for PFAS regulatory compliance. Budget $15M for reformulation acceleration.',
         manufacturing: 'Source PFAS-free alternative raw materials. Prepare production line changeover for reformulated US SKUs.',
       },
+      sources: [
+        { name: 'California SB484 PFAS Ban', type: 'Real-time Web Research', claim: 'California enacted cosmetics PFAS ban effective 2025', verified: true },
+        { name: 'Congressional PFAS-Free Cosmetics Act S.4524', type: 'Real-time Web Research', claim: 'Federal PFAS-free legislation advancing in US Senate', verified: true },
+        { name: 'e.l.f. 2025 Investor Day', type: 'Competitor Filings', claim: 'e.l.f. PFAS-free certified across full US product line', verified: true },
+        { name: 'Google Trends US PFAS Cosmetics', type: 'Google Trends', claim: 'PFAS-free makeup searches grew 420% YoY in US', verified: true },
+      ],
     },
   },
   {
@@ -510,6 +567,12 @@ export const SEEDED_ALERTS: SeededAlert[] = [
         planning: 'Shift US sunscreen forecast mix: increase mineral allocation from 15% to 35% of production.',
         manufacturing: 'Secure zinc oxide and titanium dioxide supply for expanded mineral sunscreen production.',
       },
+      sources: [
+        { name: 'FDA GRASE Proposed Rule Update', type: 'Real-time Web Research', claim: 'FDA released updated study data on chemical sunscreen absorption', verified: true },
+        { name: 'Google Trends US Mineral Sunscreen', type: 'Google Trends', claim: 'Mineral sunscreen US searches grew 140% YoY', verified: true },
+        { name: 'Retailer Sales Reports (EltaMD, Supergoop!)', type: 'Ecommerce / Retailer Data', claim: 'EltaMD grew 32%, Supergoop! mineral collection grew 45%', verified: false },
+        { name: 'TikTok Dermatologist Content', type: 'Social / Creator Content', claim: 'Dermatologists increasingly recommending mineral-only formulations', verified: false },
+      ],
     },
   },
 ]
