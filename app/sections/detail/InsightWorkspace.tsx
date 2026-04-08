@@ -4,8 +4,7 @@ import React from 'react'
 import {
   RiArrowLeftLine, RiFlashlightLine, RiLightbulbLine,
   RiAlertLine, RiArrowRightUpLine, RiErrorWarningLine, RiShieldLine,
-  RiBarChartLine, RiTeamLine, RiCheckboxCircleLine, RiFileListLine,
-  RiShieldCheckLine, RiCloseCircleLine,
+  RiBarChartLine, RiTeamLine, RiCheckboxCircleLine,
 } from 'react-icons/ri'
 import { urgencyBadge, severityDot } from '../data/seededScenarios'
 import type { DetailItem } from '../DetailView'
@@ -26,18 +25,29 @@ const CATEGORY_LABELS: Record<string, { label: string; icon: any; color: string 
 
 const MONTH_LABELS = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
 
-// ── Source type color mapping ──
-const SOURCE_TYPE_COLORS: Record<string, string> = {
-  'Google Trends': 'bg-blue-500',
-  'Social / Creator Content': 'bg-purple-500',
-  'Product Reviews': 'bg-amber-500',
-  'Ecommerce / Retailer Data': 'bg-emerald-500',
-  'Competitor Filings': 'bg-cyan-500',
-  'Real-time Web Research': 'bg-indigo-500',
-}
+// ── Inline source note ──
 
-function sourceTypeColor(type: string): string {
-  return SOURCE_TYPE_COLORS[type] || 'bg-muted-foreground'
+function InlineSourceNote({ sources, keywords }: { sources: InsightMetrics['sources']; keywords: string[] }) {
+  if (!Array.isArray(sources) || sources.length === 0) return null
+  const matched = sources.filter(s => {
+    const lower = (s.claim + ' ' + s.name + ' ' + s.type).toLowerCase()
+    return keywords.some(k => lower.includes(k.toLowerCase()))
+  })
+  const display = matched.length > 0 ? matched : sources.slice(0, 2)
+  return (
+    <div className="mt-3 pt-2.5 border-t border-border/40">
+      <p className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase mb-1.5">Sources</p>
+      {display.map((src, i) => (
+        <div key={i} className="flex items-center gap-2 mb-1">
+          <div className={`w-1 h-1 rounded-full flex-shrink-0 ${src.verified ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+          <span className="text-[10px] text-muted-foreground tracking-wide">{src.name}</span>
+          {!src.verified && (
+            <span className="text-[8px] tracking-[0.08em] uppercase px-1 py-px border bg-amber-500/10 text-amber-400 border-amber-500/25">Not verified</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 // ── Badges ──
@@ -67,16 +77,18 @@ function ConfidenceBadge({ confidence }: { confidence: string }) {
   )
 }
 
-// ── Charts ──
+// ── Market Signal Trend Chart ──
 
 function MarketSignalTrendChart({
   lorealTrend,
   competitorTrend,
   competitorName,
+  sources,
 }: {
   lorealTrend: number[]
   competitorTrend: number[]
   competitorName: string
+  sources: InsightMetrics['sources']
 }) {
   const w = 320, h = 140, padL = 40, padR = 12, padT = 16, padB = 32
   const chartW = w - padL - padR
@@ -98,8 +110,15 @@ function MarketSignalTrendChart({
   const toArea = (pts: { x: number; y: number }[]) =>
     `${toLine(pts)} L${pts[pts.length - 1].x.toFixed(1)},${padT + chartH} L${pts[0].x.toFixed(1)},${padT + chartH} Z`
 
-  // Y-axis tick values
   const yTicks = [minV, minV + range * 0.5, maxV]
+
+  // Find chart-relevant sources
+  const chartSources = Array.isArray(sources)
+    ? sources.filter(s => {
+        const lower = (s.type + ' ' + s.name).toLowerCase()
+        return lower.includes('trend') || lower.includes('analytics') || lower.includes('tiktok') || lower.includes('google') || lower.includes('circana') || lower.includes('nielsen')
+      })
+    : []
 
   return (
     <div>
@@ -117,7 +136,7 @@ function MarketSignalTrendChart({
 
         {/* Y-axis label */}
         <text x="4" y={padT + chartH / 2} textAnchor="middle" transform={`rotate(-90, 4, ${padT + chartH / 2})`} className="fill-muted-foreground" fontSize="8" fontFamily="sans-serif">
-          Index
+          Signal Index
         </text>
 
         {/* Y-axis gridlines and labels */}
@@ -170,115 +189,21 @@ function MarketSignalTrendChart({
           <span className="text-[9px] text-muted-foreground tracking-wide">{competitorName}</span>
         </div>
       </div>
-    </div>
-  )
-}
-
-function GrowthComparisonChart({
-  lorealTrend,
-  competitorTrend,
-  competitorName,
-}: {
-  lorealTrend: number[]
-  competitorTrend: number[]
-  competitorName: string
-}) {
-  const lorealGrowth = lorealTrend.length >= 2
-    ? ((lorealTrend[lorealTrend.length - 1] - lorealTrend[0]) / lorealTrend[0]) * 100
-    : 0
-  const compGrowth = competitorTrend.length >= 2
-    ? ((competitorTrend[competitorTrend.length - 1] - competitorTrend[0]) / competitorTrend[0]) * 100
-    : 0
-
-  const maxAbs = Math.max(Math.abs(lorealGrowth), Math.abs(compGrowth), 1)
-  const w = 280, barH = 24, gap = 12, padL = 90, padR = 50
-  const chartW = w - padL - padR
-  const h = barH * 2 + gap + 36
-
-  const barWidth = (val: number) => Math.max(2, (Math.abs(val) / maxAbs) * chartW)
-
-  return (
-    <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-[100px]" preserveAspectRatio="xMidYMid meet">
-        {/* Y-axis labels (brand names) */}
-        <text x={padL - 6} y={12 + barH / 2 + 4} textAnchor="end" className="fill-foreground" fontSize="8" fontFamily="sans-serif">
-          L&apos;Oreal
-        </text>
-        <text x={padL - 6} y={12 + barH + gap + barH / 2 + 4} textAnchor="end" className="fill-muted-foreground" fontSize="8" fontFamily="sans-serif">
-          {competitorName.length > 14 ? competitorName.slice(0, 14) + '...' : competitorName}
-        </text>
-
-        {/* L'Oreal bar */}
-        <rect
-          x={padL}
-          y={12}
-          width={barWidth(lorealGrowth)}
-          height={barH}
-          fill={lorealGrowth >= 0 ? 'hsl(40,50%,55%)' : 'hsl(0,65%,55%)'}
-          opacity={0.8}
-        />
-        <text x={padL + barWidth(lorealGrowth) + 6} y={12 + barH / 2 + 4} className="fill-foreground" fontSize="9" fontFamily="sans-serif" fontWeight="600">
-          {lorealGrowth >= 0 ? '+' : ''}{lorealGrowth.toFixed(1)}%
-        </text>
-
-        {/* Competitor bar */}
-        <rect
-          x={padL}
-          y={12 + barH + gap}
-          width={barWidth(compGrowth)}
-          height={barH}
-          fill={compGrowth >= 0 ? 'hsl(0,65%,55%)' : 'hsl(40,50%,55%)'}
-          opacity={0.8}
-        />
-        <text x={padL + barWidth(compGrowth) + 6} y={12 + barH + gap + barH / 2 + 4} className="fill-foreground" fontSize="9" fontFamily="sans-serif" fontWeight="600">
-          {compGrowth >= 0 ? '+' : ''}{compGrowth.toFixed(1)}%
-        </text>
-
-        {/* X-axis label */}
-        <text x={padL + chartW / 2} y={h - 2} textAnchor="middle" className="fill-muted-foreground" fontSize="7" fontFamily="sans-serif">
-          6-Month Growth Rate (%)
-        </text>
-      </svg>
-    </div>
-  )
-}
-
-function SourceMixChart({ sources }: { sources: InsightMetrics['sources'] }) {
-  if (!Array.isArray(sources) || sources.length === 0) return null
-  const typeCounts: Record<string, number> = {}
-  for (const s of sources) {
-    typeCounts[s.type] = (typeCounts[s.type] || 0) + 1
-  }
-  const total = sources.length
-  const entries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])
-
-  const w = 280, barH = 18, h = barH + 40
-  let offsetX = 0
-
-  return (
-    <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-[52px]" preserveAspectRatio="xMidYMid meet">
-        {entries.map(([type, count]) => {
-          const segW = (count / total) * w
-          const x = offsetX
-          offsetX += segW
-          return (
-            <rect key={type} x={x} y={0} width={segW} height={barH} className={sourceTypeColor(type)} opacity={0.75} />
-          )
-        })}
-        {/* X-axis label */}
-        <text x={w / 2} y={barH + 28} textAnchor="middle" className="fill-muted-foreground" fontSize="7" fontFamily="sans-serif">
-          Contribution to insight by source type
-        </text>
-      </svg>
-      <div className="flex flex-wrap gap-3 mt-1">
-        {entries.map(([type, count]) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <div className={`w-2 h-2 ${sourceTypeColor(type)}`} />
-            <span className="text-[9px] text-muted-foreground tracking-wide">{type} ({count})</span>
-          </div>
-        ))}
-      </div>
+      {/* Inline source legend for chart */}
+      {chartSources.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-border/40">
+          <p className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase mb-1">Chart Sources</p>
+          {chartSources.map((src, i) => (
+            <div key={i} className="flex items-center gap-2 mb-0.5">
+              <div className={`w-1 h-1 rounded-full flex-shrink-0 ${src.verified ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              <span className="text-[10px] text-muted-foreground tracking-wide">{src.name}</span>
+              {!src.verified && (
+                <span className="text-[8px] tracking-[0.08em] uppercase px-1 py-px border bg-amber-500/10 text-amber-400 border-amber-500/25">Not verified</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -311,55 +236,6 @@ function findSection(sections: { label: string; content: string }[], keyword: st
   return sections.find(s => s.label.toLowerCase().includes(keyword.toLowerCase()))
 }
 
-// ── Sources Section ──
-
-function SourcesSection({ sources }: { sources: InsightMetrics['sources'] }) {
-  if (!Array.isArray(sources) || sources.length === 0) return null
-  const verifiedCount = sources.filter(s => s.verified).length
-  const allVerified = verifiedCount === sources.length
-
-  return (
-    <div className="bg-card border border-border p-5 mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <RiFileListLine className="h-4 w-4 text-primary" />
-          <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Sources Used</h3>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {allVerified ? (
-            <RiShieldCheckLine className="h-3.5 w-3.5 text-emerald-400" />
-          ) : (
-            <RiCloseCircleLine className="h-3.5 w-3.5 text-amber-400" />
-          )}
-          <span className={`text-[9px] tracking-[0.12em] uppercase px-2 py-0.5 border ${allVerified ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'}`}>
-            {allVerified ? 'All Verified' : `${verifiedCount}/${sources.length} Verified`}
-          </span>
-        </div>
-      </div>
-      <div className="divide-y divide-border/60">
-        {sources.map((src, i) => (
-          <div key={i} className="flex items-start gap-3 py-2.5">
-            <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${src.verified ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-0.5">
-                <p className="text-[12px] text-foreground tracking-wide">{src.name}</p>
-                <span className={`text-[8px] tracking-[0.1em] uppercase px-1.5 py-0.5 whitespace-nowrap border flex-shrink-0 ${src.verified ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' : 'bg-amber-500/10 text-amber-400 border-amber-500/25'}`}>
-                  {src.verified ? 'Verified' : 'Not verified'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <div className={`w-1.5 h-1.5 ${sourceTypeColor(src.type)}`} />
-                <span className="text-[9px] text-muted-foreground tracking-[0.1em] uppercase">{src.type}</span>
-              </div>
-              <p className="text-[11px] text-foreground/60 leading-relaxed tracking-wide">{src.claim}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ── Main Component ──
 
 export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps) {
@@ -369,23 +245,39 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
   const catMeta = CATEGORY_LABELS[item?.category ?? 'signal'] ?? CATEGORY_LABELS.signal
   const CatIcon = catMeta.icon
 
-  // If metrics available, use structured layout
   if (metrics) {
     const marketSignalSection = findSection(sections, 'market signal') ?? findSection(sections, 'what changed') ?? sections[0]
     const compSection = findSection(sections, 'competitor')
+    const lorealSection = findSection(sections, "l'oreal perf") ?? findSection(sections, 'loreal perf')
     const demandSection = findSection(sections, 'demand') ?? findSection(sections, 'impact')
+    const gapSection = findSection(sections, 'gap')
 
-    const usedLabels = new Set<string>()
-    if (marketSignalSection) usedLabels.add(marketSignalSection.label)
-    if (compSection) usedLabels.add(compSection.label)
-    if (demandSection) usedLabels.add(demandSection.label)
-    const remaining = sections.filter(s => !usedLabels.has(s.label))
+    // Parse gapReason into bullets
+    const gapBullets = (metrics.gapReason || '')
+      .split(/;\s*/)
+      .map(s => s.trim())
+      .filter(Boolean)
+
+    // Parse gapVsCompetitor into share gap + revenue risk
+    const gapParts = (metrics.gapVsCompetitor || '').split(',').map(s => s.trim())
+    const shareGap = gapParts[0] || metrics.gapVsCompetitor
+    const revenueRisk = gapParts[1] || ''
 
     // Parse evidence into bullets
     const evidenceBullets = (metrics.supportingEvidence || '')
       .split(/;\s*/)
       .map(s => s.trim())
       .filter(Boolean)
+
+    // Compute growth for inline comparison
+    const lorealGrowth = metrics.lorealTrend.length >= 2
+      ? ((metrics.lorealTrend[metrics.lorealTrend.length - 1] - metrics.lorealTrend[0]) / metrics.lorealTrend[0]) * 100
+      : 0
+    const compGrowth = metrics.competitorTrend.length >= 2
+      ? ((metrics.competitorTrend[metrics.competitorTrend.length - 1] - metrics.competitorTrend[0]) / metrics.competitorTrend[0]) * 100
+      : 0
+
+    const allSources = Array.isArray(metrics.sources) ? metrics.sources : []
 
     return (
       <div className="flex-1 overflow-y-auto">
@@ -419,10 +311,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
             <SignalStrengthBadge strength={metrics.signalStrength} />
           </div>
 
-          {/* Sources Used — high up for visibility */}
-          <SourcesSection sources={metrics.sources} />
-
-          {/* Market Signal section */}
+          {/* 1. Market Signal */}
           {marketSignalSection && (
             <div className="bg-card border border-primary/30 p-5 mb-4">
               <div className="flex items-center gap-2 mb-3">
@@ -430,24 +319,26 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
                 <h3 className="text-[11px] tracking-[0.14em] text-primary uppercase font-serif">{marketSignalSection.label}</h3>
               </div>
               <p className="text-[13px] text-foreground/90 leading-[1.8] tracking-wide">{marketSignalSection.content}</p>
+              <InlineSourceNote sources={allSources} keywords={['trend', 'google', 'tiktok', 'search', 'social', 'shelf', 'planogram', 'fda']} />
             </div>
           )}
 
-          {/* Market Signal Trend — line chart */}
+          {/* 2. Market Signal Trend — line chart */}
           <div className="bg-card border border-border p-5 mb-4">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <RiBarChartLine className="h-4 w-4 text-primary" />
               <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">
                 Market Signal Trend
               </h3>
             </div>
             <p className="text-[10px] text-muted-foreground tracking-wide mb-3">
-              L&apos;Oreal vs {metrics.competitorName} — signal index over 6 months
+              Relative performance index comparing L&apos;Oreal and {metrics.competitorName} over 6 months. Higher values indicate stronger market position based on sales share, search volume, and retail presence.
             </p>
             <MarketSignalTrendChart
               lorealTrend={metrics.lorealTrend}
               competitorTrend={metrics.competitorTrend}
               competitorName={metrics.competitorName}
+              sources={allSources}
             />
             {metrics.competitorProduct && (
               <p className="text-[10px] text-muted-foreground mt-3 tracking-wide">
@@ -456,51 +347,76 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
             )}
           </div>
 
-          {/* Competitor Performance */}
-          {compSection && (
-            <div className="bg-card border border-border p-5 mb-4">
-              <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-2 font-serif">{compSection.label}</p>
-              <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{compSection.content}</p>
-            </div>
-          )}
-
-          {/* L'Oreal vs Competitor Growth — bar chart */}
+          {/* 3. Competitor Performance — with inline growth comparison */}
           <div className="bg-card border border-border p-5 mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <RiBarChartLine className="h-4 w-4 text-primary" />
-              <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">
-                L&apos;Oreal vs Competitor Growth
-              </h3>
+              <RiErrorWarningLine className="h-4 w-4 text-red-400" />
+              <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Competitor Performance</h3>
             </div>
-            <p className="text-[10px] text-muted-foreground tracking-wide mb-2">
-              6-month growth rate comparison
-            </p>
-            <GrowthComparisonChart
-              lorealTrend={metrics.lorealTrend}
-              competitorTrend={metrics.competitorTrend}
-              competitorName={metrics.competitorName}
-            />
+            {compSection && (
+              <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide mb-4">{compSection.content}</p>
+            )}
+            {/* Inline growth comparison block */}
+            <div className="bg-secondary/40 border border-border p-4">
+              <p className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase mb-3">6-Month Growth Comparison (Oct 2025 - Mar 2026)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] text-muted-foreground tracking-wide mb-1">L&apos;Oreal</p>
+                  <p className={`text-[18px] font-serif tracking-wide ${lorealGrowth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {lorealGrowth >= 0 ? '+' : ''}{lorealGrowth.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground tracking-wide mb-1">{metrics.competitorName}</p>
+                  <p className={`text-[18px] font-serif tracking-wide ${compGrowth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {compGrowth >= 0 ? '+' : ''}{compGrowth.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+            <InlineSourceNote sources={allSources} keywords={['competitor', 'circana', 'nielsen', 'earnings', '10-k', 'investor', 'filing', 'retailer']} />
           </div>
 
-          {/* Gap / Diagnosis */}
+          {/* 4. Gap Diagnosis — split left/right with bullets */}
           <div className="bg-card border border-primary/20 p-5 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <RiErrorWarningLine className="h-4 w-4 text-amber-400" />
               <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Gap Diagnosis</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Left: Gap vs Competitor */}
               <div>
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase mb-1">Gap vs Competitor</p>
-                <p className="text-[15px] font-serif text-amber-400 tracking-wide">{metrics.gapVsCompetitor}</p>
+                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase mb-2">Gap vs Competitor</p>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-[9px] tracking-[0.1em] text-muted-foreground uppercase mb-0.5">Share Gap</p>
+                    <p className="text-[16px] font-serif text-amber-400 tracking-wide">{shareGap}</p>
+                  </div>
+                  {revenueRisk && (
+                    <div>
+                      <p className="text-[9px] tracking-[0.1em] text-muted-foreground uppercase mb-0.5">Revenue Risk</p>
+                      <p className="text-[14px] font-serif text-red-400 tracking-wide">{revenueRisk}</p>
+                    </div>
+                  )}
+                </div>
               </div>
+              {/* Right: Root Cause as bullets */}
               <div>
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase mb-1">Root Cause</p>
-                <p className="text-[12px] text-foreground/80 leading-relaxed tracking-wide">{metrics.gapReason}</p>
+                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase mb-2">Root Cause</p>
+                <ul className="space-y-1.5">
+                  {gapBullets.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <div className="w-1 h-1 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                      <span className="text-[11px] text-foreground/80 leading-relaxed tracking-wide">{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
+            <InlineSourceNote sources={allSources} keywords={['share', 'shelf', 'audit', 'conversion', 'gap', 'kantar', 'media']} />
           </div>
 
-          {/* Confidence & Evidence — moved below Gap, above actions */}
+          {/* 5. Confidence & Evidence */}
           <div className="bg-card border border-border p-5 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <RiCheckboxCircleLine className="h-4 w-4 text-emerald-400" />
@@ -523,21 +439,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
             </div>
           </div>
 
-          {/* Signal Source Mix — stacked horizontal bar */}
-          {Array.isArray(metrics.sources) && metrics.sources.length > 0 && (
-            <div className="bg-card border border-border p-5 mb-4">
-              <div className="flex items-center gap-2 mb-3">
-                <RiBarChartLine className="h-4 w-4 text-primary" />
-                <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Signal Source Mix</h3>
-              </div>
-              <p className="text-[10px] text-muted-foreground tracking-wide mb-2">
-                How sources contribute to this insight
-              </p>
-              <SourceMixChart sources={metrics.sources} />
-            </div>
-          )}
-
-          {/* Demand Implication */}
+          {/* 6. Demand Implication */}
           <div className="bg-card border border-border p-5 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <RiAlertLine className="h-4 w-4 text-primary" />
@@ -546,21 +448,10 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
             <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">
               {demandSection ? demandSection.content : metrics.demandImplication}
             </p>
+            <InlineSourceNote sources={allSources} keywords={['market', 'revenue', 'forecast', 'demand', 'circana', 'category']} />
           </div>
 
-          {/* Remaining sections not yet used */}
-          {remaining.length > 0 && (
-            <div className="space-y-3 mb-4">
-              {remaining.map((section, i) => (
-                <div key={i} className="bg-card border border-border p-5">
-                  <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-2 font-serif">{section.label}</p>
-                  <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{section.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Team Actions Grid */}
+          {/* 7. Team Actions */}
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-3">
               <RiTeamLine className="h-4 w-4 text-primary" />
@@ -603,7 +494,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
     )
   }
 
-  // Fallback: no metrics — render sections as text cards (legacy/web analysis results)
+  // Fallback: no metrics — render sections as text cards
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-4xl mx-auto px-8 py-6">

@@ -397,15 +397,6 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             hasRunAnalysis={hasRunAnalysis}
           />
         )
-      case 'demand-planning':
-        return (
-          <DemandView
-            subView="planning"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
       case 'actions-list':
         return (
           <CategoryListView

@@ -13,7 +13,7 @@ import {
 import type { DetailItem } from './DetailView'
 
 interface DemandViewProps {
-  subView: 'overview' | 'opportunities' | 'risks' | 'planning'
+  subView: 'overview' | 'opportunities' | 'risks'
   analyses: AnalysisItem[]
   onOpenDetail: (item: DetailItem) => void
   hasRunAnalysis?: boolean

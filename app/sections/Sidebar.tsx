@@ -20,7 +20,6 @@ const DEMAND_SUB_ITEMS = [
   { id: 'demand-overview', label: 'Overview', icon: RiLineChartLine },
   { id: 'demand-opportunities', label: 'Opportunities', icon: RiArrowRightUpLine },
   { id: 'demand-risks', label: 'Risks', icon: RiErrorWarningLine },
-  { id: 'demand-planning', label: 'Planning Actions', icon: RiCalendarCheckLine },
 ]
 
 export default function Sidebar({ currentView, onNavigate, onRunAnalysis, agentLoading }: SidebarProps) {
