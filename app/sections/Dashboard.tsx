@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiPulseLine, RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiArrowRightSLine, RiLoader4Line, RiCloseCircleLine, RiSearchLine, RiLineChartLine, RiPercentLine, RiBarChartGroupedLine } from 'react-icons/ri'
+import { RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiArrowRightSLine, RiCloseCircleLine, RiSearchLine, RiPercentLine, RiBarChartGroupedLine } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
