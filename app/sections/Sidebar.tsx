@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import {
   RiDashboardLine, RiLineChartLine, RiSignalTowerLine, RiFlashlightLine,
   RiFileTextLine, RiRadarLine, RiGlobalLine, RiLoader4Line,
-  RiArrowRightUpLine, RiErrorWarningLine, RiCalendarCheckLine,
+  RiArrowRightUpLine, RiErrorWarningLine,
   RiArrowDownSLine, RiArrowRightSLine,
 } from 'react-icons/ri'
 

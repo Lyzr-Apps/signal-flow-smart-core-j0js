@@ -2,13 +2,13 @@
 
 import React, { useMemo } from 'react'
 import {
-  RiLineChartLine, RiArrowRightUpLine, RiErrorWarningLine, RiCalendarCheckLine,
-  RiArrowRightSLine, RiFlashlightLine,
+  RiLineChartLine, RiArrowRightUpLine, RiErrorWarningLine,
+  RiArrowRightSLine,
 } from 'react-icons/ri'
 import {
-  urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses, severityDot,
-  SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
-  type AnalysisItem, type SeededOpportunity, type SeededRisk, type SeededAction,
+  urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
+  SEEDED_OPPORTUNITIES, SEEDED_RISKS,
+  type AnalysisItem, type SeededOpportunity, type SeededRisk,
 } from './data/seededScenarios'
 import type { DetailItem } from './DetailView'
 
@@ -26,9 +26,6 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
 
   const allOpps = useReal && derived.opportunities.length > 0 ? derived.opportunities : SEEDED_OPPORTUNITIES
   const allRisks = useReal && derived.risks.length > 0 ? derived.risks : SEEDED_RISKS
-  const allActions = useReal && derived.actions.length > 0 ? derived.actions : SEEDED_ACTIONS
-  const allSignals = useReal && derived.signals.length > 0 ? derived.signals : SEEDED_SIGNALS
-
   const openOpp = (opp: SeededOpportunity) => {
     onOpenDetail({
       category: 'opportunity', title: opp.title, brand: opp.brand, market: opp.market, severity: opp.confidence,
@@ -47,13 +44,6 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
     })
   }
 
-  const openAction = (act: SeededAction) => {
-    onOpenDetail({
-      category: 'action', title: act.title, severity: act.priority,
-      sections: [{ label: 'Expected Impact', content: act.impact }, { label: 'Owner', content: act.owner }, { label: 'Timeline', content: act.timeline }],
-    })
-  }
-
   if (subView === 'overview') {
     return (
       <div className="flex-1 overflow-y-auto">
@@ -65,7 +55,7 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
           <p className="text-[12px] text-muted-foreground tracking-wide mb-6">A consolidated view of demand opportunities, risks, and actions requiring attention.</p>
 
           {/* Summary KPIs */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-card border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
                 <RiArrowRightUpLine className="h-4 w-4 text-emerald-400" />
@@ -81,14 +71,6 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
               </div>
               <p className="text-2xl font-serif text-red-400">{allRisks.length}</p>
               <p className="text-[10px] text-muted-foreground mt-1">{allRisks.filter(r => r.severity.toLowerCase() === 'critical').length} need escalation</p>
-            </div>
-            <div className="bg-card border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <RiFlashlightLine className="h-4 w-4 text-primary" />
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Actions Pending</p>
-              </div>
-              <p className="text-2xl font-serif text-primary">{allActions.filter(a => isHighPriority(a.priority)).length}</p>
-              <p className="text-[10px] text-muted-foreground mt-1">{allActions.length} total recommendations</p>
             </div>
           </div>
 
@@ -201,71 +183,6 @@ export default function DemandView({ subView, analyses, onOpenDetail, hasRunAnal
     )
   }
 
-  // Planning Actions
-  return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="px-8 py-7">
-        <div className="flex items-center gap-2 mb-2">
-          <RiCalendarCheckLine className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-lg tracking-[0.1em] text-foreground uppercase">Planning Actions</h2>
-        </div>
-        <p className="text-[12px] text-muted-foreground tracking-wide mb-6">Recommended actions based on demand intelligence, organized by priority and team ownership.</p>
-
-        {/* Critical / High */}
-        {(() => {
-          const critical = allActions.filter(a => isHighPriority(a.priority))
-          const other = allActions.filter(a => !isHighPriority(a.priority))
-          return (
-            <>
-              {critical.length > 0 && (
-                <div className="mb-6">
-                  <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3">Urgent Actions</p>
-                  <div className="bg-card border border-border divide-y divide-border/60">
-                    {critical.map((act, i) => (
-                      <button key={i} onClick={() => openAction(act)} className="w-full flex items-start gap-4 px-5 py-4 text-left hover:bg-secondary/30 transition-colors group">
-                        <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${severityDot(act.priority)}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 mb-1">
-                            <h4 className="text-[13px] text-foreground tracking-wide group-hover:text-primary transition-colors">{act.title}</h4>
-                            <span className={`text-[9px] tracking-[0.12em] uppercase px-2 py-0.5 whitespace-nowrap flex-shrink-0 ${urgencyBadge(act.priority)}`}>{act.priority}</span>
-                          </div>
-                          <div className="flex gap-4 text-[10px] text-muted-foreground tracking-[0.1em] uppercase">
-                            <span>{act.owner}</span><span className="text-border">|</span><span>{act.timeline}</span>
-                          </div>
-                          <p className="text-[11px] text-foreground/60 mt-1 leading-relaxed">{cleanText(act.impact, 120)}</p>
-                        </div>
-                        <RiArrowRightSLine className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {other.length > 0 && (
-                <div>
-                  <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-3">Other Actions</p>
-                  <div className="bg-card border border-border divide-y divide-border/60">
-                    {other.map((act, i) => (
-                      <button key={i} onClick={() => openAction(act)} className="w-full flex items-start gap-4 px-5 py-4 text-left hover:bg-secondary/30 transition-colors group">
-                        <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${severityDot(act.priority)}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 mb-1">
-                            <h4 className="text-[13px] text-foreground tracking-wide group-hover:text-primary transition-colors">{act.title}</h4>
-                            <span className={`text-[9px] tracking-[0.12em] uppercase px-2 py-0.5 whitespace-nowrap flex-shrink-0 ${urgencyBadge(act.priority)}`}>{act.priority}</span>
-                          </div>
-                          <div className="flex gap-4 text-[10px] text-muted-foreground tracking-[0.1em] uppercase">
-                            <span>{act.owner}</span><span className="text-border">|</span><span>{act.timeline}</span>
-                          </div>
-                        </div>
-                        <RiArrowRightSLine className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )
-        })()}
-      </div>
-    </div>
-  )
+  // Default fallback
+  return null
 }
