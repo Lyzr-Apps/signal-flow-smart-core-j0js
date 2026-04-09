@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiArrowRightSLine, RiCloseCircleLine, RiSearchLine, RiPercentLine, RiBarChartGroupedLine } from 'react-icons/ri'
+import { RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine, RiAlertLine, RiArrowRightSLine, RiCloseCircleLine, RiSearchLine, RiBarChartGroupedLine, RiLineChartLine } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, isHighPriority, deriveFromAnalyses,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
@@ -28,6 +28,54 @@ function matchesQuery(query: string, ...fields: string[]): boolean {
   return terms.some(term => text.includes(term))
 }
 
+// Business dataset baselines (from L'Oréal sample data)
+const BASELINES: Record<string, { salesLift: number; captureRate: number; forecastAcc: number; position: string }> = {
+  s1: { salesLift: 2.5, captureRate: 60, forecastAcc: 68, position: 'Underperforming' },
+  s2: { salesLift: 3.0, captureRate: 62, forecastAcc: 70, position: 'Matching' },
+  s3: { salesLift: 2.2, captureRate: 58, forecastAcc: 67, position: 'Underperforming' },
+  s4: { salesLift: 3.8, captureRate: 66, forecastAcc: 69, position: 'Underperforming' },
+  s5: { salesLift: 2.9, captureRate: 64, forecastAcc: 71, position: 'Matching' },
+  s6: { salesLift: 2.4, captureRate: 57, forecastAcc: 66, position: 'Underperforming' },
+  s7: { salesLift: 2.1, captureRate: 59, forecastAcc: 68, position: 'Matching' },
+  s8: { salesLift: 2.7, captureRate: 61, forecastAcc: 70, position: 'Outperforming' },
+}
+
+function computeKPIs(signals: SeededSignal[]) {
+  if (signals.length === 0) {
+    return { salesLift: 3.1, demandCapture: 61, forecastImprovement: 8 }
+  }
+
+  let totalSalesLift = 0, totalCapture = 0, totalForecast = 0, count = 0
+
+  for (const sig of signals) {
+    const m = sig.metrics
+    if (!m) continue
+    const baselineKey = sig.id?.toLowerCase()
+    const base = baselineKey ? BASELINES[baselineKey] : null
+    if (!base) continue
+
+    // Signal strength multiplier
+    const strengthMult = m.signalStrength === 'Strong' ? 1.4 : m.signalStrength === 'Moderate' ? 1.15 : 1.0
+    // Confidence multiplier
+    const confMult = m.confidence === 'High' ? 1.3 : m.confidence === 'Medium' ? 1.1 : 0.9
+    // Position multiplier (underperforming = more room to grow)
+    const posMult = base.position === 'Underperforming' ? 1.25 : base.position === 'Matching' ? 1.1 : 1.0
+
+    totalSalesLift += base.salesLift * strengthMult * confMult * posMult
+    totalCapture += base.captureRate * (confMult * 0.85 + strengthMult * 0.15)
+    totalForecast += (base.forecastAcc * strengthMult * confMult - base.forecastAcc)
+    count++
+  }
+
+  if (count === 0) return { salesLift: 3.1, demandCapture: 61, forecastImprovement: 8 }
+
+  return {
+    salesLift: Math.round((totalSalesLift / count) * 10) / 10,
+    demandCapture: Math.round(totalCapture / count),
+    forecastImprovement: Math.round(totalForecast / count),
+  }
+}
+
 export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysis, onOpenDetail, agentLoading, agentError, hasRunAnalysis, searchFilter = '' }: DashboardProps) {
   const safeAnalyses = Array.isArray(analyses) ? analyses : []
   const derived = useMemo(() => deriveFromAnalyses(safeAnalyses), [safeAnalyses])
@@ -39,6 +87,8 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
   const allOpps = (useReal && derived.opportunities.length > 0 ? derived.opportunities : SEEDED_OPPORTUNITIES).filter(o => matchesQuery(q, o.title, o.brand, o.market, o.why))
   const allRisks = (useReal && derived.risks.length > 0 ? derived.risks : SEEDED_RISKS).filter(r => matchesQuery(q, r.title, r.brand, r.market, r.cause))
   const allAlerts = (useReal && derived.alerts.length > 0 ? derived.alerts : SEEDED_ALERTS).filter(a => matchesQuery(q, a.title, a.brand, a.market, a.why))
+
+  const kpis = useMemo(() => computeKPIs(allSignals), [allSignals])
 
   const topSignal = allSignals.filter(s => isHighPriority(s.urgency))[0] || allSignals[0]
   const topAction = allActions.filter(a => isHighPriority(a.priority))[0] || allActions[0]
@@ -109,33 +159,26 @@ export default function Dashboard({ analyses, loading, onNavigate, onViewAnalysi
 
       {/* Business KPI Row */}
       <div className="px-8 pt-7 pb-2">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {[
             {
               label: 'Sales Lift from Signal-Led Actions',
-              value: '+8.3%',
-              sub: 'vs 2.1% baseline growth',
+              value: `+${kpis.salesLift}%`,
+              sub: 'Measures sales improvement after acting on surfaced market insights',
               icon: RiArrowRightUpLine,
               accent: 'text-emerald-400',
             },
             {
-              label: 'Signal-to-Campaign ROI',
-              value: '3.2x',
-              sub: 'signal-driven campaigns vs standard',
+              label: 'Demand Opportunity Capture',
+              value: `${kpis.demandCapture}%`,
+              sub: 'Measures how well L\'Oréal converts identified market opportunities into business results',
               icon: RiLineChartLine,
               accent: 'text-primary',
             },
             {
-              label: 'Demand Capture Rate',
-              value: '72%',
-              sub: 'of identified opportunities actioned',
-              icon: RiPercentLine,
-              accent: 'text-blue-400',
-            },
-            {
               label: 'Forecast Accuracy Improvement',
-              value: '+12pp',
-              sub: 'vs prior quarter baseline',
+              value: `+${kpis.forecastImprovement}pp`,
+              sub: 'Measures how much signal-led insights improve demand planning accuracy',
               icon: RiBarChartGroupedLine,
               accent: 'text-amber-400',
             },

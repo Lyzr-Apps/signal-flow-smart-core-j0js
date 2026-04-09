@@ -64,8 +64,7 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-export default function Page() {
-  const [mounted, setMounted] = useState(false)
+export default function AppShell() {
   const [currentView, setCurrentView] = useState('dashboard')
   const [analyses, setAnalyses] = useState<AnalysisData[]>([])
   const [loadingAnalyses, setLoadingAnalyses] = useState(false)
@@ -77,8 +76,6 @@ export default function Page() {
   const [hasRunAnalysis, setHasRunAnalysis] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
-
-  useEffect(() => { setMounted(true) }, [])
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -439,14 +436,6 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
           />
         )
     }
-  }
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="w-5 h-5 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
-      </div>
-    )
   }
 
   return (
