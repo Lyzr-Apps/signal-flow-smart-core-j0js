@@ -208,6 +208,13 @@ async function submitTask(body: any) {
         errorMsg = errorData?.error || errorData?.message || errorMsg
       } catch {}
     }
+    console.error('[Agent Route] Submit failed:', {
+      status: submitRes.status,
+      agent_id: payload.agent_id,
+      user_id: payload.user_id,
+      error: errorMsg,
+      raw: submitText.substring(0, 500),
+    })
     return NextResponse.json(
       {
         success: false,

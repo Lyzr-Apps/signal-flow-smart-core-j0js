@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { RiChat3Line, RiCloseLine, RiSendPlaneLine, RiLoader4Line, RiRadarLine } from 'react-icons/ri'
 import { callAIAgent } from '@/lib/aiAgent'
 
-const WEB_AGENT_ID = '69d8f60764831a5b8a4ac41e'
+const WEB_AGENT_ID = '69c4231c4d9b1d0c43a2101b'
 
 interface Message {
   role: 'user' | 'assistant'
