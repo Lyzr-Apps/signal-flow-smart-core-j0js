@@ -6,9 +6,15 @@ import {
   RiAlertLine, RiArrowRightUpLine, RiErrorWarningLine, RiShieldLine,
   RiBarChartLine, RiTeamLine, RiCheckboxCircleLine,
 } from 'react-icons/ri'
-import { urgencyBadge, severityDot } from '../data/seededScenarios'
+import { urgencyBadge, severityDot, stripCitations } from '../data/seededScenarios'
 import type { DetailItem } from '../DetailView'
 import type { InsightMetrics } from '../data/seededScenarios'
+
+/** Clean content text: strip citation markers and excess whitespace */
+function cleanContent(text: string): string {
+  if (!text) return ''
+  return stripCitations(text)
+}
 
 interface InsightWorkspaceProps {
   item: DetailItem & { metrics?: InsightMetrics }
@@ -318,7 +324,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
                 <RiLightbulbLine className="h-4 w-4 text-primary" />
                 <h3 className="text-[11px] tracking-[0.14em] text-primary uppercase font-serif">{marketSignalSection.label}</h3>
               </div>
-              <p className="text-[13px] text-foreground/90 leading-[1.8] tracking-wide">{marketSignalSection.content}</p>
+              <p className="text-[13px] text-foreground/90 leading-[1.8] tracking-wide">{cleanContent(marketSignalSection.content)}</p>
               <InlineSourceNote sources={allSources} keywords={['trend', 'google', 'tiktok', 'search', 'social', 'shelf', 'planogram', 'fda']} />
             </div>
           )}
@@ -354,7 +360,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
               <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Competitor Performance</h3>
             </div>
             {compSection && (
-              <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide mb-4">{compSection.content}</p>
+              <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide mb-4">{cleanContent(compSection.content)}</p>
             )}
             {/* Inline growth comparison block */}
             <div className="bg-secondary/40 border border-border p-4">
@@ -407,7 +413,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
                   {gapBullets.map((b, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <div className="w-1 h-1 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
-                      <span className="text-[11px] text-foreground/80 leading-relaxed tracking-wide">{b}</span>
+                      <span className="text-[11px] text-foreground/80 leading-relaxed tracking-wide">{cleanContent(b)}</span>
                     </li>
                   ))}
                 </ul>
@@ -432,7 +438,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
                 {evidenceBullets.map((b, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <div className="w-1 h-1 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-                    <span className="text-[11px] text-foreground/75 leading-relaxed tracking-wide">{b}</span>
+                    <span className="text-[11px] text-foreground/75 leading-relaxed tracking-wide">{cleanContent(b)}</span>
                   </li>
                 ))}
               </ul>
@@ -446,7 +452,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
               <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase font-serif">Demand Implication</h3>
             </div>
             <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">
-              {demandSection ? demandSection.content : metrics.demandImplication}
+              {cleanContent(demandSection ? demandSection.content : metrics.demandImplication)}
             </p>
             <InlineSourceNote sources={allSources} keywords={['market', 'revenue', 'forecast', 'demand', 'circana', 'category']} />
           </div>
@@ -530,7 +536,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
               <h3 className="text-[11px] tracking-[0.14em] text-primary uppercase font-serif">Key Insight</h3>
             </div>
             <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-1.5">{sections[0].label}</p>
-            <p className="text-[13px] text-foreground/90 leading-[1.8] tracking-wide">{sections[0].content}</p>
+            <p className="text-[13px] text-foreground/90 leading-[1.8] tracking-wide">{cleanContent(sections[0].content)}</p>
           </div>
         )}
 
@@ -539,7 +545,7 @@ export default function InsightWorkspace({ item, onBack }: InsightWorkspaceProps
             {sections.slice(1).map((section, i) => (
               <div key={i} className="bg-card border border-border p-5">
                 <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-2 font-serif">{section.label}</p>
-                <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{section.content}</p>
+                <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{cleanContent(section.content)}</p>
               </div>
             ))}
           </div>

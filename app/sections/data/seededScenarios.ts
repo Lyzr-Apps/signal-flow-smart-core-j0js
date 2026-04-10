@@ -89,10 +89,38 @@ export function severityDot(sev: string) {
   return 'bg-emerald-500'
 }
 
-export function cleanText(text: string, maxLen = 90): string {
+export function cleanText(text: string, maxLen = 0): string {
   if (!text) return ''
-  const clean = text.replace(/\*\*/g, '').replace(/[#]/g, '').replace(/\n/g, ' ').trim()
-  return clean.length > maxLen ? clean.slice(0, maxLen) + '...' : clean
+  // Strip markdown, numbered citation markers [1], [5][6], and newlines
+  let clean = text
+    .replace(/\*\*/g, '')
+    .replace(/[#]/g, '')
+    .replace(/\[(\d+)\]/g, '')
+    .replace(/\n/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  // If maxLen is specified and title is too long, create a short clean summary
+  if (maxLen > 0 && clean.length > maxLen) {
+    // Try to cut at a sentence boundary
+    const sentenceEnd = clean.lastIndexOf('.', maxLen)
+    if (sentenceEnd > maxLen * 0.5) {
+      clean = clean.slice(0, sentenceEnd + 1).trim()
+    } else {
+      // Cut at last word boundary
+      const wordEnd = clean.lastIndexOf(' ', maxLen)
+      clean = clean.slice(0, wordEnd > maxLen * 0.5 ? wordEnd : maxLen).trim()
+    }
+  }
+  return clean
+}
+
+/** Strip inline citation markers like [1], [5][6], [12] from text */
+export function stripCitations(text: string): string {
+  if (!text) return ''
+  return text
+    .replace(/\[(\d+)\]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 export function priorityOrder(p: string): number {
@@ -813,7 +841,8 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
     for (const sp of specialists) {
       const recs = Array.isArray(sp?.recommendations) ? sp.recommendations : []
       const topRec = recs[0]
-      const findings = sp?.key_findings || sp?.findings || sp?.analysis || sp?.summary || ''
+      const rawFindings = sp?.key_findings || sp?.findings || sp?.analysis || sp?.summary || ''
+      const findings = stripCitations(rawFindings)
       const domain = (sp?.domain || sp?.category || sp?.area || '').toLowerCase()
       const spTitle = sp?.title || sp?.signal || cleanText(findings, 70)
       const spBrand = sp?.brand || sp?.brands || 'L\'Oreal'
@@ -822,10 +851,10 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         : recs.some((r: any) => (r?.priority || '').toLowerCase() === 'high') ? 'High' : 'Medium'
 
       const relActions = recs.map((r: any) => ({
-        action: r?.action || r?.recommendation || '',
+        action: stripCitations(r?.action || r?.recommendation || ''),
         priority: r?.priority || r?.urgency || 'Medium',
         owner: r?.owner || r?.team || 'Cross-functional',
-        rationale: r?.rationale || r?.reason || ''
+        rationale: stripCitations(r?.rationale || r?.reason || ''),
       }))
 
       // Score each category to classify into EXACTLY ONE (mutually exclusive)
@@ -867,17 +896,20 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
 
       // Build rich detail sections matching the seeded scenario structure
       const detailSections = [
-        { label: 'Market Signal', content: findings },
-        { label: "L'Oreal Performance", content: `${spBrand} is currently facing ${itemCategory === 'opportunity' ? 'growth potential' : 'competitive pressure'} in ${spMarket}. ${topRec?.rationale || findings.split('.').slice(0, 2).join('.')}` },
-        { label: 'Competitor Performance', content: `${metrics.competitorName}${metrics.competitorProduct ? ` (${metrics.competitorProduct})` : ''} is ${itemCategory === 'risk' || itemCategory === 'alert' ? 'gaining traction' : 'present in this space'}. ${findings.split('.').slice(1, 3).join('.')}` },
-        { label: 'Gap / Diagnosis', content: `${metrics.gapVsCompetitor}. ${metrics.gapReason}` },
-        { label: 'Demand Implication', content: metrics.demandImplication },
+        { label: 'Market Signal', content: stripCitations(findings) },
+        { label: "L'Oreal Performance", content: stripCitations(`${spBrand} is currently facing ${itemCategory === 'opportunity' ? 'growth potential' : 'competitive pressure'} in ${spMarket}. ${topRec?.rationale || findings.split('.').slice(0, 2).join('.')}`) },
+        { label: 'Competitor Performance', content: stripCitations(`${metrics.competitorName}${metrics.competitorProduct ? ` (${metrics.competitorProduct})` : ''} is ${itemCategory === 'risk' || itemCategory === 'alert' ? 'gaining traction' : 'present in this space'}. ${findings.split('.').slice(1, 3).join('.')}`) },
+        { label: 'Gap / Diagnosis', content: stripCitations(`${metrics.gapVsCompetitor}. ${metrics.gapReason}`) },
+        { label: 'Demand Implication', content: stripCitations(metrics.demandImplication) },
       ]
 
+      const cleanTitle = cleanText(spTitle, 80)
+      const cleanNextStep = stripCitations(topRec?.action || topRec?.recommendation || 'Review full analysis')
+
       signals.push({
-        id, title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, urgency: urg,
-        why: findings, nextStep: topRec?.action || topRec?.recommendation || 'Review full analysis',
-        crossCutting: a.cross_cutting_themes || '', timestamp: a.createdAt || '',
+        id, title: cleanTitle, brand: spBrand, market: spMarket, urgency: urg,
+        why: stripCitations(findings), nextStep: cleanNextStep,
+        crossCutting: stripCitations(a.cross_cutting_themes || ''), timestamp: a.createdAt || '',
         detailSections,
         relatedActions: relActions,
         metrics,
@@ -885,8 +917,8 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
 
       if (itemCategory === 'alert') {
         alerts.push({
-          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
-          why: findings, response: topRec?.action || topRec?.recommendation || '',
+          title: cleanTitle, brand: spBrand, market: spMarket, severity: urg,
+          why: stripCitations(findings), response: cleanNextStep,
           scenarioId: id,
           detailSections,
           relatedActions: relActions,
@@ -894,8 +926,8 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         })
       } else if (itemCategory === 'risk') {
         risks.push({
-          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket, severity: urg,
-          cause: findings, action: topRec?.action || topRec?.recommendation || '',
+          title: cleanTitle, brand: spBrand, market: spMarket, severity: urg,
+          cause: stripCitations(findings), action: cleanNextStep,
           scenarioId: id,
           detailSections,
           relatedActions: relActions,
@@ -903,8 +935,8 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         })
       } else {
         opportunities.push({
-          title: cleanText(spTitle, 70), brand: spBrand, market: spMarket,
-          why: findings, confidence: sp?.confidence || urg, move: topRec?.action || topRec?.recommendation || '',
+          title: cleanTitle, brand: spBrand, market: spMarket,
+          why: stripCitations(findings), confidence: sp?.confidence || urg, move: cleanNextStep,
           scenarioId: id,
           detailSections,
           relatedActions: relActions,
@@ -915,10 +947,10 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
 
     for (const pa of pActions) {
       actions.push({
-        title: pa?.action || pa?.recommendation || pa?.title || '',
+        title: stripCitations(pa?.action || pa?.recommendation || pa?.title || ''),
         priority: pa?.priority || pa?.urgency || 'Medium',
         owner: pa?.owner || pa?.team || 'Cross-functional',
-        impact: pa?.impact || pa?.rationale || cleanText(summary, 120),
+        impact: stripCitations(pa?.impact || pa?.rationale || cleanText(summary, 120)),
         timeline: pa?.timeline || pa?.timeframe || 'Per analysis',
         scenarioId: id,
       })

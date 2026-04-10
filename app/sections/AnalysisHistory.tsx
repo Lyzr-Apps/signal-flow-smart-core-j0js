@@ -29,8 +29,14 @@ const FILTER_TYPES = ['All', 'Opportunity', 'Competitive', 'Launch', 'Claims', '
 
 function renderMarkdownPreview(text: string, maxLen: number = 180) {
   if (!text) return ''
-  const clean = text.replace(/[#*\-]/g, '').replace(/\n/g, ' ').trim()
-  return clean.length > maxLen ? clean.slice(0, maxLen) + '...' : clean
+  const clean = text.replace(/[#*\-]/g, '').replace(/\[(\d+)\]/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim()
+  if (maxLen > 0 && clean.length > maxLen) {
+    const sentenceEnd = clean.lastIndexOf('.', maxLen)
+    if (sentenceEnd > maxLen * 0.5) return clean.slice(0, sentenceEnd + 1).trim()
+    const wordEnd = clean.lastIndexOf(' ', maxLen)
+    return clean.slice(0, wordEnd > maxLen * 0.5 ? wordEnd : maxLen).trim()
+  }
+  return clean
 }
 
 export default function AnalysisHistory({ analyses, loading, onViewAnalysis }: AnalysisHistoryProps) {
