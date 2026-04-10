@@ -522,7 +522,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             </p>
           </div>
         </div>
-        <AgentChat />
+        <AgentChat analyses={displayAnalyses} />
       </div>
     </ErrorBoundary>
   )

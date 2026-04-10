@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const LYZR_TASK_URL = 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/task'
 const LYZR_API_KEY = process.env.LYZR_API_KEY || ''
-const MANAGER_AGENT_ID = '69c4231c4d9b1d0c43a2101b'
+const MANAGER_AGENT_ID = '69d8f60764831a5b8a4ac41e'
 
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
