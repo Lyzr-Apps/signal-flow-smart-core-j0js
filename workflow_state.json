@@ -58,6 +58,13 @@
     "model": "sonar-pro",
     "purpose": "Real-time web search for beauty industry intelligence"
   },
+  "chat_assistant": {
+    "agent_id": "69d8fbc177affb93352c126d",
+    "name": "Demand Intelligence Chat Assistant",
+    "provider": "perplexity",
+    "model": "sonar-pro",
+    "purpose": "Conversational chat for dashboard insights and web-backed Q&A with source citations"
+  },
   "response_schemas": [
     "response_schemas/opportunity_investment_agent_response.json",
     "response_schemas/competitive_positioning_agent_response.json",
