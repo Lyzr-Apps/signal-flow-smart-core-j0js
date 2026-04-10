@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
 import fetchWrapper from '@/lib/fetchWrapper'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +21,42 @@ import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
 const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
-const WEB_AGENT_ID = AGENT_ID
+
+const POLL_TIMEOUT_MS = 5 * 60 * 1000
+
+async function callAnalyzeAgent(message: string): Promise<any> {
+  const submitRes = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  })
+  const submitData = await submitRes.json()
+  if (!submitData.task_id) {
+    return { success: false, error: submitData.error || 'Failed to submit analysis' }
+  }
+
+  const { task_id } = submitData
+  const startTime = Date.now()
+  let attempt = 0
+
+  while (Date.now() - startTime < POLL_TIMEOUT_MS) {
+    const delay = Math.min(400 * Math.pow(1.4, attempt), 3000)
+    await new Promise(r => setTimeout(r, delay))
+    attempt++
+
+    const pollRes = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_id }),
+    })
+    const pollData = await pollRes.json()
+
+    if (pollData.status === 'processing') continue
+    return pollData
+  }
+
+  return { success: false, error: 'Analysis timed out after 5 minutes' }
+}
 
 interface AnalysisData {
   _id?: string
@@ -106,7 +140,7 @@ export default function AppShell() {
   const runWebAnalysis = async (query?: string) => {
     setAgentError(null)
     setAgentLoading(true)
-    setActiveAgentId(WEB_AGENT_ID)
+    setActiveAgentId(AGENT_ID)
 
     try {
       const basePrompt = query
@@ -213,7 +247,7 @@ For each specialist analysis, clearly state:
 
 Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources.`
 
-      const result = await callAIAgent(message, WEB_AGENT_ID)
+      const result = await callAnalyzeAgent(message)
 
       if (!result?.success) {
         setAgentError(result?.error ?? 'Analysis failed. Please try again.')
