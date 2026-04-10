@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import { callAIAgent } from '@/lib/aiAgent'
 import parseLLMJson from '@/lib/jsonParser'
 import fetchWrapper from '@/lib/fetchWrapper'
 import { Badge } from '@/components/ui/badge'
@@ -20,42 +21,59 @@ import DemandView from './DemandView'
 import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
-const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
+const ANALYZE_AGENT_IDS = [
+  '69d8f60764831a5b8a4ac41e', // MCP-created web analyst
+  '69d8fbc177affb93352c126d', // MCP-created chat agent
+  '69c4231c4d9b1d0c43a2101b', // Original manager
+]
 
 const POLL_TIMEOUT_MS = 5 * 60 * 1000
 
 async function callAnalyzeAgent(message: string): Promise<any> {
-  const submitRes = await fetch('/api/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
-  })
-  const submitData = await submitRes.json()
-  if (!submitData.task_id) {
-    return { success: false, error: submitData.error || 'Failed to submit analysis' }
-  }
-
-  const { task_id } = submitData
-  const startTime = Date.now()
-  let attempt = 0
-
-  while (Date.now() - startTime < POLL_TIMEOUT_MS) {
-    const delay = Math.min(400 * Math.pow(1.4, attempt), 3000)
-    await new Promise(r => setTimeout(r, delay))
-    attempt++
-
-    const pollRes = await fetch('/api/analyze', {
+  // Try /api/analyze first (dedicated route, no agent_id in body)
+  try {
+    const submitRes = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ task_id }),
+      body: JSON.stringify({ message }),
     })
-    const pollData = await pollRes.json()
+    const submitData = await submitRes.json()
+    if (submitData.task_id) {
+      const startTime = Date.now()
+      let attempt = 0
+      while (Date.now() - startTime < POLL_TIMEOUT_MS) {
+        const delay = Math.min(400 * Math.pow(1.4, attempt), 3000)
+        await new Promise(r => setTimeout(r, delay))
+        attempt++
+        const pollRes = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task_id: submitData.task_id }),
+        })
+        const pollData = await pollRes.json()
+        if (pollData.status === 'processing') continue
+        if (pollData.success) return pollData
+        // If 403, break and try next approach
+        if (pollData.error?.includes('403') || pollData.error?.includes('permission')) break
+        return pollData
+      }
+    }
+  } catch {}
 
-    if (pollData.status === 'processing') continue
-    return pollData
+  // Fallback: try each agent via callAIAgent (/api/agent)
+  for (const agentId of ANALYZE_AGENT_IDS) {
+    try {
+      const result = await callAIAgent(message, agentId)
+      if (result?.success) {
+        const errMsg = JSON.stringify(result.response || '')
+        if (!errMsg.includes('403') && !errMsg.includes('permission')) {
+          return result
+        }
+      }
+    } catch {}
   }
 
-  return { success: false, error: 'Analysis timed out after 5 minutes' }
+  return { success: false, error: 'All agent connections failed. Dashboard data is still available.' }
 }
 
 interface AnalysisData {
@@ -140,7 +158,7 @@ export default function AppShell() {
   const runWebAnalysis = async (query?: string) => {
     setAgentError(null)
     setAgentLoading(true)
-    setActiveAgentId(AGENT_ID)
+    setActiveAgentId('analyzing')
 
     try {
       const basePrompt = query
