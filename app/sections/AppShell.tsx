@@ -22,7 +22,7 @@ import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
 const AGENT_ID = '69c4231c4d9b1d0c43a2101b'
-const WEB_AGENT_ID = '69d7de15c52737685b5a2b38'
+const WEB_AGENT_ID = '69d8f60764831a5b8a4ac41e'
 
 interface AnalysisData {
   _id?: string

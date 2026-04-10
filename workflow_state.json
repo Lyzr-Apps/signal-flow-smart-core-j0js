@@ -52,7 +52,7 @@
     "provisioned": true
   },
   "web_analyst": {
-    "agent_id": "69d7de15c52737685b5a2b38",
+    "agent_id": "69d8f60764831a5b8a4ac41e",
     "name": "Beauty Foresight Web Analyst",
     "provider": "perplexity",
     "model": "sonar-pro",

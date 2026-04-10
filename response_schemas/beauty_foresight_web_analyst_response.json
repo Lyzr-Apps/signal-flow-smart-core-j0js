@@ -1,7 +1,7 @@
 {
   "agent_name": "Beauty Foresight Web Analyst",
-  "agent_id": "69d7de15c52737685b5a2b38",
-  "description": "Real-time web search agent for L'Or\u00e9al beauty industry demand sensing and competitive intelligence across North America",
+  "agent_id": "69d8f60764831a5b8a4ac41e",
+  "description": "Real-time web search agent for beauty industry intelligence, competitive analysis, and demand sensing for L'Oreal North America",
   "agent_type": "json",
   "accessor": "result",
   "auto_generated": true,
