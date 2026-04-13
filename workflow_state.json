@@ -3,17 +3,12 @@
   "workflow_type": "manager-subagent",
   "agents": {
     "manager": {
-      "agent_id": "69c4231c4d9b1d0c43a2101b",
+      "agent_id": "69dd10f0073397be4eaa0e37",
       "name": "Signal Orchestrator Manager",
       "node_id": "manager_agent",
       "provider": "openai",
       "model": "gpt-4.1",
-      "managed_agents": [
-        "69c4230638f7fd77009ae10a",
-        "69c423061b19ba3adafaf1a0",
-        "69c423062cf2666b2c6632f6",
-        "69c423078de80a381519c382"
-      ]
+      "managed_agents": []
     },
     "sub_agents": [
       {

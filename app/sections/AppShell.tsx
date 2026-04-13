@@ -22,9 +22,7 @@ import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
 const ANALYZE_AGENT_IDS = [
-  '69c4231c4d9b1d0c43a2101b', // Signal Orchestrator Manager
-  '69c4230638f7fd77009ae10a', // Opportunity & Investment Agent
-  '69c423061b19ba3adafaf1a0', // Competitive Positioning Agent
+  '69dd10f0073397be4eaa0e37', // Signal Orchestrator Manager (new)
 ]
 
 const POLL_TIMEOUT_MS = 5 * 60 * 1000
