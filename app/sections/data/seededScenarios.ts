@@ -44,15 +44,23 @@ export interface SeededSignal {
   relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
   timestamp: string
   metrics?: InsightMetrics
+  signalType?: string
+  category?: string
+  country?: string
+  region?: string
 }
 
-export interface SeededAction { title: string; priority: string; owner: string; impact: string; timeline: string; scenarioId: string }
+export interface SeededAction { title: string; priority: string; owner: string; impact: string; timeline: string; scenarioId: string; ownerTeam?: string; kpiOutcome?: string }
 
 export interface SeededOpportunity {
   title: string; brand: string; market: string; why: string; confidence: string; move: string; scenarioId: string
   detailSections: { label: string; content: string }[]
   relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
   metrics?: InsightMetrics
+  signalType?: string
+  category?: string
+  country?: string
+  region?: string
 }
 
 export interface SeededRisk {
@@ -60,6 +68,10 @@ export interface SeededRisk {
   detailSections: { label: string; content: string }[]
   relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
   metrics?: InsightMetrics
+  signalType?: string
+  category?: string
+  country?: string
+  region?: string
 }
 
 export interface SeededAlert {
@@ -67,9 +79,51 @@ export interface SeededAlert {
   detailSections: { label: string; content: string }[]
   relatedActions: { action: string; priority: string; owner: string; rationale: string }[]
   metrics?: InsightMetrics
+  signalType?: string
+  category?: string
+  country?: string
+  region?: string
 }
 
 export interface SeededAnalysis { id: string; title: string; brand: string; market: string; signalTypes: string[]; summary: string; timestamp: string; scenarioId: string }
+
+export interface FilterState {
+  brand: string
+  category: string
+  country: string
+  region: string
+}
+
+export interface DashboardStory {
+  topLineInsight: string
+  whyItMatters: { title: string; explanation: string }[]
+  howToAct: { action: string; ownerTeam: string; kpiOutcome: string }[]
+  kpiOutcomes: { sales: string; stockouts: string; forecast: string }
+}
+
+export const SIGNAL_TYPES = [
+  'Competitor Launch/Relaunch',
+  'Stockout / Shelf Loss',
+  'Creator Traction Shift',
+  'Ingredient Trend Surge',
+  'Regulatory / Claims Pressure',
+  'Price Gap Shift',
+  'Channel Mix Change',
+  'Consumer Sentiment Shift',
+  'New Entrant Disruption',
+  'Reformulation Signal',
+  'Seasonal Demand Shift',
+  'Retailer Strategy Change',
+  'Supply Chain Risk',
+] as const
+
+export type SignalType = typeof SIGNAL_TYPES[number]
+
+export const OWNER_TEAMS = ['Marketing', 'Product/R&D', 'Planning', 'Manufacturing/Supply'] as const
+export type OwnerTeam = typeof OWNER_TEAMS[number]
+
+export const KPI_OUTCOMES = ['Increased Sales', 'Out-of-Stocks Prevented', 'Forecast Accuracy'] as const
+export type KpiOutcome = typeof KPI_OUTCOMES[number]
 
 // ── Helpers ──
 
@@ -148,6 +202,10 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
     nextStep: 'Launch CeraVe counter-campaign with dermatologist endorsements and clinical data differentiation at US retail',
     crossCutting: 'Mass skincare share is increasingly won by dermatologist credibility marketing rather than product reformulation.',
     timestamp: '2026-04-01T09:00:00Z',
+    signalType: 'Competitor Launch/Relaunch',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
     detailSections: [
       { label: 'Market Signal', content: 'Cetaphil (Galderma) completed a full US relaunch with updated packaging, a $40M dermatologist endorsement campaign, and prominent endcap placement at Walmart, CVS, and Walgreens. Cetaphil Gentle Moisturizing Cream has moved from #4 to #2 in US mass moisturizer sales since January 2026.' },
       { label: 'L\'Oreal Performance', content: 'CeraVe Moisturizing Cream US sales declined 12% YoY in Q1 2026. Share in US mass moisturizer dropped from 18.2% to 14.8%. TikTok-driven growth from 2023-2024 has plateaued as competitor spending increased.' },
@@ -196,6 +254,10 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
     nextStep: 'Launch TikTok-first creator campaign for Maybelline SuperStay with competitive value messaging',
     crossCutting: 'US mass color cosmetics are being disrupted by indie brands using social-first marketing at lower price points.',
     timestamp: '2026-03-30T14:00:00Z',
+    signalType: 'Creator Traction Shift',
+    category: 'Color Cosmetics',
+    country: 'United States',
+    region: 'National',
     detailSections: [
       { label: 'Market Signal', content: 'e.l.f. Beauty Halo Glow Liquid Filter generated 2.1B+ TikTok views in Q1 2026. US mass foundation category shifted toward lightweight, skin-tint products. e.l.f. overall US prestige-adjacent mass makeup share grew from 8% to 14% in 12 months.' },
       { label: 'L\'Oreal Performance', content: 'Maybelline SuperStay US foundation sales declined 15% YoY. SOV in US mass foundation dropped from 22% to 16%. Maybelline\'s value perception weakened as consumers perceive e.l.f. as comparable quality at lower price.' },
@@ -244,6 +306,10 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
     nextStep: 'Develop clean-positioned Garnier hair care line for US market and renegotiate Target shelf allocation',
     crossCutting: 'US mass hair care is splitting into clean/premium-mass and value tiers, squeezing legacy natural brands.',
     timestamp: '2026-03-28T11:00:00Z',
+    signalType: 'Stockout / Shelf Loss',
+    category: 'Hair Care',
+    country: 'United States',
+    region: 'National',
     detailSections: [
       { label: 'Market Signal', content: 'Target Q1 2026 shelf reset removed 6 Garnier Fructis SKUs from US hair care planogram. Native Hair Care (P&G) gained 4 facings and Function of Beauty (Unilever) gained 5 facings. Clean and personalized positioning is winning US mass hair care shelf space.' },
       { label: 'L\'Oreal Performance', content: 'Garnier Fructis US hair care revenue declined 9% YoY. Market share in US mass shampoo dropped from 12.1% to 9.8%. Brand perception scores for "clean" and "modern" declined among US women 18-34.' },
@@ -329,6 +395,10 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         { name: 'The Ordinary Q4 2025 Earnings', type: 'Competitor Filings', claim: 'The Ordinary Buffet dominates US peptide skincare category', verified: true },
       ],
     },
+    signalType: 'Ingredient Trend Surge',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
   },
   {
     title: 'Men\'s Grooming Premium Segment Growing 22% in US',
@@ -372,6 +442,10 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         { name: 'Target Buyer Feedback', type: 'Ecommerce / Retailer Data', claim: 'L\'Oreal Men Expert has limited US retail distribution', verified: false },
       ],
     },
+    signalType: 'Consumer Sentiment Shift',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
   },
   {
     title: 'Body Care Premiumization Wave in US Mass Market',
@@ -415,6 +489,10 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
         { name: 'Unilever 2025 Annual Earnings', type: 'Competitor Filings', claim: 'Necessaire grew 52% in US prestige body care', verified: true },
       ],
     },
+    signalType: 'Consumer Sentiment Shift',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
   },
 ]
 
@@ -463,6 +541,10 @@ export const SEEDED_RISKS: SeededRisk[] = [
         { name: 'Kantar US Media Spend Estimates', type: 'Real-time Web Research', claim: 'Olay outspending Revitalift by $25M in US advertising', verified: false },
       ],
     },
+    signalType: 'Competitor Launch/Relaunch',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
   },
   {
     title: 'Elvive Bond Repair Underperforming vs Olaplex at US Retailers',
@@ -508,6 +590,10 @@ export const SEEDED_RISKS: SeededRisk[] = [
         { name: 'Ulta & Target Consumer Reviews', type: 'Product Reviews', claim: '189 reviews, 3.4/5 average; consumer confusion vs Olaplex', verified: true },
       ],
     },
+    signalType: 'Price Gap Shift',
+    category: 'Hair Care',
+    country: 'United States',
+    region: 'National',
   },
 ]
 
@@ -557,6 +643,10 @@ export const SEEDED_ALERTS: SeededAlert[] = [
         { name: 'Google Trends US PFAS Cosmetics', type: 'Google Trends', claim: 'PFAS-free makeup searches grew 420% YoY in US', verified: true },
       ],
     },
+    signalType: 'Regulatory / Claims Pressure',
+    category: 'Color Cosmetics',
+    country: 'United States',
+    region: 'National',
   },
   {
     title: 'Sunscreen Chemical Filter Safety Debate Resurging in US Media',
@@ -602,19 +692,23 @@ export const SEEDED_ALERTS: SeededAlert[] = [
         { name: 'TikTok Dermatologist Content', type: 'Social / Creator Content', claim: 'Dermatologists increasingly recommending mineral-only formulations', verified: false },
       ],
     },
+    signalType: 'Regulatory / Claims Pressure',
+    category: 'Skincare',
+    country: 'United States',
+    region: 'National',
   },
 ]
 
 // ── Recommended Actions (North America) ──
 export const SEEDED_ACTIONS: SeededAction[] = [
-  { title: 'Launch CeraVe dermatologist counter-campaign vs Cetaphil in US', priority: 'Critical', owner: 'Marketing US', impact: 'Prevent further CeraVe market share erosion vs Cetaphil relaunch in US mass moisturizer ($143M at risk)', timeline: 'Immediate — launch by May 2026', scenarioId: 's1' },
-  { title: 'Accelerate PFAS-free reformulation for US color cosmetics portfolio', priority: 'Critical', owner: 'R&D Color Cosmetics', impact: 'Ensure regulatory compliance and protect consumer trust for Maybelline, L\'Oreal Paris, NYX in US market', timeline: 'Accelerate from 2027 to Q2 2026', scenarioId: 's9' },
-  { title: 'Launch 200+ creator TikTok campaign for Maybelline SuperStay vs e.l.f.', priority: 'Critical', owner: 'Digital Marketing US', impact: 'Counter e.l.f. Halo Glow SOV gains in US mass foundation ($168M at risk)', timeline: 'Launch by May 2026', scenarioId: 's2' },
-  { title: 'Develop Garnier Clean+ hair care sub-line for US market', priority: 'High', owner: 'Product Development Hair Care', impact: 'Address clean-hair positioning gap vs Native (P&G) and Function of Beauty (Unilever) at Target', timeline: 'Target Q4 2026 launch', scenarioId: 's3' },
-  { title: 'Fast-track CeraVe Peptide Moisturizer for US launch', priority: 'High', owner: 'R&D Skincare', impact: 'Enter fastest-growing US anti-aging segment ($890M peptide market, 0% current share)', timeline: 'Target Q3 2026', scenarioId: 's4' },
-  { title: 'Relaunch Revitalift with clinical-data campaign in US', priority: 'High', owner: 'Brand Strategy US', impact: 'Counter Olay Regenerist and Neutrogena growth in US anti-aging ($76M annual risk)', timeline: 'H2 2026', scenarioId: 's7' },
-  { title: 'Rebrief Elvive Bond Repair US messaging vs Olaplex', priority: 'High', owner: 'Brand Marketing US', impact: 'Improve conversion from 2.4% toward 5.1% benchmark; capture $21 price advantage vs Olaplex', timeline: '4-6 weeks', scenarioId: 's8' },
-  { title: 'Accelerate La Roche-Posay mineral sunscreen launches for US', priority: 'Medium', owner: 'Product Development', impact: 'Protect $340M US sunscreen revenue as mineral segment grows at 28% CAGR', timeline: 'Q2 2026', scenarioId: 's10' },
+  { title: 'Launch CeraVe dermatologist counter-campaign vs Cetaphil in US', priority: 'Critical', owner: 'Marketing US', impact: 'Prevent further CeraVe market share erosion vs Cetaphil relaunch in US mass moisturizer ($143M at risk)', timeline: 'Immediate — launch by May 2026', scenarioId: 's1', ownerTeam: 'Marketing', kpiOutcome: 'Increased Sales' },
+  { title: 'Accelerate PFAS-free reformulation for US color cosmetics portfolio', priority: 'Critical', owner: 'R&D Color Cosmetics', impact: 'Ensure regulatory compliance and protect consumer trust for Maybelline, L\'Oreal Paris, NYX in US market', timeline: 'Accelerate from 2027 to Q2 2026', scenarioId: 's9', ownerTeam: 'Product/R&D', kpiOutcome: 'Out-of-Stocks Prevented' },
+  { title: 'Launch 200+ creator TikTok campaign for Maybelline SuperStay vs e.l.f.', priority: 'Critical', owner: 'Digital Marketing US', impact: 'Counter e.l.f. Halo Glow SOV gains in US mass foundation ($168M at risk)', timeline: 'Launch by May 2026', scenarioId: 's2', ownerTeam: 'Marketing', kpiOutcome: 'Increased Sales' },
+  { title: 'Develop Garnier Clean+ hair care sub-line for US market', priority: 'High', owner: 'Product Development Hair Care', impact: 'Address clean-hair positioning gap vs Native (P&G) and Function of Beauty (Unilever) at Target', timeline: 'Target Q4 2026 launch', scenarioId: 's3', ownerTeam: 'Product/R&D', kpiOutcome: 'Increased Sales' },
+  { title: 'Fast-track CeraVe Peptide Moisturizer for US launch', priority: 'High', owner: 'R&D Skincare', impact: 'Enter fastest-growing US anti-aging segment ($890M peptide market, 0% current share)', timeline: 'Target Q3 2026', scenarioId: 's4', ownerTeam: 'Product/R&D', kpiOutcome: 'Increased Sales' },
+  { title: 'Relaunch Revitalift with clinical-data campaign in US', priority: 'High', owner: 'Brand Strategy US', impact: 'Counter Olay Regenerist and Neutrogena growth in US anti-aging ($76M annual risk)', timeline: 'H2 2026', scenarioId: 's7', ownerTeam: 'Marketing', kpiOutcome: 'Increased Sales' },
+  { title: 'Rebrief Elvive Bond Repair US messaging vs Olaplex', priority: 'High', owner: 'Brand Marketing US', impact: 'Improve conversion from 2.4% toward 5.1% benchmark; capture $21 price advantage vs Olaplex', timeline: '4-6 weeks', scenarioId: 's8', ownerTeam: 'Marketing', kpiOutcome: 'Forecast Accuracy' },
+  { title: 'Accelerate La Roche-Posay mineral sunscreen launches for US', priority: 'Medium', owner: 'Product Development', impact: 'Protect $340M US sunscreen revenue as mineral segment grows at 28% CAGR', timeline: 'Q2 2026', scenarioId: 's10', ownerTeam: 'Product/R&D', kpiOutcome: 'Out-of-Stocks Prevented' },
 ]
 
 // ── Recent Analyses (North America) ──
@@ -963,4 +1057,120 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
   risks.sort((a, b) => priorityOrder(a.severity) - priorityOrder(b.severity))
   alerts.sort((a, b) => priorityOrder(a.severity) - priorityOrder(b.severity))
   return { signals, actions, opportunities, risks, alerts, recentAnalyses }
+}
+
+// ── Filter & Story Helpers ──
+
+export function extractBrands(): string[] {
+  const brands = new Set<string>()
+  for (const s of SEEDED_SIGNALS) brands.add(s.brand)
+  for (const o of SEEDED_OPPORTUNITIES) brands.add(o.brand)
+  for (const r of SEEDED_RISKS) brands.add(r.brand)
+  for (const a of SEEDED_ALERTS) brands.add(a.brand)
+  return ['All Brands', ...Array.from(brands).sort()]
+}
+
+export function extractCategories(): string[] {
+  const cats = new Set<string>()
+  for (const s of SEEDED_SIGNALS) if (s.category) cats.add(s.category)
+  for (const o of SEEDED_OPPORTUNITIES) if (o.category) cats.add(o.category)
+  for (const r of SEEDED_RISKS) if (r.category) cats.add(r.category)
+  for (const a of SEEDED_ALERTS) if (a.category) cats.add(a.category)
+  return ['All Categories', ...Array.from(cats).sort()]
+}
+
+export function extractCountries(): string[] {
+  const countries = new Set<string>()
+  for (const s of SEEDED_SIGNALS) if (s.country) countries.add(s.country)
+  for (const o of SEEDED_OPPORTUNITIES) if (o.country) countries.add(o.country)
+  for (const r of SEEDED_RISKS) if (r.country) countries.add(r.country)
+  for (const a of SEEDED_ALERTS) if (a.country) countries.add(a.country)
+  return ['All Countries', ...Array.from(countries).sort()]
+}
+
+export function extractRegions(): string[] {
+  const regions = new Set<string>()
+  for (const s of SEEDED_SIGNALS) if (s.region) regions.add(s.region)
+  for (const o of SEEDED_OPPORTUNITIES) if (o.region) regions.add(o.region)
+  for (const r of SEEDED_RISKS) if (r.region) regions.add(r.region)
+  for (const a of SEEDED_ALERTS) if (a.region) regions.add(a.region)
+  return ['All Regions', ...Array.from(regions).sort()]
+}
+
+export function applyFilters<T extends { brand?: string; category?: string; country?: string; region?: string }>(items: T[], filters: FilterState): T[] {
+  return items.filter(item => {
+    if (filters.brand && filters.brand !== 'All Brands' && item.brand && !item.brand.includes(filters.brand)) return false
+    if (filters.category && filters.category !== 'All Categories' && item.category && item.category !== filters.category) return false
+    if (filters.country && filters.country !== 'All Countries' && item.country && item.country !== filters.country) return false
+    if (filters.region && filters.region !== 'All Regions' && item.region && item.region !== filters.region) return false
+    return true
+  })
+}
+
+export function applyActionFilters(actions: SeededAction[], filters: FilterState): SeededAction[] {
+  if (!filters.brand || filters.brand === 'All Brands') return actions
+  // Filter actions by checking if their title or impact mentions the brand
+  return actions.filter(a => {
+    const text = `${a.title} ${a.impact} ${a.owner}`.toLowerCase()
+    return text.includes(filters.brand.toLowerCase())
+  })
+}
+
+export function buildDashboardStory(
+  signals: SeededSignal[],
+  actions: SeededAction[],
+  opportunities: SeededOpportunity[],
+  risks: SeededRisk[],
+  filters: FilterState
+): DashboardStory {
+  const isPortfolio = !filters.brand || filters.brand === 'All Brands'
+  const brandLabel = isPortfolio ? "L'Oreal portfolio" : filters.brand
+
+  // Top-line insight
+  const criticalSignals = signals.filter(s => s.urgency === 'Critical')
+  const highOpps = opportunities.filter(o => o.confidence === 'High')
+  const topLineInsight = criticalSignals.length > 0
+    ? `${brandLabel} faces ${criticalSignals.length} critical signal${criticalSignals.length > 1 ? 's' : ''} requiring immediate action${highOpps.length > 0 ? `, with ${highOpps.length} high-confidence growth opportunit${highOpps.length > 1 ? 'ies' : 'y'}` : ''}.`
+    : highOpps.length > 0
+      ? `${brandLabel} has ${highOpps.length} high-confidence growth opportunit${highOpps.length > 1 ? 'ies' : 'y'} to capitalize on in the current market.`
+      : `${brandLabel} demand signals are stable with ${signals.length} active signal${signals.length !== 1 ? 's' : ''} being tracked.`
+
+  // Why it matters (top 3 reasons)
+  const whyItMatters: DashboardStory['whyItMatters'] = []
+  if (criticalSignals[0]) {
+    whyItMatters.push({ title: criticalSignals[0].title, explanation: cleanText(criticalSignals[0].why, 120) })
+  }
+  if (highOpps[0]) {
+    whyItMatters.push({ title: highOpps[0].title, explanation: cleanText(highOpps[0].why, 120) })
+  }
+  if (risks[0]) {
+    whyItMatters.push({ title: risks[0].title, explanation: cleanText(risks[0].cause, 120) })
+  }
+  // Fill to 3 if needed
+  for (const s of signals) {
+    if (whyItMatters.length >= 3) break
+    if (!whyItMatters.find(w => w.title === s.title)) {
+      whyItMatters.push({ title: s.title, explanation: cleanText(s.why, 120) })
+    }
+  }
+
+  // How to act (top 3 actions)
+  const howToAct: DashboardStory['howToAct'] = actions.slice(0, 3).map(a => ({
+    action: a.title,
+    ownerTeam: a.ownerTeam || a.owner,
+    kpiOutcome: a.kpiOutcome || 'Increased Sales',
+  }))
+
+  // KPI outcomes
+  const salesActions = actions.filter(a => (a.kpiOutcome || '').includes('Sales'))
+  const stockoutActions = actions.filter(a => (a.kpiOutcome || '').includes('Stock'))
+  const forecastActions = actions.filter(a => (a.kpiOutcome || '').includes('Forecast'))
+
+  const kpiOutcomes = {
+    sales: salesActions.length > 0 ? `${salesActions.length} action${salesActions.length > 1 ? 's' : ''} targeting revenue growth` : 'No active sales actions',
+    stockouts: stockoutActions.length > 0 ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} preventing inventory gaps` : 'No active stockout prevention',
+    forecast: forecastActions.length > 0 ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy` : 'No active forecast improvements',
+  }
+
+  return { topLineInsight, whyItMatters, howToAct, kpiOutcomes }
 }
