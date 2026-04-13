@@ -89,7 +89,7 @@ export default function Dashboard({
         <div className="mx-8 mt-6 bg-primary/5 border border-primary/20 p-3 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin flex-shrink-0" />
           <div>
-            <p className="text-[12px] text-foreground tracking-wide">Scanning North America market intelligence...</p>
+            <p className="text-[12px] text-foreground tracking-wide">Scanning United States market intelligence...</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">This typically takes 30-60 seconds. Results will appear across all sections.</p>
           </div>
         </div>

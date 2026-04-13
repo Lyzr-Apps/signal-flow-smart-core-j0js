@@ -215,29 +215,35 @@ export default function AppShell() {
       if (filters.state) filterContext.push(`State: ${filters.state}`)
       const filterStr = filterContext.length > 0 ? `\n\nCurrent filter context: ${filterContext.join(', ')}. Prioritize insights relevant to these filters.` : ''
 
+      const geoLabel = filters.state && !filters.state.startsWith('All ')
+        ? filters.state
+        : filters.region && filters.region !== 'All Regions' && filters.region !== 'National'
+          ? `the ${filters.region} United States`
+          : 'the United States'
+
       const basePrompt = query
-        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in North America (United States and Canada) unless another market is explicitly mentioned in the query.${filterStr}`
-        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in North America (United States and Canada). Search the web for the latest developments as of today.${filterStr}`
+        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in ${geoLabel}.${filterStr}`
+        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in ${geoLabel}. Search the web for the latest developments as of today.${filterStr}`
 
       const message = `${basePrompt}
 
 You MUST respond in valid JSON format with this exact structure:
 {
-  "selected_context": {"brand": "...", "category": "...", "country": "...", "region": "..."},
-  "top_line_insight": "Single sentence: the most important finding for this context",
+  "selected_context": {"brand": "...", "category": "...", "region": "...", "state": "..."},
+  "top_line_insight": "Single sentence business conclusion for the selected brand, category, and geography. Must be specific, credible, concise. Use grounded business wording. Never use inflated phrasing like 'multiple major disruptions' or 'immediate market-wide transformation'.",
   "why_it_matters": [
-    {"title": "Short title", "explanation": "Why this matters for demand"},
-    {"title": "Short title", "explanation": "Why this matters for demand"},
-    {"title": "Short title", "explanation": "Why this matters for demand"}
+    {"title": "Short distinct title — must be different from other titles", "explanation": "Why this matters for demand — plain language, business-relevant, tied to selected context"},
+    {"title": "Short distinct title — must be different from other titles", "explanation": "A different supporting reason behind the top-line insight"},
+    {"title": "Short distinct title — must be different from other titles", "explanation": "A third unique supporting reason — no duplicates allowed"}
   ],
   "recommended_actions": [
-    {"action": "Specific concrete action (no vague monitor/watch/review)", "owner_team": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy", "priority": "Critical/High/Medium", "timeline": "When to act"},
+    {"action": "Short, immediate, operational action tied to selected context — e.g. 'increase allocation in priority markets', 'revise short-term forecast assumptions', 'prioritize retail support in selected states'", "owner_team": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy", "priority": "Critical/High/Medium", "timeline": "When to act"},
     {"action": "...", "owner_team": "...", "kpi_outcome": "...", "priority": "...", "timeline": "..."},
     {"action": "...", "owner_team": "...", "kpi_outcome": "...", "priority": "...", "timeline": "..."}
   ],
-  "kpi_sales": "Summary of actions targeting increased sales",
-  "kpi_stockouts": "Summary of actions preventing out-of-stocks",
-  "kpi_forecast": "Summary of actions improving forecast accuracy",
+  "kpi_sales": "Summary of actions targeting increased sales — must be consistent with recommended_actions",
+  "kpi_stockouts": "Summary of actions preventing out-of-stocks — must be consistent with recommended_actions",
+  "kpi_forecast": "Summary of actions improving forecast accuracy — must be consistent with recommended_actions",
   "executive_summary": "2-3 sentence overview",
   "signal_classifications": [
     {"type": "Competitor Launch/Relaunch|Stockout / Shelf Loss|Creator Traction Shift|Ingredient Trend Surge|Regulatory / Claims Pressure|Price Gap Shift|Channel Mix Change|Consumer Sentiment Shift|New Entrant Disruption|Reformulation Signal|Seasonal Demand Shift|Retailer Strategy Change|Supply Chain Risk", "description": "..."}
@@ -247,13 +253,13 @@ You MUST respond in valid JSON format with this exact structure:
       "domain": "Domain name",
       "title": "Short action-oriented title",
       "brand": "Relevant L'Oreal brand(s)",
-      "market": "Geographic market",
+      "market": "${geoLabel}",
       "key_findings": "Detailed findings with specific data points",
       "confidence": "High/Medium/Low",
       "signal_type": "One of the 13 signal types above",
       "category": "Skincare/Color Cosmetics/Hair Care/Sun Care/Body Care",
       "recommendations": [
-        {"action": "Specific concrete action - never use monitor/watch/review", "priority": "Critical/High/Medium/Low", "owner": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "rationale": "Why this matters", "timeline": "When to act", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy"}
+        {"action": "Short operational action — never use monitor/watch/review", "priority": "Critical/High/Medium/Low", "owner": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "rationale": "Why this matters", "timeline": "When to act", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy"}
       ]
     }
   ],
@@ -265,11 +271,16 @@ You MUST respond in valid JSON format with this exact structure:
   "unified_brief": "Executive brief tying all findings together"
 }
 
-IMPORTANT RULES:
+CONTENT DISCIPLINE RULES — FOLLOW STRICTLY:
+GEOGRAPHY: The market is the United States only. Use "${geoLabel}" as geography. Never say "North America", "global", "international", or "multi-country". Use only United States geography wording matching the selected context.
+FILTER DISCIPLINE: Respect the selected Brand, Category, Region, and State strictly. Do not mix in unrelated categories, brands, or geographies. If a specific Brand is selected, only surface signals affecting that brand, its direct competitors, and its category. Do not drift into unrelated portfolio stories.
+WHY IT MATTERS: Exactly 3 distinct points. No duplicates. Each must explain a different reason behind the top-line insight. Short, plain language, business-relevant.
+ACTIONS: Exactly 3 actions. Short, immediate, operational. No long strategic program names. No "execute growth acceleration program" or "capitalize on long-term momentum". Each action names an owner team and KPI outcome.
+KPI CONSISTENCY: KPI status, description, top-line insight, why-it-matters, and actions must all tell the same coherent story. No contradictions like "Needs adjustment" paired with "current forecast aligned".
+TOP-LINE INSIGHT: Specific, credible, concise, aligned to selected filters. No inflated phrasing like "7 rising sales opportunities" or "multiple major disruptions".
 - EVERY action must name a specific owner team: Marketing, Product/R&D, Planning, or Manufacturing/Supply
 - EVERY action must link to a KPI outcome: Increased Sales, Out-of-Stocks Prevented, or Forecast Accuracy
-- NO vague actions like "monitor trends", "watch competitor", "review performance" - actions must be concrete
-- Use full geographic names: "United States" not "US"
+- NO vague actions like "monitor trends", "watch competitor", "review performance" — actions must be concrete and operational
 - Include L'Oreal brand performance, specific competitor brand + product, gap vs competitor, reason for gap, and demand implication
 - Provide at least 6 specialist analyses covering different domains`
 
@@ -491,7 +502,7 @@ IMPORTANT RULES:
                 <input
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search US trends, brands, competitors, or market signals..."
+                  placeholder="Search United States trends, brands, competitors, or market signals..."
                   className="w-full bg-secondary/50 border border-border pl-9 pr-4 py-1.5 text-[12px] text-foreground tracking-wide placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
                   disabled={agentLoading}
                 />

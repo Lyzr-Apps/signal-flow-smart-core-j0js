@@ -161,7 +161,9 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis, 
   const filteredSignals = useMemo(() => {
     let signals = SEEDED_MARKET_SIGNALS.filter(ev => {
       if (filters.brand && filters.brand !== 'All Brands' && !ev.brand.includes(filters.brand)) return false
-      if (filters.category && filters.category !== 'All Categories' && ev.category && ev.category !== filters.category) return false
+      if (filters.category && filters.category !== 'All Categories' && ev.category) {
+        if (ev.category !== filters.category && !(filters.category === 'Beauty' && ev.category === 'Color Cosmetics')) return false
+      }
       if (filters.region && filters.region !== 'All Regions' && ev.region && ev.region !== filters.region) return false
       return true
     })
@@ -229,7 +231,7 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis, 
           <RiSignalTowerLine className="h-5 w-5 text-primary" />
           <h2 className="font-serif text-lg tracking-[0.1em] text-foreground uppercase">Signals</h2>
         </div>
-        <p className="text-[12px] text-muted-foreground tracking-wide mb-5">North America demand evidence by signal type</p>
+        <p className="text-[12px] text-muted-foreground tracking-wide mb-5">United States demand evidence by signal type</p>
 
         {/* Signal Type Filter Chips */}
         <div className="flex items-center gap-2 mb-5 flex-wrap">

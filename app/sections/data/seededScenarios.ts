@@ -1,5 +1,5 @@
 // Shared seeded foresight scenario data, types, and helpers
-// North America-focused demand intelligence data
+// United States-focused demand intelligence data
 
 export interface AnalysisItem {
   _id?: string
@@ -206,7 +206,7 @@ export function isHighPriority(p: string): boolean {
   return v === 'critical' || v === 'high'
 }
 
-// ── Priority Signals (North America) ──
+// ── Priority Signals (United States) ──
 export const SEEDED_SIGNALS: SeededSignal[] = [
   {
     id: 's1',
@@ -316,7 +316,7 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
     id: 's3',
     title: 'Garnier Fructis Losing US Shelf Space to Native and Function of Beauty',
     brand: 'Garnier',
-    market: 'United States / Canada',
+    market: 'United States',
     urgency: 'High',
     why: 'Garnier Fructis lost 6 SKU facings at Target in Q1 2026 shelf reset as Native (P&G) and Function of Beauty (Unilever) gained premium-clean positioning in US mass hair care.',
     nextStep: 'Develop clean-positioned Garnier hair care line for US market and renegotiate Target shelf allocation',
@@ -366,7 +366,7 @@ export const SEEDED_SIGNALS: SeededSignal[] = [
   },
 ]
 
-// ── Active Opportunities (North America) ──
+// ── Active Opportunities (United States) ──
 export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
   {
     title: 'Peptide Skincare Demand Growing 180% YoY in US Market',
@@ -419,7 +419,7 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
   {
     title: 'Men\'s Grooming Premium Segment Growing 22% in US',
     brand: 'Kiehl\'s / L\'Oreal Men Expert',
-    market: 'United States / Canada',
+    market: 'United States',
     confidence: 'Medium',
     why: 'US men\'s prestige skincare grew 22% YoY to $1.1B. Kiehl\'s has strong men\'s credibility but limited dedicated marketing vs Clinique for Men and Harry\'s.',
     move: 'Launch dedicated Kiehl\'s Men\'s skincare campaign and expand L\'Oreal Men Expert distribution at Target and Ulta.',
@@ -512,7 +512,7 @@ export const SEEDED_OPPORTUNITIES: SeededOpportunity[] = [
   },
 ]
 
-// ── Launch Risks (North America) ──
+// ── Launch Risks (United States) ──
 export const SEEDED_RISKS: SeededRisk[] = [
   {
     title: 'L\'Oreal Paris Revitalift Declining vs Olay Regenerist and Neutrogena in US Anti-Aging',
@@ -613,7 +613,7 @@ export const SEEDED_RISKS: SeededRisk[] = [
   },
 ]
 
-// ── Claims / Reputation Alerts (North America) ──
+// ── Claims / Reputation Alerts (United States) ──
 export const SEEDED_ALERTS: SeededAlert[] = [
   {
     title: 'PFAS-Free Claims Pressure Building on US Cosmetics Brands',
@@ -715,7 +715,7 @@ export const SEEDED_ALERTS: SeededAlert[] = [
   },
 ]
 
-// ── Recommended Actions (North America) ──
+// ── Recommended Actions (United States) ──
 export const SEEDED_ACTIONS: SeededAction[] = [
   { title: 'Launch CeraVe dermatologist counter-campaign vs Cetaphil in US', priority: 'Critical', owner: 'Marketing US', impact: 'Prevent further CeraVe market share erosion vs Cetaphil relaunch in US mass moisturizer ($143M at risk)', timeline: 'Immediate — launch by May 2026', scenarioId: 's1', ownerTeam: 'Marketing', kpiOutcome: 'Increased Sales' },
   { title: 'Accelerate PFAS-free reformulation for US color cosmetics portfolio', priority: 'Critical', owner: 'R&D Color Cosmetics', impact: 'Ensure regulatory compliance and protect consumer trust for Maybelline, L\'Oreal Paris, NYX in US market', timeline: 'Accelerate from 2027 to Q2 2026', scenarioId: 's9', ownerTeam: 'Product/R&D', kpiOutcome: 'Out-of-Stocks Prevented' },
@@ -727,11 +727,11 @@ export const SEEDED_ACTIONS: SeededAction[] = [
   { title: 'Accelerate La Roche-Posay mineral sunscreen launches for US', priority: 'Medium', owner: 'Product Development', impact: 'Protect $340M US sunscreen revenue as mineral segment grows at 28% CAGR', timeline: 'Q2 2026', scenarioId: 's10', ownerTeam: 'Product/R&D', kpiOutcome: 'Out-of-Stocks Prevented' },
 ]
 
-// ── Recent Analyses (North America) ──
+// ── Recent Analyses (United States) ──
 export const SEEDED_ANALYSES: SeededAnalysis[] = [
   { id: 'sa1', title: 'CeraVe vs Cetaphil US Moisturizer Competitive Assessment', brand: 'CeraVe', market: 'United States', signalTypes: ['Competitive', 'Launch'], summary: 'Cetaphil relaunch driving share gains against CeraVe in US mass moisturizer. CeraVe share dropped from 18.2% to 14.8% as Cetaphil invested $40M in dermatologist campaign.', timestamp: '2026-04-01T09:00:00Z', scenarioId: 's1' },
   { id: 'sa2', title: 'Maybelline Foundation vs e.l.f. US Competitive Review', brand: 'Maybelline', market: 'United States', signalTypes: ['Competitive', 'Consumer Insight'], summary: 'e.l.f. Halo Glow Liquid Filter capturing US foundation share from Maybelline through TikTok creator strategy and $8 price advantage.', timestamp: '2026-03-30T14:00:00Z', scenarioId: 's2' },
-  { id: 'sa3', title: 'Garnier US Shelf Space Loss Assessment', brand: 'Garnier', market: 'United States / Canada', signalTypes: ['Competitive', 'Performance'], summary: 'Garnier Fructis lost 6 SKU facings at Target Q1 2026 as Native (P&G) and Function of Beauty (Unilever) gained premium-clean positioning.', timestamp: '2026-03-28T11:00:00Z', scenarioId: 's3' },
+  { id: 'sa3', title: 'Garnier US Shelf Space Loss Assessment', brand: 'Garnier', market: 'United States', signalTypes: ['Competitive', 'Performance'], summary: 'Garnier Fructis lost 6 SKU facings at Target Q1 2026 as Native (P&G) and Function of Beauty (Unilever) gained premium-clean positioning.', timestamp: '2026-03-28T11:00:00Z', scenarioId: 's3' },
   { id: 'sa4', title: 'US Peptide Skincare Opportunity Assessment', brand: 'L\'Oreal Paris / CeraVe', market: 'United States', signalTypes: ['Opportunity', 'Innovation'], summary: 'US peptide skincare growing 180% YoY. The Ordinary Buffet dominates but L\'Oreal has zero dedicated peptide products. $890M market opportunity.', timestamp: '2026-03-26T10:00:00Z', scenarioId: 's4' },
   { id: 'sa5', title: 'Revitalift vs Olay Regenerist US Performance Review', brand: 'L\'Oreal Paris', market: 'United States', signalTypes: ['Launch', 'Performance'], summary: 'Revitalift US sales declining 11% YoY while Olay Regenerist growing 14%. Messaging and media spend gap driving divergence.', timestamp: '2026-03-24T15:00:00Z', scenarioId: 's7' },
   { id: 'sa6', title: 'US PFAS Regulatory Impact Assessment', brand: 'Maybelline / L\'Oreal Paris / NYX', market: 'United States', signalTypes: ['Claims', 'Regulatory'], summary: 'Three US states enacted PFAS bans. Consumer awareness surged 420%. e.l.f. using PFAS-free certification as competitive lever.', timestamp: '2026-03-22T08:00:00Z', scenarioId: 's9' },
@@ -898,7 +898,7 @@ function synthesizeMetrics(sp: any, category: string, urgency: string, idx: numb
     sources.push({
       name: `Web Intelligence — ${domain}`,
       type: 'Web Search / AI Analysis',
-      claim: `Real-time web data analysis for ${brand} in ${sp?.market || 'North America'}`,
+      claim: `Real-time web data analysis for ${brand} in ${sp?.market || 'United States'}`,
       verified: true,
     })
     if (sources.length < 2) {
@@ -945,7 +945,7 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
     const id = a._id || ''
 
     recentAnalyses.push({
-      id, title: cleanText(summary, 60) || 'Web Analysis', brand: 'L\'Oreal', market: 'North America', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
+      id, title: cleanText(summary, 60) || 'Web Analysis', brand: 'L\'Oreal', market: 'United States', signalTypes: Array.isArray(a.signal_types) ? a.signal_types : [], summary: cleanText(summary, 200), timestamp: a.createdAt || '', scenarioId: id,
     })
 
     for (const sp of specialists) {
@@ -1077,10 +1077,18 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
 
 // ── Filter & Story Helpers ──
 
+function matchCategory(itemCategory: string | undefined, filterCategory: string): boolean {
+  if (!filterCategory || filterCategory === 'All Categories' || !itemCategory) return true
+  if (itemCategory === filterCategory) return true
+  // "Beauty" filter matches "Color Cosmetics" data values
+  if (filterCategory === 'Beauty' && itemCategory === 'Color Cosmetics') return true
+  return false
+}
+
 export function applyFilters<T extends { brand?: string; category?: string; region?: string }>(items: T[], filters: FilterState): T[] {
   return items.filter(item => {
     if (filters.brand && filters.brand !== 'All Brands' && item.brand && !item.brand.includes(filters.brand)) return false
-    if (filters.category && filters.category !== 'All Categories' && item.category && item.category !== filters.category) return false
+    if (!matchCategory(item.category, filters.category)) return false
     if (filters.region && filters.region !== 'All Regions' && item.region && item.region !== filters.region) return false
     return true
   })
@@ -1105,80 +1113,105 @@ export function buildDashboardStory(
   const brandLabel = isPortfolio ? "L'Oreal portfolio" : filters.brand
   const geoLabel = filters.state && !filters.state.startsWith('All ')
     ? filters.state
-    : filters.region && filters.region !== 'All Regions'
+    : filters.region && filters.region !== 'All Regions' && filters.region !== 'National'
       ? `the ${filters.region} United States`
       : 'the United States'
 
-  // Top-line insight — business conclusion language, never vague
+  // Top-line insight — specific, credible, concise, aligned to selected context
   const criticalSignals = signals.filter(s => s.urgency === 'Critical')
   const highOpps = opportunities.filter(o => o.confidence === 'High')
   const highRisks = risks.filter(r => r.severity === 'Critical' || r.severity === 'High')
 
   let topLineInsight: string
   if (criticalSignals.length > 0 && highOpps.length > 0) {
-    topLineInsight = `${brandLabel} faces competitor pressure affecting demand in ${geoLabel}, with ${highOpps.length} rising sales opportunit${highOpps.length > 1 ? 'ies' : 'y'} requiring immediate action to protect market share.`
+    const topSig = criticalSignals[0]
+    topLineInsight = `${brandLabel} is facing competitive pressure in ${geoLabel} from ${topSig.metrics?.competitorName || 'key competitors'}, requiring faster action across planning, supply, and marketing to protect share.`
   } else if (criticalSignals.length > 0) {
     const topSig = criticalSignals[0]
-    topLineInsight = `${brandLabel} faces elevated competitive pressure from ${topSig.metrics?.competitorName || 'key competitors'} in ${geoLabel}, creating demand risk that requires ${criticalSignals.length} immediate action${criticalSignals.length > 1 ? 's' : ''}.`
+    topLineInsight = `${brandLabel} faces elevated competitive pressure from ${topSig.metrics?.competitorName || 'key competitors'} in ${geoLabel}, requiring immediate response to protect demand.`
   } else if (highRisks.length > 0) {
-    topLineInsight = `${brandLabel} has elevated out-of-stock risk across ${highRisks.length} product line${highRisks.length > 1 ? 's' : ''} in ${geoLabel} — forecast needs adjustment to prevent revenue loss.`
+    topLineInsight = `${brandLabel} has elevated out-of-stock risk in ${geoLabel} — forecast needs adjustment to prevent revenue loss.`
   } else if (highOpps.length > 0) {
-    topLineInsight = `${brandLabel} has a rising sales opportunity in ${geoLabel} driven by ${highOpps[0].title.toLowerCase().includes('peptide') ? 'ingredient trend surge' : 'emerging consumer demand'}, with substitution opportunity emerging against key competitors.`
+    topLineInsight = `${brandLabel} has a near-term sales opportunity in ${geoLabel} due to ${highOpps[0].title.toLowerCase().includes('peptide') ? 'ingredient demand shifts' : 'competitor pressure and local demand shifts'}.`
   } else if (signals.length > 0) {
-    topLineInsight = `${brandLabel} demand planning in ${geoLabel} needs adjustment — ${signals.length} active signal${signals.length > 1 ? 's' : ''} indicate${signals.length === 1 ? 's' : ''} shifting competitive dynamics and emerging category opportunities.`
+    topLineInsight = `${brandLabel} demand planning in ${geoLabel} needs adjustment — competitive dynamics are shifting and current forecasts should reflect recent market changes.`
   } else {
-    topLineInsight = `${brandLabel} forecast accuracy in ${geoLabel} requires review — market conditions are shifting and demand planning should reflect current competitive landscape.`
+    topLineInsight = `${brandLabel} forecast accuracy in ${geoLabel} requires review — market conditions are shifting and demand planning should reflect the current competitive landscape.`
   }
 
-  // Why it matters (top 3 reasons) — include strongest signal inline
+  // Why it matters — exactly 3 DISTINCT points, no duplicates, each a different reason
   const whyItMatters: DashboardStory['whyItMatters'] = []
+  const usedTitles = new Set<string>()
+
+  const addIfUnique = (title: string, explanation: string) => {
+    if (whyItMatters.length >= 3) return
+    const normalized = title.toLowerCase().trim()
+    if (usedTitles.has(normalized)) return
+    // Check for near-duplicate explanations
+    const expNorm = explanation.toLowerCase()
+    for (const existing of whyItMatters) {
+      if (existing.explanation.toLowerCase().substring(0, 40) === expNorm.substring(0, 40)) return
+    }
+    usedTitles.add(normalized)
+    whyItMatters.push({ title, explanation: cleanText(explanation, 120) })
+  }
+
+  // Draw from different data pools to ensure diversity
   if (criticalSignals[0]) {
-    whyItMatters.push({ title: criticalSignals[0].title, explanation: cleanText(criticalSignals[0].why, 120) })
+    addIfUnique(criticalSignals[0].title, criticalSignals[0].why)
   }
   if (highOpps[0]) {
-    whyItMatters.push({ title: highOpps[0].title, explanation: cleanText(highOpps[0].why, 120) })
+    addIfUnique(highOpps[0].title, highOpps[0].why)
   }
   if (highRisks[0]) {
-    whyItMatters.push({ title: highRisks[0].title, explanation: cleanText(highRisks[0].cause, 120) })
+    addIfUnique(highRisks[0].title, highRisks[0].cause)
   }
-  // Fill to 3 if needed
+  // Fill remaining from signals not yet used
   for (const s of signals) {
     if (whyItMatters.length >= 3) break
-    if (!whyItMatters.find(w => w.title === s.title)) {
-      whyItMatters.push({ title: s.title, explanation: cleanText(s.why, 120) })
-    }
+    addIfUnique(s.title, s.why)
+  }
+  // Final fallback from opportunities
+  for (const o of opportunities) {
+    if (whyItMatters.length >= 3) break
+    addIfUnique(o.title, o.why)
   }
 
-  // How to act (top 3 actions)
+  // How to act — exactly 3 short, operational actions tied to context
   const howToAct: DashboardStory['howToAct'] = actions.slice(0, 3).map(a => ({
     action: a.title,
     ownerTeam: a.ownerTeam || a.owner,
     kpiOutcome: a.kpiOutcome || 'Increased Sales',
   }))
 
-  // KPI outcomes — business-friendly status values
+  // KPI outcomes — must be internally consistent with signals, actions, and top-line insight
   const salesActions = actions.filter(a => (a.kpiOutcome || '').includes('Sales'))
   const stockoutActions = actions.filter(a => (a.kpiOutcome || '').includes('Stock'))
   const forecastActions = actions.filter(a => (a.kpiOutcome || '').includes('Forecast'))
+  const hasCritical = criticalSignals.length > 0
 
   const kpiOutcomes: DashboardStory['kpiOutcomes'] = {
     sales: {
-      status: criticalSignals.length > 0 ? 'Elevated' : salesActions.length >= 3 ? 'High' : salesActions.length > 0 ? 'Moderate' : 'Low',
-      detail: salesActions.length > 0
-        ? `${salesActions.length} immediate action${salesActions.length > 1 ? 's' : ''} targeting revenue growth`
-        : 'No priority actions identified yet',
+      status: hasCritical ? 'Elevated' : salesActions.length >= 3 ? 'High' : salesActions.length > 0 ? 'Moderate' : 'Low',
+      detail: hasCritical && salesActions.length > 0
+        ? `Competitor pressure driving ${salesActions.length} priority action${salesActions.length > 1 ? 's' : ''} to protect revenue in ${geoLabel}`
+        : salesActions.length > 0
+          ? `${salesActions.length} action${salesActions.length > 1 ? 's' : ''} targeting revenue growth in ${geoLabel}`
+          : 'No priority sales actions identified for current selection',
     },
     stockouts: {
       status: stockoutActions.length >= 2 ? 'Elevated' : stockoutActions.length > 0 ? 'Moderate' : 'Low',
       detail: stockoutActions.length > 0
-        ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} preventing inventory gaps`
-        : 'Shelf position stable across tracked categories',
+        ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} addressing inventory and shelf position gaps in ${geoLabel}`
+        : 'Shelf position stable across tracked categories in current selection',
     },
     forecast: {
-      status: criticalSignals.length > 0 ? 'Needs adjustment' : forecastActions.length > 0 ? 'Rising' : 'Moderate',
-      detail: forecastActions.length > 0
-        ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy`
-        : 'Current forecast aligned to market conditions',
+      status: hasCritical ? 'Needs adjustment' : forecastActions.length > 0 ? 'Rising' : 'Moderate',
+      detail: hasCritical
+        ? `Competitive shifts require revised demand assumptions for ${brandLabel} in ${geoLabel}`
+        : forecastActions.length > 0
+          ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy for ${geoLabel}`
+          : `Current forecast assumptions remain reasonable for ${brandLabel} in ${geoLabel}`,
     },
   }
 

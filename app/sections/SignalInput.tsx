@@ -20,7 +20,7 @@ const STRUCTURED_FIELDS = [
   { key: 'product', label: 'Product', placeholder: 'e.g. Vitamin C Serum' },
   { key: 'ingredient', label: 'Ingredient', placeholder: 'e.g. Niacinamide, Retinol' },
   { key: 'benefit', label: 'Benefit', placeholder: 'e.g. Anti-aging, Hydration' },
-  { key: 'market', label: 'Market', placeholder: 'e.g. North America, APAC' },
+  { key: 'market', label: 'Market', placeholder: 'e.g. United States, Northeast, California' },
   { key: 'competitor', label: 'Competitor', placeholder: 'e.g. Estee Lauder, Shiseido' },
   { key: 'performance_issue', label: 'Performance Issue', placeholder: 'e.g. Declining sales in Q4' },
   { key: 'consumer_concern', label: 'Consumer Concern', placeholder: 'e.g. Sustainability, Clean beauty' },

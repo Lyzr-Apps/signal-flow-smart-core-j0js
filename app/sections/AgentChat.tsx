@@ -247,9 +247,9 @@ export default function AgentChat({ analyses = [] }: AgentChatProps) {
     for (let idx = workingAgentIdx; idx < AGENT_IDS.length; idx++) {
       try {
         const dashboardContext = buildFullDashboardSummary()
-        const prompt = `You are a demand-led intelligence assistant for L'Oreal Demand Sensor, focused on North America (United States and Canada).
+        const prompt = `You are a demand-led intelligence assistant for L'Oreal Demand Sensor, focused on the United States market.
 
-DASHBOARD DATA (the user sees a pyramid storytelling dashboard with: Top-line Insight, Why It Matters, How to Act, KPI Outcomes, and Top Signals):
+DASHBOARD DATA (the user sees a pyramid storytelling dashboard with: Top-line Insight, KPI Outcomes, Why It Matters, and How to Act):
 ${dashboardContext}
 
 RELEVANT DASHBOARD RESULTS FOR THIS QUESTION:
@@ -262,6 +262,8 @@ INSTRUCTIONS:
 4. Name specific L'Oreal brands and competitor brands/products.
 5. Every recommendation must name an owner team (Marketing, Product/R&D, Planning, or Manufacturing/Supply) and link to a KPI outcome (Increased Sales, Out-of-Stocks Prevented, or Forecast Accuracy).
 6. Never use vague actions like "monitor trends" or "watch competitor" — be concrete and specific.
+7. Use only United States geography wording (United States, National, Northeast, South, Midwest, West, or specific states). Never say "North America", "global", or "international".
+8. Do not mix in unrelated categories or brands unless the user explicitly asks for cross-category comparison.
 
 USER QUESTION: ${q}`
 
@@ -303,10 +305,10 @@ USER QUESTION: ${q}`
   const handleSend = () => sendMessage(input)
 
   const suggestions = [
-    "What US competitor moves should L'Oreal respond to first?",
+    "What competitor moves in the United States should L'Oreal respond to first?",
     "Tell me about the CeraVe vs Cetaphil situation",
-    "What are the top risks to US product launches?",
-    "What skincare ingredient trends are emerging?",
+    "What are the top risks to United States product launches?",
+    "What skincare ingredient trends are emerging in the United States?",
   ]
 
   return (
