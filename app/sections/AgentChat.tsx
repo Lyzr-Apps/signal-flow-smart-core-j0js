@@ -11,10 +11,10 @@ import {
 
 // Try these agent IDs in order — first MCP-created, then original sub-agents
 const AGENT_IDS = [
-  '69d8fbc177affb93352c126d', // MCP-created chat agent
-  '69c4230638f7fd77009ae10a', // Opportunity sub-agent
-  '69c423061b19ba3adafaf1a0', // Competitive sub-agent
-  '69c4231c4d9b1d0c43a2101b', // Manager agent
+  '69c4231c4d9b1d0c43a2101b', // Signal Orchestrator Manager
+  '69c4230638f7fd77009ae10a', // Opportunity & Investment Agent
+  '69c423061b19ba3adafaf1a0', // Competitive Positioning Agent
+  '69c423062cf2666b2c6632f6', // Launch & Market Response Agent
 ]
 
 interface Source { title: string; url: string }

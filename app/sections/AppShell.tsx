@@ -22,9 +22,9 @@ import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
 const ANALYZE_AGENT_IDS = [
-  '69d8f60764831a5b8a4ac41e', // MCP-created web analyst
-  '69d8fbc177affb93352c126d', // MCP-created chat agent
-  '69c4231c4d9b1d0c43a2101b', // Original manager
+  '69c4231c4d9b1d0c43a2101b', // Signal Orchestrator Manager
+  '69c4230638f7fd77009ae10a', // Opportunity & Investment Agent
+  '69c423061b19ba3adafaf1a0', // Competitive Positioning Agent
 ]
 
 const POLL_TIMEOUT_MS = 5 * 60 * 1000
