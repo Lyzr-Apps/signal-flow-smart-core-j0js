@@ -104,28 +104,32 @@ function searchDashboardData(query: string): string {
 function buildFullDashboardSummary(): string {
   const parts: string[] = []
 
-  parts.push('=== KEY SIGNALS ===')
+  parts.push('=== KEY DEMAND SIGNALS ===')
   for (const s of SEEDED_SIGNALS) {
-    parts.push(`[${s.urgency}] ${s.title} — ${s.brand} (${s.market}): ${s.why}`)
+    parts.push(`[${s.urgency}] ${s.title} — ${s.brand} (${s.market})${s.signalType ? ` [${s.signalType}]` : ''}: ${s.why}`)
     if (s.metrics) {
       parts.push(`  vs ${s.metrics.competitorName}: ${s.metrics.gapVsCompetitor}. ${s.metrics.demandImplication}`)
     }
   }
 
-  parts.push('\n=== OPPORTUNITIES ===')
+  parts.push('\n=== GROWTH OPPORTUNITIES ===')
   for (const o of SEEDED_OPPORTUNITIES) {
-    parts.push(`${o.title} — ${o.brand} (${o.market}): ${o.why} [${o.confidence}]`)
+    parts.push(`${o.title} — ${o.brand} (${o.market})${o.signalType ? ` [${o.signalType}]` : ''}: ${o.why} [Confidence: ${o.confidence}]`)
   }
 
-  parts.push('\n=== RISKS ===')
+  parts.push('\n=== DEMAND RISKS ===')
   for (const r of SEEDED_RISKS) {
-    parts.push(`[${r.severity}] ${r.title} — ${r.brand}: ${r.cause}`)
+    parts.push(`[${r.severity}] ${r.title} — ${r.brand}${r.signalType ? ` [${r.signalType}]` : ''}: ${r.cause}`)
   }
 
-  parts.push('\n=== PRIORITY ACTIONS ===')
+  parts.push('\n=== PRIORITY ACTIONS (with KPI linkage) ===')
   for (const a of SEEDED_ACTIONS.slice(0, 8)) {
-    parts.push(`[${a.priority}] ${a.title} — ${a.owner} (${a.timeline})`)
+    parts.push(`[${a.priority}] ${a.title} — ${a.ownerTeam || a.owner} (${a.timeline}) -> KPI: ${a.kpiOutcome || 'Increased Sales'}`)
   }
+
+  parts.push('\n=== KPI FRAMEWORK ===')
+  parts.push('Three KPI outcomes tracked: Increased Sales, Out-of-Stocks Prevented, Forecast Accuracy')
+  parts.push('Four owner teams: Marketing, Product/R&D, Planning, Manufacturing/Supply')
 
   return parts.join('\n')
 }
@@ -159,7 +163,7 @@ function generateDashboardAnswer(query: string, analyses: AnalysisItem[]): strin
   }
 
   if (q.includes('action') || q.includes('what should') || q.includes('recommend') || q.includes('priority')) {
-    return SEEDED_ACTIONS.slice(0, 8).map(a => `[${a.priority}] ${a.title}\nOwner: ${a.owner} | Timeline: ${a.timeline}\nImpact: ${a.impact}`).join('\n\n')
+    return SEEDED_ACTIONS.slice(0, 8).map(a => `[${a.priority}] ${a.title}\nOwner: ${a.ownerTeam || a.owner} | Timeline: ${a.timeline} | KPI: ${a.kpiOutcome || 'Increased Sales'}\nImpact: ${a.impact}`).join('\n\n')
   }
 
   // Add recent analyses
@@ -243,20 +247,21 @@ export default function AgentChat({ analyses = [] }: AgentChatProps) {
     for (let idx = workingAgentIdx; idx < AGENT_IDS.length; idx++) {
       try {
         const dashboardContext = buildFullDashboardSummary()
-        const prompt = `You are a demand intelligence assistant for L'Oreal, focused on North America (United States and Canada).
+        const prompt = `You are a demand-led intelligence assistant for L'Oreal Demand Sensor, focused on North America (United States and Canada).
 
-DASHBOARD DATA (the user can see this on their screen — reference specific signals/cards when relevant):
+DASHBOARD DATA (the user sees a pyramid storytelling dashboard with: Top-line Insight, Why It Matters, How to Act, KPI Outcomes, and Top Signals):
 ${dashboardContext}
 
 RELEVANT DASHBOARD RESULTS FOR THIS QUESTION:
 ${dashboardAnswer.substring(0, 2000)}
 
 INSTRUCTIONS:
-1. First answer from the DASHBOARD DATA above when it contains relevant information. Reference the specific signal/card titles.
-2. Then supplement with real-time web search data for the latest context, numbers, and developments.
+1. Answer from the DASHBOARD DATA above when it contains relevant information. Reference specific signal titles and KPI outcomes.
+2. Supplement with real-time web search data for the latest context and developments.
 3. Be concise, specific, and action-oriented. Keep responses under 300 words.
 4. Name specific L'Oreal brands and competitor brands/products.
-5. End with 1-2 specific recommended actions.
+5. Every recommendation must name an owner team (Marketing, Product/R&D, Planning, or Manufacturing/Supply) and link to a KPI outcome (Increased Sales, Out-of-Stocks Prevented, or Forecast Accuracy).
+6. Never use vague actions like "monitor trends" or "watch competitor" — be concrete and specific.
 
 USER QUESTION: ${q}`
 

@@ -1,12 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import {
-  RiDashboardLine, RiLineChartLine, RiSignalTowerLine, RiFlashlightLine,
-  RiFileTextLine, RiRadarLine, RiGlobalLine, RiLoader4Line,
-  RiArrowRightUpLine, RiErrorWarningLine,
-  RiArrowDownSLine, RiArrowRightSLine,
+  RiDashboardLine, RiSignalTowerLine, RiFlashlightLine,
+  RiHistoryLine, RiGlobalLine, RiLoader4Line,
 } from 'react-icons/ri'
 
 interface SidebarProps {
@@ -16,25 +14,14 @@ interface SidebarProps {
   agentLoading?: boolean
 }
 
-const DEMAND_SUB_ITEMS = [
-  { id: 'demand-overview', label: 'Overview', icon: RiLineChartLine },
-  { id: 'demand-opportunities', label: 'Opportunities', icon: RiArrowRightUpLine },
-  { id: 'demand-risks', label: 'Risks', icon: RiErrorWarningLine },
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: RiDashboardLine },
+  { id: 'signals', label: 'Signals', icon: RiSignalTowerLine },
+  { id: 'actions', label: 'Actions', icon: RiFlashlightLine },
+  { id: 'history', label: 'History', icon: RiHistoryLine },
 ]
 
 export default function Sidebar({ currentView, onNavigate, onRunAnalysis, agentLoading }: SidebarProps) {
-  const isDemandView = currentView.startsWith('demand-')
-  const [demandOpen, setDemandOpen] = useState(isDemandView)
-
-  const handleDemandClick = () => {
-    if (!demandOpen) {
-      setDemandOpen(true)
-      onNavigate('demand-overview')
-    } else {
-      setDemandOpen(false)
-    }
-  }
-
   return (
     <aside className="w-60 min-h-screen bg-card border-r border-border flex flex-col">
       <div className="px-5 pt-7 pb-5 border-b border-border">
@@ -49,7 +36,6 @@ export default function Sidebar({ currentView, onNavigate, onRunAnalysis, agentL
         </p>
       </div>
 
-      {/* Run Analysis Button */}
       <div className="px-3 pt-3 pb-1">
         <button
           onClick={onRunAnalysis}
@@ -71,80 +57,21 @@ export default function Sidebar({ currentView, onNavigate, onRunAnalysis, agentL
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5">
-        {/* Intelligence Hub */}
-        <Button
-          variant={currentView === 'dashboard' ? 'secondary' : 'ghost'}
-          className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${currentView === 'dashboard' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => onNavigate('dashboard')}
-        >
-          <RiDashboardLine className="h-[14px] w-[14px]" />
-          Intelligence Hub
-        </Button>
-
-        {/* Demand View with sub-items */}
-        <Button
-          variant={isDemandView ? 'secondary' : 'ghost'}
-          className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${isDemandView ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={handleDemandClick}
-        >
-          <RiLineChartLine className="h-[14px] w-[14px]" />
-          <span className="flex-1 text-left">Demand View</span>
-          {demandOpen || isDemandView ? (
-            <RiArrowDownSLine className="h-3.5 w-3.5" />
-          ) : (
-            <RiArrowRightSLine className="h-3.5 w-3.5" />
-          )}
-        </Button>
-
-        {(demandOpen || isDemandView) && (
-          <div className="pl-4 space-y-0.5">
-            {DEMAND_SUB_ITEMS.map((item) => {
-              const Icon = item.icon
-              const isActive = currentView === item.id
-              return (
-                <Button
-                  key={item.id}
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  className={`w-full justify-start gap-3 text-[11px] tracking-wide h-8 ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                  onClick={() => onNavigate(item.id)}
-                >
-                  <Icon className="h-[13px] w-[13px]" />
-                  {item.label}
-                </Button>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Market Signals */}
-        <Button
-          variant={currentView === 'market-signals' ? 'secondary' : 'ghost'}
-          className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${currentView === 'market-signals' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => onNavigate('market-signals')}
-        >
-          <RiSignalTowerLine className="h-[14px] w-[14px]" />
-          Market Signals
-        </Button>
-
-        {/* Recommended Actions */}
-        <Button
-          variant={currentView === 'actions-list' ? 'secondary' : 'ghost'}
-          className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${currentView === 'actions-list' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => onNavigate('actions-list')}
-        >
-          <RiFlashlightLine className="h-[14px] w-[14px]" />
-          Recommended Actions
-        </Button>
-
-        {/* Recent Analyses */}
-        <Button
-          variant={currentView === 'history' ? 'secondary' : 'ghost'}
-          className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${currentView === 'history' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => onNavigate('history')}
-        >
-          <RiFileTextLine className="h-[14px] w-[14px]" />
-          Recent Analyses
-        </Button>
+        {NAV_ITEMS.map(item => {
+          const Icon = item.icon
+          const isActive = currentView === item.id
+          return (
+            <Button
+              key={item.id}
+              variant={isActive ? 'secondary' : 'ghost'}
+              className={`w-full justify-start gap-3 text-[12px] tracking-wide h-9 ${isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => onNavigate(item.id)}
+            >
+              <Icon className="h-[14px] w-[14px]" />
+              {item.label}
+            </Button>
+          )
+        })}
       </nav>
 
       <div className="px-5 py-4 border-t border-border">

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { RiRadarLine, RiLoader4Line, RiSearchLine } from 'react-icons/ri'
 import {
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS, SEEDED_ALERTS,
+  type FilterState,
 } from './data/seededScenarios'
 
 import Sidebar from './Sidebar'
@@ -17,7 +18,7 @@ import AnalysisResult from './AnalysisResult'
 import AnalysisHistory from './AnalysisHistory'
 import DetailView from './DetailView'
 import MarketSignals from './MarketSignals'
-import DemandView from './DemandView'
+import FilterBar from './FilterBar'
 import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
@@ -152,6 +153,13 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+const DEFAULT_FILTERS: FilterState = {
+  brand: 'All Brands',
+  category: 'All Categories',
+  country: 'All Countries',
+  region: 'All Regions',
+}
+
 export default function AppShell() {
   const [currentView, setCurrentView] = useState('dashboard')
   const [analyses, setAnalyses] = useState<AnalysisData[]>([])
@@ -164,6 +172,10 @@ export default function AppShell() {
   const [hasRunAnalysis, setHasRunAnalysis] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
+  const [searchFilter, setSearchFilter] = useState('')
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
+
+  const displayAnalyses = analyses
 
   const fetchAnalyses = useCallback(async () => {
     setLoadingAnalyses(true)
@@ -187,9 +199,8 @@ export default function AppShell() {
     fetchAnalyses()
   }, [fetchAnalyses])
 
-  // Filter seeded data by search query relevance
-  const [searchFilter, setSearchFilter] = useState('')
-  const displayAnalyses = analyses
+  // Determine if FilterBar should show (Dashboard, Signals, Actions - not History or Detail)
+  const showFilterBar = ['dashboard', 'signals', 'actions'].includes(currentView)
 
   const runWebAnalysis = async (query?: string) => {
     setAgentError(null)
@@ -197,109 +208,71 @@ export default function AppShell() {
     setActiveAgentId('analyzing')
 
     try {
+      // Build filter context for the prompt
+      const filterContext = []
+      if (filters.brand !== 'All Brands') filterContext.push(`Brand focus: ${filters.brand}`)
+      if (filters.category !== 'All Categories') filterContext.push(`Category: ${filters.category}`)
+      if (filters.country !== 'All Countries') filterContext.push(`Country: ${filters.country}`)
+      if (filters.region !== 'All Regions') filterContext.push(`Region: ${filters.region}`)
+      const filterStr = filterContext.length > 0 ? `\n\nCurrent filter context: ${filterContext.join(', ')}. Prioritize insights relevant to these filters.` : ''
+
       const basePrompt = query
-        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in North America (United States and Canada) unless another market is explicitly mentioned in the query.`
-        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in North America (United States and Canada). Search the web for the latest developments as of today.`
+        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in North America (United States and Canada) unless another market is explicitly mentioned in the query.${filterStr}`
+        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in North America (United States and Canada). Search the web for the latest developments as of today.${filterStr}`
 
       const message = `${basePrompt}
 
 You MUST respond in valid JSON format with this exact structure:
 {
-  "executive_summary": "2-3 sentence overview of the most important findings",
+  "selected_context": {"brand": "...", "category": "...", "country": "...", "region": "..."},
+  "top_line_insight": "Single sentence: the most important finding for this context",
+  "why_it_matters": [
+    {"title": "Short title", "explanation": "Why this matters for demand"},
+    {"title": "Short title", "explanation": "Why this matters for demand"},
+    {"title": "Short title", "explanation": "Why this matters for demand"}
+  ],
+  "recommended_actions": [
+    {"action": "Specific concrete action (no vague monitor/watch/review)", "owner_team": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy", "priority": "Critical/High/Medium", "timeline": "When to act"},
+    {"action": "...", "owner_team": "...", "kpi_outcome": "...", "priority": "...", "timeline": "..."},
+    {"action": "...", "owner_team": "...", "kpi_outcome": "...", "priority": "...", "timeline": "..."}
+  ],
+  "kpi_sales": "Summary of actions targeting increased sales",
+  "kpi_stockouts": "Summary of actions preventing out-of-stocks",
+  "kpi_forecast": "Summary of actions improving forecast accuracy",
+  "executive_summary": "2-3 sentence overview",
   "signal_classifications": [
-    {"type": "Opportunity", "description": "..."},
-    {"type": "Competitive", "description": "..."},
-    {"type": "Launch", "description": "..."},
-    {"type": "Claims", "description": "..."},
-    {"type": "Consumer Insight", "description": "..."}
+    {"type": "Competitor Launch/Relaunch|Stockout / Shelf Loss|Creator Traction Shift|Ingredient Trend Surge|Regulatory / Claims Pressure|Price Gap Shift|Channel Mix Change|Consumer Sentiment Shift|New Entrant Disruption|Reformulation Signal|Seasonal Demand Shift|Retailer Strategy Change|Supply Chain Risk", "description": "..."}
   ],
   "specialist_analyses": [
     {
-      "domain": "Ingredient Trends & Innovation",
-      "title": "Short action-oriented title for this finding",
+      "domain": "Domain name",
+      "title": "Short action-oriented title",
       "brand": "Relevant L'Oreal brand(s)",
-      "market": "Geographic market (use full names like Southeast Asia, not abbreviations)",
-      "key_findings": "Detailed findings with specific data points from web search",
+      "market": "Geographic market",
+      "key_findings": "Detailed findings with specific data points",
       "confidence": "High/Medium/Low",
+      "signal_type": "One of the 13 signal types above",
+      "category": "Skincare/Color Cosmetics/Hair Care/Sun Care/Body Care",
       "recommendations": [
-        {"action": "Specific action to take", "priority": "Critical/High/Medium/Low", "owner": "Team responsible (Product, Marketing, Planning, or Manufacturing)", "rationale": "Why this matters", "timeline": "When to act"}
+        {"action": "Specific concrete action - never use monitor/watch/review", "priority": "Critical/High/Medium/Low", "owner": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "rationale": "Why this matters", "timeline": "When to act", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy"}
       ]
-    },
-    {
-      "domain": "Competitive Intelligence & Market Threats",
-      "title": "Short title",
-      "brand": "Relevant brand",
-      "market": "Market",
-      "key_findings": "Competitive landscape findings with data",
-      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
-    },
-    {
-      "domain": "Consumer Sentiment & Social Trends",
-      "title": "Short title",
-      "brand": "Relevant brand",
-      "market": "Market",
-      "key_findings": "Social media and consumer sentiment data",
-      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
-    },
-    {
-      "domain": "Claims Safety & Regulatory Compliance",
-      "title": "Short title about safety/regulatory concern",
-      "brand": "Affected brand",
-      "market": "Market",
-      "key_findings": "Safety concerns, regulatory changes, or claims risks",
-      "recommendations": [{"action": "...", "priority": "Critical", "owner": "...", "rationale": "..."}]
-    },
-    {
-      "domain": "Launch Performance & Market Response",
-      "title": "Short title about launch/performance",
-      "brand": "Brand with launch",
-      "market": "Market",
-      "key_findings": "Product launch data and market reception",
-      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
-    },
-    {
-      "domain": "Market Opportunity & Whitespace",
-      "title": "Short title about opportunity",
-      "brand": "Best positioned brand",
-      "market": "Target market",
-      "key_findings": "Whitespace and growth opportunity analysis",
-      "confidence": "High",
-      "recommendations": [{"action": "...", "priority": "High", "owner": "...", "rationale": "..."}]
     }
   ],
   "priority_actions": [
-    {"action": "Most urgent action", "priority": "Critical", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
-    {"action": "Second action", "priority": "High", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
-    {"action": "Third action", "priority": "High", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"},
-    {"action": "Fourth action", "priority": "Medium", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe"}
+    {"action": "Most urgent action", "priority": "Critical", "owner": "Team", "impact": "Expected outcome", "timeline": "Timeframe", "owner_team": "Marketing|Product/R&D|Planning|Manufacturing/Supply", "kpi_outcome": "Increased Sales|Out-of-Stocks Prevented|Forecast Accuracy"}
   ],
-  "cross_cutting_themes": "Key themes spanning multiple domains"
+  "supporting_signals": ["Signal 1 evidence", "Signal 2 evidence"],
+  "cross_cutting_themes": "Key themes spanning multiple domains",
+  "unified_brief": "Executive brief tying all findings together"
 }
 
-IMPORTANT LANGUAGE RULES:
-- Default market is North America (United States and Canada) unless another market is explicitly requested
-- Use full geographic names: "United States" not "US", "North America" not "NA"
-- Use short, action-oriented titles: "Format Fix Needed" not "Product Format Optimization Required"
-- Make recommendations team-specific: Marketing, Product/R&D, Planning, or Manufacturing/Supply
-- Include confidence levels and supporting evidence with percentages
-- For every insight, include: L'Oreal brand performance, specific competitor brand + product name, gap vs competitor, reason for gap, and demand implication
-
-Cover these areas with REAL current data from web search, focusing on North America:
-1. Emerging ingredient trends in US market (peptides, retinoids, niacinamide, ceramides, bakuchiol, etc.)
-2. Competitor launches and campaigns in US/Canada (P&G/Olay, Estee Lauder/The Ordinary, Unilever, e.l.f., Kenvue/Neutrogena, Galderma/Cetaphil)
-3. Product launch performance and US consumer reception
-4. Ingredient safety concerns, US regulatory changes (PFAS, FDA sunscreen rules), and claims risks
-5. Consumer sentiment on US TikTok, Reddit, and beauty forums
-6. US market whitespace and growth opportunities
-
-For each specialist analysis, clearly state:
-- Which specific L'Oreal brand is impacted
-- Which specific competitor brand and product is relevant
-- How L'Oreal is performing vs the competitor (with data)
-- Why there is a gap
-- What this means for demand in North America
-
-Provide at least 6 specialist analyses covering ALL the domains above. Include specific data, brand names, percentages, and web sources.`
+IMPORTANT RULES:
+- EVERY action must name a specific owner team: Marketing, Product/R&D, Planning, or Manufacturing/Supply
+- EVERY action must link to a KPI outcome: Increased Sales, Out-of-Stocks Prevented, or Forecast Accuracy
+- NO vague actions like "monitor trends", "watch competitor", "review performance" - actions must be concrete
+- Use full geographic names: "United States" not "US"
+- Include L'Oreal brand performance, specific competitor brand + product, gap vs competitor, reason for gap, and demand implication
+- Provide at least 6 specialist analyses covering different domains`
 
       const result = await callAnalyzeAgent(message)
 
@@ -331,7 +304,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
 
       const analysisPayload = {
         signal_id: query || '',
-        orchestrator_summary: agentData?.executive_summary || agentData?.summary || '',
+        orchestrator_summary: agentData?.executive_summary || agentData?.top_line_insight || agentData?.summary || '',
         specialist_outputs: specialistOutputs,
         signal_types: mergedTypes,
         priority_actions: priorityActions,
@@ -428,6 +401,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
             searchFilter={searchFilter}
+            filters={filters}
           />
         )
       case 'detail':
@@ -448,50 +422,25 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
             searchFilter={searchFilter}
+            filters={filters}
           />
         )
-      case 'market-signals':
+      case 'signals':
         return (
           <MarketSignals
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
             hasRunAnalysis={hasRunAnalysis}
+            filters={filters}
           />
         )
-      case 'demand-overview':
-        return (
-          <DemandView
-            subView="overview"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'demand-opportunities':
-        return (
-          <DemandView
-            subView="opportunities"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'demand-risks':
-        return (
-          <DemandView
-            subView="risks"
-            analyses={displayAnalyses}
-            onOpenDetail={handleOpenDetail}
-            hasRunAnalysis={hasRunAnalysis}
-          />
-        )
-      case 'actions-list':
+      case 'actions':
         return (
           <CategoryListView
-            category="actions"
             analyses={displayAnalyses}
             onOpenDetail={handleOpenDetail}
             hasRunAnalysis={hasRunAnalysis}
+            filters={filters}
           />
         )
       case 'result':
@@ -521,6 +470,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
             agentError={agentError}
             hasRunAnalysis={hasRunAnalysis}
             searchFilter={searchFilter}
+            filters={filters}
           />
         )
     }
@@ -544,7 +494,6 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
               )}
             </div>
 
-            {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex-1 max-w-xl">
               <div className="relative">
                 <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -566,6 +515,7 @@ Provide at least 6 specialist analyses covering ALL the domains above. Include s
               <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Scanning the web...' : 'System ready'}</span>
             </div>
           </header>
+          {showFilterBar && <FilterBar filters={filters} onChange={setFilters} />}
           {renderContent()}
           <div className="px-6 py-2.5 border-t border-border bg-card flex items-center justify-between">
             <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
