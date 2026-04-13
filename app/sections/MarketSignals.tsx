@@ -162,7 +162,6 @@ export default function MarketSignals({ analyses, onOpenDetail, hasRunAnalysis, 
     let signals = SEEDED_MARKET_SIGNALS.filter(ev => {
       if (filters.brand && filters.brand !== 'All Brands' && !ev.brand.includes(filters.brand)) return false
       if (filters.category && filters.category !== 'All Categories' && ev.category && ev.category !== filters.category) return false
-      if (filters.country && filters.country !== 'All Countries' && ev.country && ev.country !== filters.country) return false
       if (filters.region && filters.region !== 'All Regions' && ev.region && ev.region !== filters.region) return false
       return true
     })

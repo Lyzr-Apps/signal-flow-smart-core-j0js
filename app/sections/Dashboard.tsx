@@ -2,10 +2,10 @@
 
 import React, { useMemo } from 'react'
 import {
-  RiArrowRightUpLine, RiErrorWarningLine, RiFlashlightLine,
-  RiArrowRightSLine, RiCloseCircleLine, RiSearchLine,
+  RiArrowRightUpLine, RiCloseCircleLine, RiSearchLine,
   RiBarChartGroupedLine, RiLineChartLine, RiShieldCheckLine,
   RiLightbulbLine, RiTeamLine, RiAlertLine,
+  RiFlashlightLine, RiArrowRightSLine,
 } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, deriveFromAnalyses, applyFilters, applyActionFilters,
@@ -62,14 +62,6 @@ export default function Dashboard({
 
   const isPortfolio = !filters.brand || filters.brand === 'All Brands'
 
-  const openSignal = (sig: SeededSignal) => {
-    onOpenDetail({
-      category: 'signal', title: sig.title, brand: sig.brand, market: sig.market, severity: sig.urgency,
-      sections: sig.detailSections.length > 0 ? sig.detailSections : [{ label: 'What Changed', content: sig.why }, { label: 'What Teams Should Do', content: sig.nextStep }],
-      relatedActions: sig.relatedActions, metrics: sig.metrics,
-    })
-  }
-
   const openAction = (act: SeededAction) => {
     onOpenDetail({
       category: 'action', title: act.title, severity: act.priority,
@@ -80,6 +72,15 @@ export default function Dashboard({
         { label: 'KPI Outcome', content: act.kpiOutcome || 'Increased Sales' },
       ],
     })
+  }
+
+  const kpiStatusColor = (status: string) => {
+    const s = status.toLowerCase()
+    if (s.includes('high') || s.includes('elevated') || s.includes('rising')) return 'text-amber-400'
+    if (s.includes('moderate')) return 'text-emerald-400'
+    if (s.includes('needs adjustment')) return 'text-red-400'
+    if (s.includes('low')) return 'text-emerald-400'
+    return 'text-foreground'
   }
 
   return (
@@ -122,7 +123,47 @@ export default function Dashboard({
           </p>
         </div>
 
-        {/* 2. Why It Matters */}
+        {/* 2. KPI Outcomes — directly below Top-Line Insight */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <RiBarChartGroupedLine className="h-4 w-4 text-emerald-400" />
+            <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">KPI Outcomes</h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="bg-card border border-border p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <RiArrowRightUpLine className="h-3.5 w-3.5 text-emerald-400" />
+                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Increased Sales</p>
+              </div>
+              <p className={`text-[14px] font-medium tracking-wide mb-1 ${kpiStatusColor(story.kpiOutcomes.sales.status)}`}>
+                {story.kpiOutcomes.sales.status}
+              </p>
+              <p className="text-[11px] text-foreground/60 leading-relaxed">{story.kpiOutcomes.sales.detail}</p>
+            </div>
+            <div className="bg-card border border-border p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <RiShieldCheckLine className="h-3.5 w-3.5 text-amber-400" />
+                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Out-of-Stocks Prevented</p>
+              </div>
+              <p className={`text-[14px] font-medium tracking-wide mb-1 ${kpiStatusColor(story.kpiOutcomes.stockouts.status)}`}>
+                {story.kpiOutcomes.stockouts.status}
+              </p>
+              <p className="text-[11px] text-foreground/60 leading-relaxed">{story.kpiOutcomes.stockouts.detail}</p>
+            </div>
+            <div className="bg-card border border-border p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <RiLineChartLine className="h-3.5 w-3.5 text-primary" />
+                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Forecast Accuracy</p>
+              </div>
+              <p className={`text-[14px] font-medium tracking-wide mb-1 ${kpiStatusColor(story.kpiOutcomes.forecast.status)}`}>
+                {story.kpiOutcomes.forecast.status}
+              </p>
+              <p className="text-[11px] text-foreground/60 leading-relaxed">{story.kpiOutcomes.forecast.detail}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Why It Matters */}
         <div>
           <div className="flex items-center gap-2 mb-3">
             <RiAlertLine className="h-4 w-4 text-amber-400" />
@@ -138,7 +179,7 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* 3. How to Act */}
+        {/* 4. How to Act */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -166,65 +207,6 @@ export default function Dashboard({
                   <span className="text-border">|</span>
                   <span className="text-primary">{item.kpiOutcome}</span>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 4. KPI Outcomes */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <RiBarChartGroupedLine className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">KPI Outcomes</h3>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="bg-card border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <RiArrowRightUpLine className="h-3.5 w-3.5 text-emerald-400" />
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Increased Sales</p>
-              </div>
-              <p className="text-[12px] text-foreground tracking-wide">{story.kpiOutcomes.sales}</p>
-            </div>
-            <div className="bg-card border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <RiShieldCheckLine className="h-3.5 w-3.5 text-amber-400" />
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Out-of-Stocks Prevented</p>
-              </div>
-              <p className="text-[12px] text-foreground tracking-wide">{story.kpiOutcomes.stockouts}</p>
-            </div>
-            <div className="bg-card border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <RiLineChartLine className="h-3.5 w-3.5 text-primary" />
-                <p className="text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Forecast Accuracy</p>
-              </div>
-              <p className="text-[12px] text-foreground tracking-wide">{story.kpiOutcomes.forecast}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Signals Preview */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <RiErrorWarningLine className="h-4 w-4 text-amber-400" />
-              <h3 className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">Top Signals</h3>
-            </div>
-            <button onClick={() => onNavigate('signals')} className="text-[10px] text-primary tracking-[0.1em] uppercase hover:text-primary/80 transition-colors flex items-center gap-1">
-              All Signals <RiArrowRightSLine className="h-3 w-3" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {allSignals.slice(0, 2).map((sig, i) => (
-              <button key={i} onClick={() => openSignal(sig)} className="bg-card border border-border p-4 text-left hover:border-primary/40 transition-colors group">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <h4 className="text-[13px] text-foreground tracking-wide leading-snug group-hover:text-primary transition-colors">{sig.title}</h4>
-                  <span className={`text-[9px] tracking-[0.1em] uppercase px-2 py-0.5 whitespace-nowrap flex-shrink-0 ${urgencyBadge(sig.urgency)}`}>{sig.urgency}</span>
-                </div>
-                <div className="flex gap-3 mb-2 text-[10px] text-muted-foreground tracking-wide">
-                  <span>{sig.brand}</span><span className="text-border">|</span><span>{sig.market}</span>
-                  {sig.signalType && <><span className="text-border">|</span><span className="text-primary">{sig.signalType}</span></>}
-                </div>
-                <p className="text-[11px] text-foreground/60 leading-relaxed">{cleanText(sig.why, 120)}</p>
               </button>
             ))}
           </div>

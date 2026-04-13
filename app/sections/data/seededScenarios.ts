@@ -90,15 +90,31 @@ export interface SeededAnalysis { id: string; title: string; brand: string; mark
 export interface FilterState {
   brand: string
   category: string
-  country: string
   region: string
+  state: string
 }
 
 export interface DashboardStory {
   topLineInsight: string
   whyItMatters: { title: string; explanation: string }[]
   howToAct: { action: string; ownerTeam: string; kpiOutcome: string }[]
-  kpiOutcomes: { sales: string; stockouts: string; forecast: string }
+  kpiOutcomes: { sales: { status: string; detail: string }; stockouts: { status: string; detail: string }; forecast: { status: string; detail: string } }
+}
+
+export const BRANDS = [
+  'All Brands', 'CeraVe', 'La Roche-Posay', 'Garnier', "L'Oreal Paris",
+  'Maybelline', 'NYX', "Kiehl's", 'Lancome', 'Vichy', 'Kerastase', 'IT Cosmetics',
+] as const
+
+export const CATEGORIES = ['All Categories', 'Skincare', 'Hair Care', 'Beauty'] as const
+
+export const REGIONS = ['All Regions', 'National', 'Northeast', 'South', 'Midwest', 'West'] as const
+
+export const STATES_BY_REGION: Record<string, string[]> = {
+  Northeast: ['All Northeast', 'New Jersey', 'New York', 'Massachusetts', 'Pennsylvania', 'Connecticut', 'Rhode Island', 'Vermont', 'New Hampshire', 'Maine'],
+  South: ['All South', 'Texas', 'Florida', 'Georgia', 'North Carolina', 'South Carolina', 'Virginia', 'Tennessee', 'Alabama', 'Louisiana'],
+  Midwest: ['All Midwest', 'Illinois', 'Ohio', 'Michigan', 'Indiana', 'Wisconsin', 'Minnesota', 'Missouri', 'Iowa', 'Kansas'],
+  West: ['All West', 'California', 'Washington', 'Oregon', 'Arizona', 'Nevada', 'Colorado', 'Utah', 'New Mexico', 'Idaho'],
 }
 
 export const SIGNAL_TYPES = [
@@ -1061,47 +1077,10 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
 
 // ── Filter & Story Helpers ──
 
-export function extractBrands(): string[] {
-  const brands = new Set<string>()
-  for (const s of SEEDED_SIGNALS) brands.add(s.brand)
-  for (const o of SEEDED_OPPORTUNITIES) brands.add(o.brand)
-  for (const r of SEEDED_RISKS) brands.add(r.brand)
-  for (const a of SEEDED_ALERTS) brands.add(a.brand)
-  return ['All Brands', ...Array.from(brands).sort()]
-}
-
-export function extractCategories(): string[] {
-  const cats = new Set<string>()
-  for (const s of SEEDED_SIGNALS) if (s.category) cats.add(s.category)
-  for (const o of SEEDED_OPPORTUNITIES) if (o.category) cats.add(o.category)
-  for (const r of SEEDED_RISKS) if (r.category) cats.add(r.category)
-  for (const a of SEEDED_ALERTS) if (a.category) cats.add(a.category)
-  return ['All Categories', ...Array.from(cats).sort()]
-}
-
-export function extractCountries(): string[] {
-  const countries = new Set<string>()
-  for (const s of SEEDED_SIGNALS) if (s.country) countries.add(s.country)
-  for (const o of SEEDED_OPPORTUNITIES) if (o.country) countries.add(o.country)
-  for (const r of SEEDED_RISKS) if (r.country) countries.add(r.country)
-  for (const a of SEEDED_ALERTS) if (a.country) countries.add(a.country)
-  return ['All Countries', ...Array.from(countries).sort()]
-}
-
-export function extractRegions(): string[] {
-  const regions = new Set<string>()
-  for (const s of SEEDED_SIGNALS) if (s.region) regions.add(s.region)
-  for (const o of SEEDED_OPPORTUNITIES) if (o.region) regions.add(o.region)
-  for (const r of SEEDED_RISKS) if (r.region) regions.add(r.region)
-  for (const a of SEEDED_ALERTS) if (a.region) regions.add(a.region)
-  return ['All Regions', ...Array.from(regions).sort()]
-}
-
-export function applyFilters<T extends { brand?: string; category?: string; country?: string; region?: string }>(items: T[], filters: FilterState): T[] {
+export function applyFilters<T extends { brand?: string; category?: string; region?: string }>(items: T[], filters: FilterState): T[] {
   return items.filter(item => {
     if (filters.brand && filters.brand !== 'All Brands' && item.brand && !item.brand.includes(filters.brand)) return false
     if (filters.category && filters.category !== 'All Categories' && item.category && item.category !== filters.category) return false
-    if (filters.country && filters.country !== 'All Countries' && item.country && item.country !== filters.country) return false
     if (filters.region && filters.region !== 'All Regions' && item.region && item.region !== filters.region) return false
     return true
   })
@@ -1109,7 +1088,6 @@ export function applyFilters<T extends { brand?: string; category?: string; coun
 
 export function applyActionFilters(actions: SeededAction[], filters: FilterState): SeededAction[] {
   if (!filters.brand || filters.brand === 'All Brands') return actions
-  // Filter actions by checking if their title or impact mentions the brand
   return actions.filter(a => {
     const text = `${a.title} ${a.impact} ${a.owner}`.toLowerCase()
     return text.includes(filters.brand.toLowerCase())
@@ -1125,17 +1103,34 @@ export function buildDashboardStory(
 ): DashboardStory {
   const isPortfolio = !filters.brand || filters.brand === 'All Brands'
   const brandLabel = isPortfolio ? "L'Oreal portfolio" : filters.brand
+  const geoLabel = filters.state && !filters.state.startsWith('All ')
+    ? filters.state
+    : filters.region && filters.region !== 'All Regions'
+      ? `the ${filters.region} United States`
+      : 'the United States'
 
-  // Top-line insight
+  // Top-line insight — business conclusion language, never vague
   const criticalSignals = signals.filter(s => s.urgency === 'Critical')
   const highOpps = opportunities.filter(o => o.confidence === 'High')
-  const topLineInsight = criticalSignals.length > 0
-    ? `${brandLabel} faces ${criticalSignals.length} critical signal${criticalSignals.length > 1 ? 's' : ''} requiring immediate action${highOpps.length > 0 ? `, with ${highOpps.length} high-confidence growth opportunit${highOpps.length > 1 ? 'ies' : 'y'}` : ''}.`
-    : highOpps.length > 0
-      ? `${brandLabel} has ${highOpps.length} high-confidence growth opportunit${highOpps.length > 1 ? 'ies' : 'y'} to capitalize on in the current market.`
-      : `${brandLabel} demand signals are stable with ${signals.length} active signal${signals.length !== 1 ? 's' : ''} being tracked.`
+  const highRisks = risks.filter(r => r.severity === 'Critical' || r.severity === 'High')
 
-  // Why it matters (top 3 reasons)
+  let topLineInsight: string
+  if (criticalSignals.length > 0 && highOpps.length > 0) {
+    topLineInsight = `${brandLabel} faces competitor pressure affecting demand in ${geoLabel}, with ${highOpps.length} rising sales opportunit${highOpps.length > 1 ? 'ies' : 'y'} requiring immediate action to protect market share.`
+  } else if (criticalSignals.length > 0) {
+    const topSig = criticalSignals[0]
+    topLineInsight = `${brandLabel} faces elevated competitive pressure from ${topSig.metrics?.competitorName || 'key competitors'} in ${geoLabel}, creating demand risk that requires ${criticalSignals.length} immediate action${criticalSignals.length > 1 ? 's' : ''}.`
+  } else if (highRisks.length > 0) {
+    topLineInsight = `${brandLabel} has elevated out-of-stock risk across ${highRisks.length} product line${highRisks.length > 1 ? 's' : ''} in ${geoLabel} — forecast needs adjustment to prevent revenue loss.`
+  } else if (highOpps.length > 0) {
+    topLineInsight = `${brandLabel} has a rising sales opportunity in ${geoLabel} driven by ${highOpps[0].title.toLowerCase().includes('peptide') ? 'ingredient trend surge' : 'emerging consumer demand'}, with substitution opportunity emerging against key competitors.`
+  } else if (signals.length > 0) {
+    topLineInsight = `${brandLabel} demand planning in ${geoLabel} needs adjustment — ${signals.length} active signal${signals.length > 1 ? 's' : ''} indicate${signals.length === 1 ? 's' : ''} shifting competitive dynamics and emerging category opportunities.`
+  } else {
+    topLineInsight = `${brandLabel} forecast accuracy in ${geoLabel} requires review — market conditions are shifting and demand planning should reflect current competitive landscape.`
+  }
+
+  // Why it matters (top 3 reasons) — include strongest signal inline
   const whyItMatters: DashboardStory['whyItMatters'] = []
   if (criticalSignals[0]) {
     whyItMatters.push({ title: criticalSignals[0].title, explanation: cleanText(criticalSignals[0].why, 120) })
@@ -1143,8 +1138,8 @@ export function buildDashboardStory(
   if (highOpps[0]) {
     whyItMatters.push({ title: highOpps[0].title, explanation: cleanText(highOpps[0].why, 120) })
   }
-  if (risks[0]) {
-    whyItMatters.push({ title: risks[0].title, explanation: cleanText(risks[0].cause, 120) })
+  if (highRisks[0]) {
+    whyItMatters.push({ title: highRisks[0].title, explanation: cleanText(highRisks[0].cause, 120) })
   }
   // Fill to 3 if needed
   for (const s of signals) {
@@ -1161,15 +1156,30 @@ export function buildDashboardStory(
     kpiOutcome: a.kpiOutcome || 'Increased Sales',
   }))
 
-  // KPI outcomes
+  // KPI outcomes — business-friendly status values
   const salesActions = actions.filter(a => (a.kpiOutcome || '').includes('Sales'))
   const stockoutActions = actions.filter(a => (a.kpiOutcome || '').includes('Stock'))
   const forecastActions = actions.filter(a => (a.kpiOutcome || '').includes('Forecast'))
 
-  const kpiOutcomes = {
-    sales: salesActions.length > 0 ? `${salesActions.length} action${salesActions.length > 1 ? 's' : ''} targeting revenue growth` : 'No active sales actions',
-    stockouts: stockoutActions.length > 0 ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} preventing inventory gaps` : 'No active stockout prevention',
-    forecast: forecastActions.length > 0 ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy` : 'No active forecast improvements',
+  const kpiOutcomes: DashboardStory['kpiOutcomes'] = {
+    sales: {
+      status: criticalSignals.length > 0 ? 'Elevated' : salesActions.length >= 3 ? 'High' : salesActions.length > 0 ? 'Moderate' : 'Low',
+      detail: salesActions.length > 0
+        ? `${salesActions.length} immediate action${salesActions.length > 1 ? 's' : ''} targeting revenue growth`
+        : 'No priority actions identified yet',
+    },
+    stockouts: {
+      status: stockoutActions.length >= 2 ? 'Elevated' : stockoutActions.length > 0 ? 'Moderate' : 'Low',
+      detail: stockoutActions.length > 0
+        ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} preventing inventory gaps`
+        : 'Shelf position stable across tracked categories',
+    },
+    forecast: {
+      status: criticalSignals.length > 0 ? 'Needs adjustment' : forecastActions.length > 0 ? 'Rising' : 'Moderate',
+      detail: forecastActions.length > 0
+        ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy`
+        : 'Current forecast aligned to market conditions',
+    },
   }
 
   return { topLineInsight, whyItMatters, howToAct, kpiOutcomes }

@@ -15,7 +15,6 @@ import Sidebar from './Sidebar'
 import Dashboard from './Dashboard'
 import CategoryListView from './CategoryListView'
 import AnalysisResult from './AnalysisResult'
-import AnalysisHistory from './AnalysisHistory'
 import DetailView from './DetailView'
 import MarketSignals from './MarketSignals'
 import FilterBar from './FilterBar'
@@ -156,8 +155,8 @@ class ErrorBoundary extends React.Component<
 const DEFAULT_FILTERS: FilterState = {
   brand: 'All Brands',
   category: 'All Categories',
-  country: 'All Countries',
   region: 'All Regions',
+  state: '',
 }
 
 export default function AppShell() {
@@ -212,8 +211,8 @@ export default function AppShell() {
       const filterContext = []
       if (filters.brand !== 'All Brands') filterContext.push(`Brand focus: ${filters.brand}`)
       if (filters.category !== 'All Categories') filterContext.push(`Category: ${filters.category}`)
-      if (filters.country !== 'All Countries') filterContext.push(`Country: ${filters.country}`)
       if (filters.region !== 'All Regions') filterContext.push(`Region: ${filters.region}`)
+      if (filters.state) filterContext.push(`State: ${filters.state}`)
       const filterStr = filterContext.length > 0 ? `\n\nCurrent filter context: ${filterContext.join(', ')}. Prioritize insights relevant to these filters.` : ''
 
       const basePrompt = query
@@ -450,14 +449,6 @@ IMPORTANT RULES:
             onBack={handleBackFromResult}
           />
         )
-      case 'history':
-        return (
-          <AnalysisHistory
-            analyses={displayAnalyses}
-            loading={loadingAnalyses}
-            onViewAnalysis={handleViewAnalysis}
-          />
-        )
       default:
         return (
           <Dashboard
@@ -479,7 +470,7 @@ IMPORTANT RULES:
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-foreground flex">
-        <Sidebar currentView={currentView} onNavigate={handleNavigate} onRunAnalysis={handleRunAnalysis} agentLoading={agentLoading} />
+        <Sidebar currentView={currentView} onNavigate={handleNavigate} />
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card gap-4">
             <div className="flex items-center gap-3 flex-shrink-0">
@@ -515,7 +506,7 @@ IMPORTANT RULES:
               <span className={activeAgentId ? 'text-primary' : ''}>{activeAgentId ? 'Scanning the web...' : 'System ready'}</span>
             </div>
           </header>
-          {showFilterBar && <FilterBar filters={filters} onChange={setFilters} />}
+          {showFilterBar && <FilterBar filters={filters} onChange={setFilters} onRunAnalysis={handleRunAnalysis} agentLoading={agentLoading} />}
           {renderContent()}
           <div className="px-6 py-2.5 border-t border-border bg-card flex items-center justify-between">
             <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
