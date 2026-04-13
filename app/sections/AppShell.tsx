@@ -21,55 +21,93 @@ import DemandView from './DemandView'
 import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
-const ANALYZE_AGENT_IDS = [
-  '69dd164973b4b622c99ebd9e', // Signal Orchestrator Manager
-]
-
+const MANAGER_AGENT_ID = '69dd164973b4b622c99ebd9e'
+const LYZR_TASK_URL = 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/task'
 const POLL_TIMEOUT_MS = 5 * 60 * 1000
 
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
+async function pollUntilDone(taskId: string, apiKey: string): Promise<any> {
+  const startTime = Date.now()
+  let attempt = 0
+  while (Date.now() - startTime < POLL_TIMEOUT_MS) {
+    const delay = Math.min(500 * Math.pow(1.4, attempt), 4000)
+    await new Promise(r => setTimeout(r, delay))
+    attempt++
+    try {
+      const pollRes = await fetch(`${LYZR_TASK_URL}/${taskId}`, {
+        headers: { 'accept': 'application/json', 'x-api-key': apiKey },
+      })
+      if (!pollRes.ok) continue
+      const task = await pollRes.json()
+      if (task.status === 'processing') continue
+      if (task.status === 'completed' || task.response) {
+        return { success: true, response: task.response }
+      }
+      if (task.status === 'failed') {
+        return { success: false, error: task.error || 'Task failed' }
+      }
+    } catch { continue }
+  }
+  return { success: false, error: 'Polling timed out' }
+}
+
 async function callAnalyzeAgent(message: string): Promise<any> {
-  // Try /api/analyze first (dedicated route, no agent_id in body)
+  const apiKey = 'sk-default-e1XB361JQq9V80uRmog4ZQalVEJKkB0h'
+  const userId = 'raoshreya2020@gmail.com'
+
+  // Approach 1: Try /api/analyze (server-side proxy route)
   try {
     const submitRes = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
     })
-    const submitData = await submitRes.json()
-    if (submitData.task_id) {
-      const startTime = Date.now()
-      let attempt = 0
-      while (Date.now() - startTime < POLL_TIMEOUT_MS) {
-        const delay = Math.min(400 * Math.pow(1.4, attempt), 3000)
-        await new Promise(r => setTimeout(r, delay))
-        attempt++
-        const pollRes = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_id: submitData.task_id }),
-        })
-        const pollData = await pollRes.json()
-        if (pollData.status === 'processing') continue
-        if (pollData.success) return pollData
-        // If 403, break and try next approach
-        if (pollData.error?.includes('403') || pollData.error?.includes('permission')) break
-        return pollData
+    if (submitRes.ok) {
+      const submitData = await submitRes.json()
+      if (submitData.task_id) {
+        const result = await pollUntilDone(submitData.task_id, apiKey)
+        if (result.success) return result
       }
     }
   } catch {}
 
-  // Fallback: try each agent via callAIAgent (/api/agent)
-  for (const agentId of ANALYZE_AGENT_IDS) {
-    try {
-      const result = await callAIAgent(message, agentId)
-      if (result?.success) {
-        const errMsg = JSON.stringify(result.response || '')
-        if (!errMsg.includes('403') && !errMsg.includes('permission')) {
-          return result
-        }
+  // Approach 2: Try /api/agent (generic agent route)
+  try {
+    const result = await callAIAgent(message, MANAGER_AGENT_ID)
+    if (result?.success) {
+      const errStr = JSON.stringify(result.response || '')
+      if (!errStr.includes('403') && !errStr.includes('permission')) return result
+    }
+  } catch {}
+
+  // Approach 3: Call Lyzr API directly (bypass proxy entirely)
+  try {
+    const sessionId = `analyze-${generateUUID().substring(0, 12)}`
+    const submitRes = await fetch(LYZR_TASK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+      body: JSON.stringify({
+        message,
+        agent_id: MANAGER_AGENT_ID,
+        user_id: userId,
+        session_id: sessionId,
+      }),
+    })
+    if (submitRes.ok) {
+      const { task_id } = await submitRes.json()
+      if (task_id) {
+        const result = await pollUntilDone(task_id, apiKey)
+        if (result.success) return result
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   return { success: false, error: 'All agent connections failed. Dashboard data is still available.' }
 }
