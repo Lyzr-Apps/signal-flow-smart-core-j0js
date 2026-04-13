@@ -11,7 +11,7 @@ import {
 
 // Try these agent IDs in order — first MCP-created, then original sub-agents
 const AGENT_IDS = [
-  '69dd10f0073397be4eaa0e37', // Signal Orchestrator Manager (new)
+  '69dd164973b4b622c99ebd9e', // Signal Orchestrator Manager
 ]
 
 interface Source { title: string; url: string }
