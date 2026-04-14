@@ -195,11 +195,11 @@ export default function Dashboard({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {story.whyItMatters.map((item, i) => (
-              <div key={i} className="bg-card border border-border p-4">
+              <div key={i} className="bg-card border border-border p-4 flex flex-col">
                 <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2">{formatActionText(item.title)}</h4>
-                <p className="text-[11px] text-foreground/60 leading-relaxed mb-2">{formatActionText(item.explanation)}</p>
+                <p className="text-[11px] text-foreground/60 leading-relaxed">{formatActionText(item.explanation)}</p>
                 {item.dataPoint && (
-                  <p className="text-[10px] text-primary/70 tracking-wide leading-relaxed border-t border-border/40 pt-2 mt-auto">{formatActionText(item.dataPoint)}</p>
+                  <p className="text-[10px] text-primary/80 tracking-wide leading-relaxed mt-3">{formatActionText(item.dataPoint)}</p>
                 )}
               </div>
             ))}

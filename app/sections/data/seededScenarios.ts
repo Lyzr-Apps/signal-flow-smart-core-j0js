@@ -1177,73 +1177,95 @@ export function buildDashboardStory(
     topLineInsight = `${brandLabel} forecast accuracy in ${geoLabel} requires review — market conditions are shifting and demand planning should reflect the current competitive landscape.`
   }
 
-  // Why it matters — exactly 3 DISTINCT points, each with title + explanation + data point
+  // Why it matters — exactly 3 DISTINCT cards, each with:
+  //   title: specific insight title (kept as-is from data)
+  //   explanation: ONE short complete sentence in plain business language
+  //   dataPoint: ONE short proof line with a metric or evidence
   const whyItMatters: DashboardStory['whyItMatters'] = []
   const usedTitles = new Set<string>()
 
-  // Extract the best data point from a signal/opportunity/risk
-  const extractDataPoint = (item: any): string => {
+  // Split long "why" text: first sentence = explanation, find data point separately
+  const splitExplanation = (rawText: string): string => {
+    if (!rawText) return ''
+    const cleaned = stripCitations(rawText).replace(/\*\*/g, '').replace(/#{1,3}\s/g, '').trim()
+    // Find first sentence boundary (period followed by space or end)
+    const match = cleaned.match(/^([^.]+\.)/)
+    if (match && match[1].length >= 20) return match[1].trim()
+    // If no good sentence boundary, take up to 100 chars at word boundary
+    if (cleaned.length <= 100) return cleaned
+    const wordEnd = cleaned.lastIndexOf(' ', 100)
+    return cleaned.slice(0, wordEnd > 50 ? wordEnd : 100).trim() + '.'
+  }
+
+  // Extract data point: look for a sentence with numbers/percentages in the text or metrics
+  const extractDataPoint = (item: any, rawText: string): string => {
     const m = item.metrics
     if (m) {
-      // Use gap metric if available (e.g. "CeraVe share fell from 18.2% to 14.8%")
-      if (m.gapVsCompetitor && m.gapVsCompetitor.length > 5) return m.gapVsCompetitor
-      // Use supporting evidence
-      if (m.supportingEvidence && m.supportingEvidence.length > 5) return cleanText(m.supportingEvidence, 80)
-      // Use demand implication
-      if (m.demandImplication && m.demandImplication.length > 5) return cleanText(m.demandImplication, 80)
+      if (m.gapVsCompetitor && /\d/.test(m.gapVsCompetitor)) return cleanText(m.gapVsCompetitor, 90)
+      if (m.supportingEvidence && /\d/.test(m.supportingEvidence)) return cleanText(m.supportingEvidence, 90)
+      if (m.demandImplication && /\d/.test(m.demandImplication)) return cleanText(m.demandImplication, 90)
     }
-    // Check detail sections for a data point
+    // Look in the raw text for a sentence containing numbers (skip the first sentence which is the explanation)
+    const cleaned = stripCitations(rawText || '').replace(/\*\*/g, '').trim()
+    const sentences = cleaned.split(/\.\s+/)
+    for (let i = 1; i < sentences.length; i++) {
+      if (/\d+%|\d+\.\d+|\$\d/.test(sentences[i])) {
+        const dp = sentences[i].replace(/^[a-z]/, c => c.toUpperCase()).trim()
+        return dp.endsWith('.') ? dp : dp + '.'
+      }
+    }
+    // Check detail sections for metric data
     if (Array.isArray(item.detailSections)) {
       for (const ds of item.detailSections) {
-        const content = ds.content || ''
-        // Look for sections with numbers/percentages
-        if (/\d+%|\d+\.\d+/.test(content)) {
-          return cleanText(content, 80)
+        if (ds.content && /\d+%|\d+\.\d+|\$\d/.test(ds.content)) {
+          // Extract the first sentence with a number
+          const dsMatch = ds.content.match(/([^.]*\d+[^.]*\.)/)
+          if (dsMatch) return cleanText(dsMatch[1], 90)
         }
       }
-      // Use first non-empty detail section as evidence
-      const first = item.detailSections.find((ds: any) => ds.content && ds.content.length > 10)
-      if (first) return cleanText(first.content, 80)
     }
+    // Fallback: use gap reason or demand implication as short evidence
+    if (m?.gapReason) return cleanText(m.gapReason, 90)
+    if (m?.demandImplication) return cleanText(m.demandImplication, 90)
     return ''
   }
 
-  const addIfUnique = (title: string, explanation: string, dataPoint: string) => {
+  const addIfUnique = (title: string, rawWhy: string, item: any) => {
     if (whyItMatters.length >= 3) return
     const normalized = title.toLowerCase().trim()
     if (usedTitles.has(normalized)) return
+    const explanation = splitExplanation(rawWhy)
     // Check for near-duplicate explanations
-    const expNorm = explanation.toLowerCase()
     for (const existing of whyItMatters) {
-      if (existing.explanation.toLowerCase().substring(0, 40) === expNorm.substring(0, 40)) return
+      if (existing.explanation.toLowerCase().substring(0, 30) === explanation.toLowerCase().substring(0, 30)) return
     }
     usedTitles.add(normalized)
     whyItMatters.push({
       title,
-      explanation: cleanText(explanation, 120),
-      dataPoint: cleanText(dataPoint, 80),
+      explanation,
+      dataPoint: extractDataPoint(item, rawWhy),
     })
   }
 
   // Draw from different data pools to ensure diversity
   if (criticalSignals[0]) {
-    addIfUnique(criticalSignals[0].title, criticalSignals[0].why, extractDataPoint(criticalSignals[0]))
+    addIfUnique(criticalSignals[0].title, criticalSignals[0].why, criticalSignals[0])
   }
   if (highOpps[0]) {
-    addIfUnique(highOpps[0].title, highOpps[0].why, extractDataPoint(highOpps[0]))
+    addIfUnique(highOpps[0].title, highOpps[0].why, highOpps[0])
   }
   if (highRisks[0]) {
-    addIfUnique(highRisks[0].title, highRisks[0].cause, extractDataPoint(highRisks[0]))
+    addIfUnique(highRisks[0].title, highRisks[0].cause, highRisks[0])
   }
   // Fill remaining from signals not yet used
   for (const s of signals) {
     if (whyItMatters.length >= 3) break
-    addIfUnique(s.title, s.why, extractDataPoint(s))
+    addIfUnique(s.title, s.why, s)
   }
   // Final fallback from opportunities
   for (const o of opportunities) {
     if (whyItMatters.length >= 3) break
-    addIfUnique(o.title, o.why, extractDataPoint(o))
+    addIfUnique(o.title, o.why, o)
   }
 
   // How to act — exactly 3 short, operational actions tied to context
