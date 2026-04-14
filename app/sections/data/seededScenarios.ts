@@ -1184,49 +1184,65 @@ export function buildDashboardStory(
   const whyItMatters: DashboardStory['whyItMatters'] = []
   const usedTitles = new Set<string>()
 
-  // Split long "why" text: first sentence = explanation, find data point separately
-  const splitExplanation = (rawText: string): string => {
-    if (!rawText) return ''
-    const cleaned = stripCitations(rawText).replace(/\*\*/g, '').replace(/#{1,3}\s/g, '').trim()
-    // Find first sentence boundary (period followed by space or end)
-    const match = cleaned.match(/^([^.]+\.)/)
-    if (match && match[1].length >= 20) return match[1].trim()
-    // If no good sentence boundary, take up to 100 chars at word boundary
-    if (cleaned.length <= 100) return cleaned
-    const wordEnd = cleaned.lastIndexOf(' ', 100)
-    return cleaned.slice(0, wordEnd > 50 ? wordEnd : 100).trim() + '.'
+  // Build a short plain-language summary (no metrics, no numbers, no detailed stats)
+  const buildSummary = (item: any, rawText: string): string => {
+    const brand = item.brand || brandLabel
+    const m = item.metrics
+    // Use competitor context to write a plain business sentence
+    if (m?.competitorName) {
+      const action = rawText.toLowerCase()
+      if (action.includes('losing') || action.includes('lost') || action.includes('dropped') || action.includes('declined')) {
+        return `${brand} is losing share as ${m.competitorName} gains momentum.`
+      }
+      if (action.includes('growing') || action.includes('grew') || action.includes('growth')) {
+        return `${brand} has an opportunity as ${m.competitorProduct || m.competitorName} demand accelerates.`
+      }
+      return `${brand} faces competitive pressure from ${m.competitorName} in ${geoLabel}.`
+    }
+    // No competitor — write a generic but specific summary from the "why" text
+    const cleaned = stripCitations(rawText).replace(/\*\*/g, '').trim()
+    // Strip numbers/percentages/dollar amounts to make it plain language
+    let plain = cleaned
+      .replace(/\d+(\.\d+)?%/g, '')
+      .replace(/\$[\d.,]+[BMK]?/g, '')
+      .replace(/\d+(\.\d+)?(pp|bps)/g, '')
+      .replace(/from \S+ to \S+/g, '')
+      .replace(/over \d+ months?/g, '')
+      .replace(/Q[1-4]\s*\d{4}/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+    // Take first sentence
+    const sentenceMatch = plain.match(/^([^.]+\.)/)
+    if (sentenceMatch && sentenceMatch[1].length >= 15 && sentenceMatch[1].length <= 90) {
+      return sentenceMatch[1].trim()
+    }
+    // Build from title if text is too messy
+    const title = (item.title || '').toLowerCase()
+    if (title.includes('losing') || title.includes('declining')) return `${brand} is losing momentum in this category in ${geoLabel}.`
+    if (title.includes('growing') || title.includes('demand')) return `Rising demand is creating an opportunity for ${brand} in ${geoLabel}.`
+    if (title.includes('risk') || title.includes('pressure')) return `${brand} faces near-term pressure that requires attention.`
+    return `Market conditions are shifting for ${brand} in ${geoLabel}.`
   }
 
-  // Extract data point: look for a sentence with numbers/percentages in the text or metrics
+  // Extract a compact data point line (like "-1.3pp share, -$143M annual risk")
   const extractDataPoint = (item: any, rawText: string): string => {
     const m = item.metrics
-    if (m) {
-      if (m.gapVsCompetitor && /\d/.test(m.gapVsCompetitor)) return cleanText(m.gapVsCompetitor, 90)
-      if (m.supportingEvidence && /\d/.test(m.supportingEvidence)) return cleanText(m.supportingEvidence, 90)
-      if (m.demandImplication && /\d/.test(m.demandImplication)) return cleanText(m.demandImplication, 90)
-    }
-    // Look in the raw text for a sentence containing numbers (skip the first sentence which is the explanation)
+    // Best source: gapVsCompetitor (already in compact format)
+    if (m?.gapVsCompetitor && /\d/.test(m.gapVsCompetitor)) return m.gapVsCompetitor
+    // Next: look for key metrics in the raw text
     const cleaned = stripCitations(rawText || '').replace(/\*\*/g, '').trim()
-    const sentences = cleaned.split(/\.\s+/)
-    for (let i = 1; i < sentences.length; i++) {
-      if (/\d+%|\d+\.\d+|\$\d/.test(sentences[i])) {
-        const dp = sentences[i].replace(/^[a-z]/, c => c.toUpperCase()).trim()
-        return dp.endsWith('.') ? dp : dp + '.'
-      }
-    }
-    // Check detail sections for metric data
-    if (Array.isArray(item.detailSections)) {
-      for (const ds of item.detailSections) {
-        if (ds.content && /\d+%|\d+\.\d+|\$\d/.test(ds.content)) {
-          // Extract the first sentence with a number
-          const dsMatch = ds.content.match(/([^.]*\d+[^.]*\.)/)
-          if (dsMatch) return cleanText(dsMatch[1], 90)
-        }
-      }
-    }
-    // Fallback: use gap reason or demand implication as short evidence
-    if (m?.gapReason) return cleanText(m.gapReason, 90)
-    if (m?.demandImplication) return cleanText(m.demandImplication, 90)
+    // Find percentage or dollar figures
+    const percentMatch = cleaned.match(/(\d+(\.\d+)?%\s*(YoY|year-over-year|growth|decline|drop|increase)?)/i)
+    if (percentMatch) return percentMatch[0].trim()
+    const dollarMatch = cleaned.match(/\$[\d.,]+[BMK]?\s*[^.]{0,30}/i)
+    if (dollarMatch) return dollarMatch[0].trim()
+    const ppMatch = cleaned.match(/([\d.]+pp\s*[^.]{0,30})/i)
+    if (ppMatch) return ppMatch[0].trim()
+    // Use supporting evidence or demand implication
+    if (m?.supportingEvidence && /\d/.test(m.supportingEvidence)) return cleanText(m.supportingEvidence, 60)
+    if (m?.demandImplication && /\d/.test(m.demandImplication)) return cleanText(m.demandImplication, 60)
+    // Fallback: gap reason
+    if (m?.gapReason) return cleanText(m.gapReason, 60)
     return ''
   }
 
@@ -1234,7 +1250,7 @@ export function buildDashboardStory(
     if (whyItMatters.length >= 3) return
     const normalized = title.toLowerCase().trim()
     if (usedTitles.has(normalized)) return
-    const explanation = splitExplanation(rawWhy)
+    const explanation = buildSummary(item, rawWhy)
     // Check for near-duplicate explanations
     for (const existing of whyItMatters) {
       if (existing.explanation.toLowerCase().substring(0, 30) === explanation.toLowerCase().substring(0, 30)) return
