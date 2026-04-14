@@ -96,7 +96,7 @@ export interface FilterState {
 
 export interface DashboardStory {
   topLineInsight: string
-  whyItMatters: { title: string; explanation: string }[]
+  whyItMatters: { title: string; explanation: string; dataPoint: string }[]
   howToAct: { action: string; ownerTeam: string; kpiOutcome: string }[]
   kpiOutcomes: { sales: { status: string; detail: string }; stockouts: { status: string; detail: string }; forecast: { status: string; detail: string } }
 }
@@ -1177,11 +1177,38 @@ export function buildDashboardStory(
     topLineInsight = `${brandLabel} forecast accuracy in ${geoLabel} requires review — market conditions are shifting and demand planning should reflect the current competitive landscape.`
   }
 
-  // Why it matters — exactly 3 DISTINCT points, no duplicates, each a different reason
+  // Why it matters — exactly 3 DISTINCT points, each with title + explanation + data point
   const whyItMatters: DashboardStory['whyItMatters'] = []
   const usedTitles = new Set<string>()
 
-  const addIfUnique = (title: string, explanation: string) => {
+  // Extract the best data point from a signal/opportunity/risk
+  const extractDataPoint = (item: any): string => {
+    const m = item.metrics
+    if (m) {
+      // Use gap metric if available (e.g. "CeraVe share fell from 18.2% to 14.8%")
+      if (m.gapVsCompetitor && m.gapVsCompetitor.length > 5) return m.gapVsCompetitor
+      // Use supporting evidence
+      if (m.supportingEvidence && m.supportingEvidence.length > 5) return cleanText(m.supportingEvidence, 80)
+      // Use demand implication
+      if (m.demandImplication && m.demandImplication.length > 5) return cleanText(m.demandImplication, 80)
+    }
+    // Check detail sections for a data point
+    if (Array.isArray(item.detailSections)) {
+      for (const ds of item.detailSections) {
+        const content = ds.content || ''
+        // Look for sections with numbers/percentages
+        if (/\d+%|\d+\.\d+/.test(content)) {
+          return cleanText(content, 80)
+        }
+      }
+      // Use first non-empty detail section as evidence
+      const first = item.detailSections.find((ds: any) => ds.content && ds.content.length > 10)
+      if (first) return cleanText(first.content, 80)
+    }
+    return ''
+  }
+
+  const addIfUnique = (title: string, explanation: string, dataPoint: string) => {
     if (whyItMatters.length >= 3) return
     const normalized = title.toLowerCase().trim()
     if (usedTitles.has(normalized)) return
@@ -1191,28 +1218,32 @@ export function buildDashboardStory(
       if (existing.explanation.toLowerCase().substring(0, 40) === expNorm.substring(0, 40)) return
     }
     usedTitles.add(normalized)
-    whyItMatters.push({ title, explanation: cleanText(explanation, 120) })
+    whyItMatters.push({
+      title,
+      explanation: cleanText(explanation, 120),
+      dataPoint: cleanText(dataPoint, 80),
+    })
   }
 
   // Draw from different data pools to ensure diversity
   if (criticalSignals[0]) {
-    addIfUnique(criticalSignals[0].title, criticalSignals[0].why)
+    addIfUnique(criticalSignals[0].title, criticalSignals[0].why, extractDataPoint(criticalSignals[0]))
   }
   if (highOpps[0]) {
-    addIfUnique(highOpps[0].title, highOpps[0].why)
+    addIfUnique(highOpps[0].title, highOpps[0].why, extractDataPoint(highOpps[0]))
   }
   if (highRisks[0]) {
-    addIfUnique(highRisks[0].title, highRisks[0].cause)
+    addIfUnique(highRisks[0].title, highRisks[0].cause, extractDataPoint(highRisks[0]))
   }
   // Fill remaining from signals not yet used
   for (const s of signals) {
     if (whyItMatters.length >= 3) break
-    addIfUnique(s.title, s.why)
+    addIfUnique(s.title, s.why, extractDataPoint(s))
   }
   // Final fallback from opportunities
   for (const o of opportunities) {
     if (whyItMatters.length >= 3) break
-    addIfUnique(o.title, o.why)
+    addIfUnique(o.title, o.why, extractDataPoint(o))
   }
 
   // How to act — exactly 3 short, operational actions tied to context
