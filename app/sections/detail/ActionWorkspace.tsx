@@ -2,8 +2,34 @@
 
 import React from 'react'
 import { RiArrowLeftLine, RiFlashlightLine, RiUserLine, RiTimeLine, RiBarChartLine, RiLinksLine, RiFileTextLine, RiAlertLine, RiArrowRightUpLine, RiShieldLine, RiErrorWarningLine } from 'react-icons/ri'
-import { urgencyBadge, severityDot, SEEDED_SIGNALS, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_OPPORTUNITIES } from '../data/seededScenarios'
+import { urgencyBadge, severityDot, stripCitations, cleanText, SEEDED_SIGNALS, SEEDED_RISKS, SEEDED_ALERTS, SEEDED_OPPORTUNITIES } from '../data/seededScenarios'
 import type { DetailItem } from '../DetailView'
+
+/** Clean content — handle raw JSON, strip citations and markdown artifacts */
+function cleanContent(text: string): string {
+  if (!text) return ''
+  let t = text
+  // If it looks like raw JSON, extract the meaningful value
+  if (t.startsWith('{') || t.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(t)
+      if (typeof parsed === 'object' && parsed !== null) {
+        t = parsed.action || parsed.content || parsed.text || parsed.impact || parsed.title || parsed.recommendation || ''
+        if (!t) {
+          // Render key-value pairs as readable text
+          t = Object.entries(parsed)
+            .filter(([, v]) => typeof v === 'string' && (v as string).length > 0)
+            .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
+            .join('. ')
+        }
+      }
+    } catch {
+      t = t.replace(/[{}\[\]"]/g, '').replace(/\w+:/g, '').trim()
+    }
+  }
+  t = t.replace(/^["'\[{]+|["'\]}]+$/g, '').trim()
+  return stripCitations(t).replace(/\*\*/g, '').replace(/#{1,3}\s/g, '')
+}
 
 function findOriginatingContext(title: string): { type: string; scenario: string; icon: any; color: string } | null {
   const t = title.toLowerCase()
@@ -60,7 +86,7 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
           <span className="text-[10px] tracking-[0.14em] uppercase text-muted-foreground">Recommended Action</span>
         </div>
         <div className="flex items-start justify-between gap-4 mb-6">
-          <h2 className="font-serif text-xl tracking-wide text-foreground leading-snug">{item.title}</h2>
+          <h2 className="font-serif text-xl tracking-wide text-foreground leading-snug">{cleanContent(item.title)}</h2>
           {item.severity && <span className={`text-[9px] tracking-[0.12em] uppercase px-2.5 py-1 whitespace-nowrap ${urgencyBadge(item.severity)}`}>{item.severity}</span>}
         </div>
 
@@ -71,7 +97,7 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
                 <RiUserLine className="h-4 w-4 text-primary" />
                 <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Owner</h3>
               </div>
-              <p className="text-[14px] font-serif text-foreground">{owner}</p>
+              <p className="text-[14px] font-serif text-foreground">{cleanContent(owner)}</p>
             </div>
           )}
           {timeline && (
@@ -80,7 +106,7 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
                 <RiTimeLine className="h-4 w-4 text-primary" />
                 <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Timeline</h3>
               </div>
-              <p className="text-[14px] font-serif text-foreground">{timeline}</p>
+              <p className="text-[14px] font-serif text-foreground">{cleanContent(timeline)}</p>
             </div>
           )}
           {impact && (
@@ -89,7 +115,7 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
                 <RiBarChartLine className="h-4 w-4 text-primary" />
                 <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Expected Impact</h3>
               </div>
-              <p className="text-[13px] text-foreground/80 leading-relaxed tracking-wide">{impact}</p>
+              <p className="text-[13px] text-foreground/80 leading-relaxed tracking-wide">{cleanContent(impact)}</p>
             </div>
           )}
         </div>
@@ -114,8 +140,8 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {otherSections.map((section, i) => (
               <div key={i} className="bg-card border border-border p-5">
-                <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-2">{section.label}</p>
-                <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{section.content}</p>
+                <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase mb-2">{cleanContent(section.label)}</p>
+                <p className="text-[12px] text-foreground/80 leading-[1.8] tracking-wide">{cleanContent(section.content)}</p>
               </div>
             ))}
           </div>
@@ -133,10 +159,10 @@ export default function ActionWorkspace({ item, onBack }: { item: DetailItem; on
                   <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${severityDot(act.priority)}`} />
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-[12px] text-foreground tracking-wide">{act.action}</p>
+                      <p className="text-[12px] text-foreground tracking-wide">{cleanContent(act.action)}</p>
                       <span className={`text-[9px] tracking-[0.1em] uppercase px-2 py-0.5 whitespace-nowrap ${urgencyBadge(act.priority)}`}>{act.priority}</span>
                     </div>
-                    {act.owner && <p className="text-[10px] text-muted-foreground mt-1">{act.owner}</p>}
+                    {act.owner && <p className="text-[10px] text-muted-foreground mt-1">{cleanContent(act.owner)}</p>}
                   </div>
                 </div>
               ))}

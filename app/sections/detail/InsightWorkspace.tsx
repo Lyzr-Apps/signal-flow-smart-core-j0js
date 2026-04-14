@@ -10,10 +10,29 @@ import { urgencyBadge, severityDot, stripCitations } from '../data/seededScenari
 import type { DetailItem } from '../DetailView'
 import type { InsightMetrics } from '../data/seededScenarios'
 
-/** Clean content text: strip citation markers and excess whitespace */
+/** Clean content text: handle raw JSON, strip citations and markdown artifacts */
 function cleanContent(text: string): string {
   if (!text) return ''
-  return stripCitations(text)
+  let t = text
+  // If it looks like raw JSON, extract the meaningful value
+  if (t.startsWith('{') || t.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(t)
+      if (typeof parsed === 'object' && parsed !== null) {
+        t = parsed.content || parsed.text || parsed.action || parsed.title || parsed.summary || parsed.explanation || ''
+        if (!t) {
+          t = Object.entries(parsed)
+            .filter(([, v]) => typeof v === 'string' && (v as string).length > 0)
+            .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
+            .join('. ')
+        }
+      }
+    } catch {
+      t = t.replace(/[{}\[\]"]/g, '').replace(/\w+:/g, '').trim()
+    }
+  }
+  t = t.replace(/^["'\[{]+|["'\]}]+$/g, '').trim()
+  return stripCitations(t).replace(/\*\*/g, '').replace(/#{1,3}\s/g, '')
 }
 
 interface InsightWorkspaceProps {

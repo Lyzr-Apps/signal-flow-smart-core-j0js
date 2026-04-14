@@ -1106,27 +1106,35 @@ export function applyFilters<T extends { brand?: string; category?: string; regi
   })
 }
 
+const OTHER_BRAND_NAMES = [
+  'cerave', 'la roche-posay', 'garnier', "l'oreal paris", 'loreal paris',
+  'maybelline', 'nyx', "kiehl's", "kiehls", 'lancome', 'lancôme', 'vichy',
+  'kerastase', 'kérastase', 'it cosmetics',
+]
+
 export function applyActionFilters(actions: SeededAction[], filters: FilterState): SeededAction[] {
   let filtered = actions
   if (filters.brand && filters.brand !== 'All Brands') {
     const brandLower = filters.brand.toLowerCase()
+    // Build list of other brands to exclude
+    const otherBrands = OTHER_BRAND_NAMES.filter(b => !b.includes(brandLower) && !brandLower.includes(b))
+
     filtered = filtered.filter(a => {
       const text = `${a.title} ${a.impact} ${a.owner}`.toLowerCase()
-      // Must mention the selected brand — do not show actions for other brands
-      return text.includes(brandLower)
+      // Exclude actions that mention OTHER L'Oreal brands
+      const mentionsOtherBrand = otherBrands.some(ob => text.includes(ob))
+      if (mentionsOtherBrand) return false
+      // Include if it mentions selected brand OR is generic (doesn't mention any brand)
+      return true
     })
-    // If no exact matches, return empty rather than leaking other brands
-    if (filtered.length === 0) return []
   }
   if (filters.category && filters.category !== 'All Categories') {
-    // Filter actions by category when possible (check impact text for category keywords)
     const catLower = filters.category.toLowerCase()
     const catKeywords = catLower === 'beauty' ? ['cosmetic', 'makeup', 'foundation', 'beauty', 'color'] : [catLower]
     const catFiltered = filtered.filter(a => {
       const text = `${a.title} ${a.impact}`.toLowerCase()
       return catKeywords.some(k => text.includes(k))
     })
-    // Only apply category filter if it produces results, otherwise keep brand-filtered
     if (catFiltered.length > 0) filtered = catFiltered
   }
   return filtered

@@ -232,8 +232,6 @@ export default function Dashboard({
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-wide">
                       <RiTeamLine className="h-3 w-3" />
                       <span>{displayOwner}</span>
-                      <span className="text-border">|</span>
-                      <span className="text-primary">{displayKpi}</span>
                     </div>
                   </button>
                 )
