@@ -1023,7 +1023,12 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
         detailSections,
         relatedActions: relActions,
         metrics,
+        signalType: sp?.signal_type || sp?.signalType || '',
+        category: sp?.category || '',
       })
+
+      const spSignalType = sp?.signal_type || sp?.signalType || ''
+      const spCategory = sp?.category || ''
 
       if (itemCategory === 'alert') {
         alerts.push({
@@ -1033,6 +1038,7 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
           detailSections,
           relatedActions: relActions,
           metrics,
+          signalType: spSignalType, category: spCategory,
         })
       } else if (itemCategory === 'risk') {
         risks.push({
@@ -1042,6 +1048,7 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
           detailSections,
           relatedActions: relActions,
           metrics,
+          signalType: spSignalType, category: spCategory,
         })
       } else {
         opportunities.push({
@@ -1051,18 +1058,23 @@ export function deriveFromAnalyses(analyses: AnalysisItem[]) {
           detailSections,
           relatedActions: relActions,
           metrics,
+          signalType: spSignalType, category: spCategory,
         })
       }
     }
 
     for (const pa of pActions) {
+      const rawTitle = pa?.action || pa?.recommendation || pa?.title || ''
+      const cleanedTitle = stripCitations(typeof rawTitle === 'string' ? rawTitle : JSON.stringify(rawTitle))
       actions.push({
-        title: stripCitations(pa?.action || pa?.recommendation || pa?.title || ''),
+        title: cleanedTitle,
         priority: pa?.priority || pa?.urgency || 'Medium',
-        owner: pa?.owner || pa?.team || 'Cross-functional',
+        owner: pa?.owner || pa?.owner_team || pa?.team || 'Cross-functional',
         impact: stripCitations(pa?.impact || pa?.rationale || cleanText(summary, 120)),
         timeline: pa?.timeline || pa?.timeframe || 'Per analysis',
         scenarioId: id,
+        ownerTeam: pa?.owner_team || pa?.ownerTeam || pa?.owner || pa?.team || 'Cross-functional',
+        kpiOutcome: pa?.kpi_outcome || pa?.kpiOutcome || 'Increased Sales',
       })
     }
   }
@@ -1095,11 +1107,29 @@ export function applyFilters<T extends { brand?: string; category?: string; regi
 }
 
 export function applyActionFilters(actions: SeededAction[], filters: FilterState): SeededAction[] {
-  if (!filters.brand || filters.brand === 'All Brands') return actions
-  return actions.filter(a => {
-    const text = `${a.title} ${a.impact} ${a.owner}`.toLowerCase()
-    return text.includes(filters.brand.toLowerCase())
-  })
+  let filtered = actions
+  if (filters.brand && filters.brand !== 'All Brands') {
+    const brandLower = filters.brand.toLowerCase()
+    filtered = filtered.filter(a => {
+      const text = `${a.title} ${a.impact} ${a.owner}`.toLowerCase()
+      // Must mention the selected brand — do not show actions for other brands
+      return text.includes(brandLower)
+    })
+    // If no exact matches, return empty rather than leaking other brands
+    if (filtered.length === 0) return []
+  }
+  if (filters.category && filters.category !== 'All Categories') {
+    // Filter actions by category when possible (check impact text for category keywords)
+    const catLower = filters.category.toLowerCase()
+    const catKeywords = catLower === 'beauty' ? ['cosmetic', 'makeup', 'foundation', 'beauty', 'color'] : [catLower]
+    const catFiltered = filtered.filter(a => {
+      const text = `${a.title} ${a.impact}`.toLowerCase()
+      return catKeywords.some(k => text.includes(k))
+    })
+    // Only apply category filter if it produces results, otherwise keep brand-filtered
+    if (catFiltered.length > 0) filtered = catFiltered
+  }
+  return filtered
 }
 
 export function buildDashboardStory(
@@ -1178,9 +1208,26 @@ export function buildDashboardStory(
   }
 
   // How to act — exactly 3 short, operational actions tied to context
+  // Clean action titles that may contain raw JSON from agent responses
+  const cleanActionTitle = (title: string): string => {
+    if (!title) return ''
+    let t = title
+    if (t.startsWith('{') || t.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(t)
+        if (typeof parsed === 'object' && parsed !== null) {
+          t = parsed.action || parsed.title || parsed.recommendation || ''
+        }
+      } catch {
+        t = t.replace(/[{}\[\]"]/g, '').replace(/action:|title:|recommendation:/gi, '').trim()
+      }
+    }
+    return stripCitations(t.replace(/^["'\[{]+|["'\]}]+$/g, '').trim())
+  }
+
   const howToAct: DashboardStory['howToAct'] = actions.slice(0, 3).map(a => ({
-    action: a.title,
-    ownerTeam: a.ownerTeam || a.owner,
+    action: cleanActionTitle(a.title),
+    ownerTeam: cleanActionTitle(a.ownerTeam || a.owner),
     kpiOutcome: a.kpiOutcome || 'Increased Sales',
   }))
 

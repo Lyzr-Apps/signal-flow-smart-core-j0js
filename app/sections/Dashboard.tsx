@@ -8,7 +8,7 @@ import {
   RiFlashlightLine, RiArrowRightSLine,
 } from 'react-icons/ri'
 import {
-  urgencyBadge, cleanText, deriveFromAnalyses, applyFilters, applyActionFilters,
+  urgencyBadge, cleanText, stripCitations, deriveFromAnalyses, applyFilters, applyActionFilters,
   buildDashboardStory,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS,
   type AnalysisItem, type SeededSignal, type SeededAction,
@@ -74,6 +74,29 @@ export default function Dashboard({
     })
   }
 
+  // Clean action text — strip JSON artifacts, brackets, quotes, and overly long strategic language
+  const formatActionText = (text: string): string => {
+    if (!text) return ''
+    let cleaned = text
+    // If it looks like raw JSON, try to extract the action field
+    if (cleaned.startsWith('{') || cleaned.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(cleaned)
+        if (typeof parsed === 'object' && parsed !== null) {
+          cleaned = parsed.action || parsed.title || parsed.recommendation || JSON.stringify(parsed)
+        }
+      } catch {
+        // Remove JSON-like artifacts
+        cleaned = cleaned.replace(/[{}\[\]"]/g, '').replace(/action:|title:|recommendation:/gi, '').trim()
+      }
+    }
+    // Remove leftover quotes and brackets
+    cleaned = cleaned.replace(/^["'\[{]+|["'\]}]+$/g, '').trim()
+    // Strip markdown and citations
+    cleaned = stripCitations(cleaned).replace(/\*\*/g, '').replace(/#{1,3}\s/g, '')
+    return cleanText(cleaned, 120)
+  }
+
   const kpiStatusColor = (status: string) => {
     const s = status.toLowerCase()
     if (s.includes('high') || s.includes('elevated') || s.includes('rising')) return 'text-amber-400'
@@ -119,7 +142,7 @@ export default function Dashboard({
             </p>
           </div>
           <p className="text-[15px] text-foreground leading-relaxed tracking-wide font-serif">
-            {story.topLineInsight}
+            {formatActionText(story.topLineInsight)}
           </p>
         </div>
 
@@ -172,8 +195,8 @@ export default function Dashboard({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {story.whyItMatters.map((item, i) => (
               <div key={i} className="bg-card border border-border p-4">
-                <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2">{item.title}</h4>
-                <p className="text-[11px] text-foreground/60 leading-relaxed">{item.explanation}</p>
+                <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2">{formatActionText(item.title)}</h4>
+                <p className="text-[11px] text-foreground/60 leading-relaxed">{formatActionText(item.explanation)}</p>
               </div>
             ))}
           </div>
@@ -190,26 +213,37 @@ export default function Dashboard({
               All Actions <RiArrowRightSLine className="h-3 w-3" />
             </button>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            {story.howToAct.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  const matched = allActions.find(a => a.title === item.action)
-                  if (matched) openAction(matched)
-                }}
-                className="bg-card border border-border p-4 text-left hover:border-primary/40 transition-colors group"
-              >
-                <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2 group-hover:text-primary transition-colors">{item.action}</h4>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-wide">
-                  <RiTeamLine className="h-3 w-3" />
-                  <span>{item.ownerTeam}</span>
-                  <span className="text-border">|</span>
-                  <span className="text-primary">{item.kpiOutcome}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          {story.howToAct.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {story.howToAct.map((item, i) => {
+                const displayAction = formatActionText(item.action)
+                const displayOwner = formatActionText(item.ownerTeam)
+                const displayKpi = formatActionText(item.kpiOutcome)
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      const matched = allActions.find(a => a.title === item.action)
+                      if (matched) openAction(matched)
+                    }}
+                    className="bg-card border border-border p-4 text-left hover:border-primary/40 transition-colors group"
+                  >
+                    <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2 group-hover:text-primary transition-colors">{displayAction}</h4>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-wide">
+                      <RiTeamLine className="h-3 w-3" />
+                      <span>{displayOwner}</span>
+                      <span className="text-border">|</span>
+                      <span className="text-primary">{displayKpi}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="bg-card border border-border p-4">
+              <p className="text-[12px] text-muted-foreground tracking-wide">No priority actions found for the selected filters. Try broadening your selection.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

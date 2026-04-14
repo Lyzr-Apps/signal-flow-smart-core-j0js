@@ -213,7 +213,18 @@ export default function AppShell() {
       if (filters.category !== 'All Categories') filterContext.push(`Category: ${filters.category}`)
       if (filters.region !== 'All Regions') filterContext.push(`Region: ${filters.region}`)
       if (filters.state) filterContext.push(`State: ${filters.state}`)
-      const filterStr = filterContext.length > 0 ? `\n\nCurrent filter context: ${filterContext.join(', ')}. Prioritize insights relevant to these filters.` : ''
+      const hasBrandFilter = filters.brand !== 'All Brands'
+      const hasCategoryFilter = filters.category !== 'All Categories'
+      let filterStr = ''
+      if (filterContext.length > 0) {
+        filterStr = `\n\nCurrent filter context: ${filterContext.join(', ')}.`
+        if (hasBrandFilter) {
+          filterStr += ` CRITICAL: Only return insights, actions, and signals specifically about ${filters.brand}. Do NOT include actions or insights about other L'Oreal brands. Every action must be relevant to ${filters.brand} specifically.`
+        }
+        if (hasCategoryFilter) {
+          filterStr += ` Only include ${filters.category} category signals. Do not surface signals from other categories unless directly relevant.`
+        }
+      }
 
       const geoLabel = filters.state && !filters.state.startsWith('All ')
         ? filters.state
@@ -221,9 +232,10 @@ export default function AppShell() {
           ? `the ${filters.region} United States`
           : 'the United States'
 
+      const brandFocus = hasBrandFilter ? `${filters.brand}` : "L'Oreal portfolio brands"
       const basePrompt = query
-        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on L'Oreal portfolio brands and their competitive landscape in ${geoLabel}.${filterStr}`
-        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for L'Oreal in ${geoLabel}. Search the web for the latest developments as of today.${filterStr}`
+        ? `Search the web for real-time beauty and cosmetics industry intelligence related to: "${query}". Focus on ${brandFocus} and their competitive landscape in ${geoLabel}.${filterStr}`
+        : `Conduct a comprehensive real-time beauty and cosmetics industry demand sensing analysis for ${brandFocus} in ${geoLabel}. Search the web for the latest developments as of today.${filterStr}`
 
       const message = `${basePrompt}
 
