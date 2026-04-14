@@ -9,9 +9,9 @@ import {
   type AnalysisItem,
 } from './data/seededScenarios'
 
-// Try these agent IDs in order — first MCP-created, then original sub-agents
+// Chat agent — conversational assistant (Perplexity sonar-pro)
 const AGENT_IDS = [
-  '69dd164973b4b622c99ebd9e', // Signal Orchestrator Manager
+  '69de6edec09ade10e92c4d5a', // Demand Intelligence Chat Assistant
 ]
 
 interface Source { title: string; url: string }
@@ -184,34 +184,61 @@ function generateDashboardAnswer(query: string, analyses: AnalysisItem[]): strin
 }
 
 function extractAnswer(raw: any): { answer: string; sources: Source[] } {
-  const parsed = parseLLMJson(raw)
-  const data = parsed?.result ?? parsed ?? raw
-
-  let answer = ''
   let sources: Source[] = []
 
-  if (typeof data === 'object' && data !== null) {
-    answer = data.answer || data.text || data.message || data.response || data.content || data.summary || ''
-    if (!answer && data.result && typeof data.result === 'object') {
-      answer = data.result.answer || data.result.text || data.result.message || ''
-    }
-    if (!answer && typeof data.result === 'string') answer = data.result
+  // Deep unwrap nested response objects to find text
+  const findText = (obj: any, depth: number): string => {
+    if (depth > 6) return ''
+    if (typeof obj === 'string') return obj
+    if (!obj || typeof obj !== 'object') return ''
 
-    const srcArray = data.sources || data.result?.sources || data.citations
-    if (Array.isArray(srcArray)) {
+    // Direct text fields — check in priority order
+    for (const key of ['answer', 'text', 'message', 'content', 'response', 'summary']) {
+      if (typeof obj[key] === 'string' && obj[key].length > 0) return obj[key]
+    }
+
+    // Extract sources at any level
+    const srcArray = obj.sources || obj.citations
+    if (Array.isArray(srcArray) && sources.length === 0) {
       sources = srcArray.filter((s: any) => s && (s.title || s.url)).map((s: any) => ({
         title: s.title || s.name || s.url || '',
         url: s.url || s.link || '',
       }))
     }
-  } else if (typeof data === 'string') {
-    answer = data
+
+    // Recurse into nested objects
+    for (const key of ['result', 'response', 'data', 'output']) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        const found = findText(obj[key], depth + 1)
+        if (found) return found
+      }
+    }
+
+    // If object has string values, concatenate them (last resort before JSON dump)
+    const stringVals = Object.values(obj).filter(v => typeof v === 'string' && (v as string).length > 5) as string[]
+    if (stringVals.length > 0) return stringVals[0]
+
+    return ''
   }
 
-  if (!answer && typeof raw === 'string') answer = raw
-  if (!answer && raw) answer = JSON.stringify(raw).substring(0, 2000)
+  // Try parsing if raw is a string that looks like JSON
+  let data = raw
+  if (typeof raw === 'string') {
+    try { data = JSON.parse(raw) } catch { return { answer: raw.replace(/\*\*/g, '').replace(/#{1,3}\s/g, ''), sources: [] } }
+  }
 
-  answer = answer.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '')
+  const parsed = parseLLMJson(data)
+  const target = parsed?.result ?? parsed ?? data
+
+  let answer = findText(target, 0)
+
+  // Final fallback — never show raw JSON to user
+  if (!answer && typeof raw === 'string') answer = raw
+  if (!answer) answer = 'I wasn\'t able to get a clear answer. Try rephrasing your question.'
+
+  // Clean up markdown artifacts
+  answer = answer.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '').replace(/```[\s\S]*?```/g, '').trim()
+
   return { answer, sources }
 }
 
@@ -247,23 +274,22 @@ export default function AgentChat({ analyses = [] }: AgentChatProps) {
     for (let idx = workingAgentIdx; idx < AGENT_IDS.length; idx++) {
       try {
         const dashboardContext = buildFullDashboardSummary()
-        const prompt = `You are a demand-led intelligence assistant for L'Oreal Demand Sensor, focused on the United States market.
+        const prompt = `You are a conversational assistant inside the L'Oreal Demand Sensor dashboard for the United States market.
 
-DASHBOARD DATA (the user sees a pyramid storytelling dashboard with: Top-line Insight, KPI Outcomes, Why It Matters, and How to Act):
-${dashboardContext}
+DASHBOARD CONTEXT:
+${dashboardContext.substring(0, 1500)}
 
-RELEVANT DASHBOARD RESULTS FOR THIS QUESTION:
-${dashboardAnswer.substring(0, 2000)}
+RELEVANT DATA:
+${dashboardAnswer.substring(0, 1000)}
 
-INSTRUCTIONS:
-1. Answer from the DASHBOARD DATA above when it contains relevant information. Reference specific signal titles and KPI outcomes.
-2. Supplement with real-time web search data for the latest context and developments.
-3. Be concise, specific, and action-oriented. Keep responses under 300 words.
-4. Name specific L'Oreal brands and competitor brands/products.
-5. Every recommendation must name an owner team (Marketing, Product/R&D, Planning, or Manufacturing/Supply) and link to a KPI outcome (Increased Sales, Out-of-Stocks Prevented, or Forecast Accuracy).
-6. Never use vague actions like "monitor trends" or "watch competitor" — be concrete and specific.
-7. Use only United States geography wording (United States, National, Northeast, South, Midwest, West, or specific states). Never say "North America", "global", or "international".
-8. Do not mix in unrelated categories or brands unless the user explicitly asks for cross-category comparison.
+RULES:
+- Answer in 1-2 short sentences by default. Expand only if the user asks for more detail.
+- Use plain business language. Sound natural and conversational.
+- Never return JSON, code blocks, or internal field names.
+- Reference specific brands and competitors when relevant.
+- Use only United States geography (never "North America" or "global").
+- Do not add recommendations unless the user asks for actions.
+- Do not repeat the dashboard data verbatim — explain what it means.
 
 USER QUESTION: ${q}`
 
@@ -289,12 +315,18 @@ USER QUESTION: ${q}`
       }
     }
 
-    // Fallback: use dashboard data directly if no agent worked
+    // Fallback: generate a conversational response from dashboard data
     if (!agentWorked) {
-      const fallbackAnswer = dashboardAnswer || buildFullDashboardSummary()
+      const raw = dashboardAnswer || buildFullDashboardSummary()
+      // Convert raw dashboard data into a short conversational answer
+      const lines = raw.split('\n').filter(l => l.trim() && !l.startsWith('==='))
+      const topPoints = lines.slice(0, 3).map(l => l.replace(/^\[.*?\]\s*/, '').replace(/\|/g, ',').trim())
+      const conversational = topPoints.length > 0
+        ? topPoints.join(' ')
+        : 'I don\'t have specific data on that right now. Try asking about a signal, competitor, or KPI shown on the dashboard.'
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: fallbackAnswer,
+        content: conversational,
         sources: [],
       }])
     }

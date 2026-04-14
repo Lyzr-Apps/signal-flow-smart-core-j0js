@@ -54,7 +54,7 @@
     "purpose": "Real-time web search for beauty industry intelligence"
   },
   "chat_assistant": {
-    "agent_id": "69d8fbc177affb93352c126d",
+    "agent_id": "69de6edec09ade10e92c4d5a",
     "name": "Demand Intelligence Chat Assistant",
     "provider": "perplexity",
     "model": "sonar-pro",

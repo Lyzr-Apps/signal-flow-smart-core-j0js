@@ -1239,94 +1239,96 @@ export function buildDashboardStory(
     kpiOutcome: a.kpiOutcome || 'Increased Sales',
   }))
 
-  // KPI outcomes — signal-grounded, internally consistent
-  // Classify signals by KPI relevance using signal types and content
-  const allSignalTexts = signals.map(s => `${s.title} ${s.why} ${s.signalType || ''} ${s.metrics?.demandImplication || ''}`.toLowerCase())
-  const allRiskTexts = risks.map(r => `${r.title} ${r.cause} ${r.signalType || ''}`.toLowerCase())
-  const allOppTexts = opportunities.map(o => `${o.title} ${o.why} ${o.signalType || ''}`.toLowerCase())
+  // KPI outcomes — short business readings for the selected scope
+  // Identify business drivers from signal types (not signal titles)
+  const sigTypes = signals.map(s => (s.signalType || '').toLowerCase())
+  const riskTypes = risks.map(r => (r.signalType || '').toLowerCase())
+  const oppTypes = opportunities.map(o => (o.signalType || '').toLowerCase())
+  const allText = [...signals.map(s => `${s.why} ${s.title}`), ...risks.map(r => r.cause), ...opportunities.map(o => o.why)].join(' ').toLowerCase()
 
-  // Sales KPI signals: competitor stockout, creator traction, search interest, ecom demand,
-  // retail sell-through, ingredient interest, launch overperformance, local demand spikes
-  const salesSignalTypes = ['Competitor Launch/Relaunch', 'Creator Traction Shift', 'Ingredient Trend Surge', 'Price Gap Shift', 'New Entrant Disruption', 'Channel Mix Change']
-  const salesKeywords = ['sales', 'revenue', 'substitution', 'demand spike', 'sell-through', 'search interest', 'traction', 'launch', 'growth', 'upside']
-  const salesSignals = signals.filter(s => salesSignalTypes.includes(s.signalType || '') || salesKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
-  const salesOpps = opportunities.filter(o => salesSignalTypes.includes(o.signalType || '') || salesKeywords.some(k => `${o.title} ${o.why}`.toLowerCase().includes(k)))
-  const salesEvidence = [...salesSignals, ...salesOpps]
+  // Sales drivers
+  const hasCompetitorPressure = sigTypes.some(t => t.includes('competitor')) || allText.includes('competitor')
+  const hasRetailMovement = allText.includes('sell-through') || allText.includes('retail') || sigTypes.some(t => t.includes('channel'))
+  const hasCreatorTraction = sigTypes.some(t => t.includes('creator')) || allText.includes('creator') || allText.includes('influencer')
+  const hasIngredientDemand = sigTypes.some(t => t.includes('ingredient')) || allText.includes('ingredient') || allText.includes('peptide')
+  const hasSubstitution = allText.includes('substitution') || allText.includes('stockout') && allText.includes('competitor')
+  const hasDemandSpike = allText.includes('demand spike') || allText.includes('search interest') || allText.includes('growth')
+  const salesDrivers: string[] = []
+  if (hasCompetitorPressure) salesDrivers.push('competitor stock pressure')
+  if (hasRetailMovement) salesDrivers.push('stronger retail movement')
+  if (hasCreatorTraction) salesDrivers.push('creator-driven demand')
+  if (hasIngredientDemand) salesDrivers.push('rising ingredient interest')
+  if (hasSubstitution) salesDrivers.push('substitution demand')
+  if (hasDemandSpike) salesDrivers.push('local demand spikes')
 
-  // Stockout KPI signals: rising demand, shelf pressure, stockout patterns, rapid sell-through,
-  // retailer reorder behavior, substitution demand, regional supply pressure
-  const stockoutSignalTypes = ['Stockout / Shelf Loss', 'Supply Chain Risk', 'Seasonal Demand Shift', 'Retailer Strategy Change']
-  const stockoutKeywords = ['stockout', 'out-of-stock', 'shelf', 'inventory', 'availability', 'replenish', 'supply', 'allocation', 'sell-through']
-  const stockoutSignals = signals.filter(s => stockoutSignalTypes.includes(s.signalType || '') || stockoutKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
-  const stockoutRisks = risks.filter(r => stockoutSignalTypes.includes(r.signalType || '') || stockoutKeywords.some(k => `${r.title} ${r.cause}`.toLowerCase().includes(k)))
-  const stockoutEvidence = [...stockoutSignals, ...stockoutRisks]
+  // Stockout drivers
+  const hasShelfPressure = allText.includes('shelf') || sigTypes.some(t => t.includes('stockout') || t.includes('shelf'))
+  const hasRisingSellThrough = allText.includes('sell-through') || allText.includes('rising demand')
+  const hasSupplyRisk = sigTypes.some(t => t.includes('supply')) || allText.includes('supply') || allText.includes('allocation')
+  const hasAvailabilityRisk = allText.includes('availability') || allText.includes('replenish') || allText.includes('inventory')
+  const stockoutDrivers: string[] = []
+  if (hasRisingSellThrough) stockoutDrivers.push('rising sell-through')
+  if (hasShelfPressure) stockoutDrivers.push('shelf pressure')
+  if (hasAvailabilityRisk) stockoutDrivers.push('regional availability risk')
+  if (hasSupplyRisk) stockoutDrivers.push('supply chain pressure')
+  if (hasSubstitution) stockoutDrivers.push('substitution demand')
 
-  // Forecast KPI signals: forecast-signal mismatch, unexpected demand shifts, unplanned creator traction,
-  // competitor changes affecting volume, retail beyond forecast, category growth gaps
-  const forecastSignalTypes = ['Consumer Sentiment Shift', 'Reformulation Signal', 'Seasonal Demand Shift', 'Competitor Launch/Relaunch']
-  const forecastKeywords = ['forecast', 'demand plan', 'baseline', 'prediction', 'assumption', 'unexpected', 'shift', 'mismatch', 'acceleration', 'slowdown']
-  const forecastSignals = signals.filter(s => forecastSignalTypes.includes(s.signalType || '') || forecastKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
-  const forecastEvidence = [...forecastSignals, ...risks.filter(r => forecastKeywords.some(k => `${r.title} ${r.cause}`.toLowerCase().includes(k)))]
+  // Forecast drivers
+  const hasForecastMismatch = allText.includes('forecast') || allText.includes('baseline') || allText.includes('assumption')
+  const hasUnexpectedShifts = sigTypes.some(t => t.includes('sentiment') || t.includes('seasonal')) || allText.includes('unexpected') || allText.includes('shift')
+  const hasCategoryGrowth = allText.includes('category') && (allText.includes('growth') || allText.includes('acceleration'))
+  const forecastDrivers: string[] = []
+  if (hasForecastMismatch) forecastDrivers.push('forecast mismatch')
+  if (hasUnexpectedShifts) forecastDrivers.push('faster local demand shifts')
+  if (hasCompetitorPressure) forecastDrivers.push('competitive dynamics')
+  if (hasCreatorTraction) forecastDrivers.push('unplanned creator traction')
+  if (hasCategoryGrowth) forecastDrivers.push('category acceleration')
 
-  // Build KPI with consistency enforcement
-  const topSalesSignal = salesEvidence[0]
-  const topStockoutSignal = stockoutEvidence[0]
-  const topForecastSignal = forecastEvidence[0]
+  const scopeLabel = isPortfolio ? 'selected portfolio areas' : `${brandLabel} in ${geoLabel}`
+  const marketLabel = isPortfolio ? 'selected markets' : geoLabel
 
   const kpiOutcomes: DashboardStory['kpiOutcomes'] = {
-    sales: salesEvidence.length >= 2
+    sales: salesDrivers.length >= 2
       ? {
           status: 'High Opportunity',
-          detail: topSalesSignal
-            ? `${(topSalesSignal as any).metrics?.competitorName || (topSalesSignal as any).brand || brandLabel} signals show rising demand — ${cleanText((topSalesSignal as any).why || (topSalesSignal as any).title, 100)} in ${geoLabel}`
-            : `Multiple demand signals indicate near-term sales upside for ${brandLabel} in ${geoLabel}`,
+          detail: `${salesDrivers[0]} and ${salesDrivers[1]} are creating near-term sales upside across ${scopeLabel}.`,
         }
-      : salesEvidence.length === 1
+      : salesDrivers.length === 1
         ? {
             status: 'Moderate Opportunity',
-            detail: topSalesSignal
-              ? `${cleanText((topSalesSignal as any).title, 60)} suggests sales upside for ${brandLabel} in ${geoLabel}`
-              : `One demand signal suggests potential sales upside for ${brandLabel} in ${geoLabel}`,
+            detail: `${salesDrivers[0].charAt(0).toUpperCase() + salesDrivers[0].slice(1)} is creating potential sales upside in ${marketLabel}.`,
           }
         : {
             status: 'Stable',
-            detail: `No active demand signals indicating near-term sales change for ${brandLabel} in ${geoLabel}`,
+            detail: `No near-term sales pressure or opportunity detected for ${scopeLabel}.`,
           },
-    stockouts: stockoutEvidence.length >= 2
+    stockouts: stockoutDrivers.length >= 2
       ? {
           status: 'Elevated Risk',
-          detail: topStockoutSignal
-            ? `${cleanText((topStockoutSignal as any).title, 60)} creating availability pressure for ${brandLabel} in ${geoLabel}`
-            : `Multiple signals indicate rising availability risk for ${brandLabel} in ${geoLabel}`,
+          detail: `${stockoutDrivers[0]} and ${stockoutDrivers[1]} may create shelf pressure in ${marketLabel}.`,
         }
-      : stockoutEvidence.length === 1
+      : stockoutDrivers.length === 1
         ? {
             status: 'Moderate Risk',
-            detail: topStockoutSignal
-              ? `${cleanText((topStockoutSignal as any).title, 60)} may affect shelf availability in ${geoLabel}`
-              : `One signal suggests potential availability pressure in ${geoLabel}`,
+            detail: `${stockoutDrivers[0].charAt(0).toUpperCase() + stockoutDrivers[0].slice(1)} may affect availability in ${marketLabel}.`,
           }
         : {
             status: 'Low Risk',
-            detail: `No active signals indicating availability pressure for ${brandLabel} in ${geoLabel}`,
+            detail: `Shelf availability is stable across ${scopeLabel}.`,
           },
-    forecast: forecastEvidence.length >= 2
+    forecast: forecastDrivers.length >= 2
       ? {
           status: 'Needs Adjustment',
-          detail: topForecastSignal
-            ? `${cleanText((topForecastSignal as any).title, 60)} not reflected in current demand plan for ${brandLabel} in ${geoLabel}`
-            : `Multiple market shifts not captured in current forecast for ${brandLabel} in ${geoLabel}`,
+          detail: `${forecastDrivers[0]} and ${forecastDrivers[1]} suggest current planning assumptions need review.`,
         }
-      : forecastEvidence.length === 1
+      : forecastDrivers.length === 1
         ? {
             status: 'Review Recommended',
-            detail: topForecastSignal
-              ? `${cleanText((topForecastSignal as any).title, 60)} may require forecast update for ${brandLabel} in ${geoLabel}`
-              : `One emerging signal may affect forecast accuracy for ${brandLabel} in ${geoLabel}`,
+            detail: `${forecastDrivers[0].charAt(0).toUpperCase() + forecastDrivers[0].slice(1)} may require a forecast update for ${scopeLabel}.`,
           }
         : {
             status: 'On Track',
-            detail: `Current forecast assumptions align with market conditions for ${brandLabel} in ${geoLabel}`,
+            detail: `Current planning assumptions align with market conditions for ${scopeLabel}.`,
           },
   }
 
