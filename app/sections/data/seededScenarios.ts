@@ -1239,35 +1239,95 @@ export function buildDashboardStory(
     kpiOutcome: a.kpiOutcome || 'Increased Sales',
   }))
 
-  // KPI outcomes — must be internally consistent with signals, actions, and top-line insight
-  const salesActions = actions.filter(a => (a.kpiOutcome || '').includes('Sales'))
-  const stockoutActions = actions.filter(a => (a.kpiOutcome || '').includes('Stock'))
-  const forecastActions = actions.filter(a => (a.kpiOutcome || '').includes('Forecast'))
-  const hasCritical = criticalSignals.length > 0
+  // KPI outcomes — signal-grounded, internally consistent
+  // Classify signals by KPI relevance using signal types and content
+  const allSignalTexts = signals.map(s => `${s.title} ${s.why} ${s.signalType || ''} ${s.metrics?.demandImplication || ''}`.toLowerCase())
+  const allRiskTexts = risks.map(r => `${r.title} ${r.cause} ${r.signalType || ''}`.toLowerCase())
+  const allOppTexts = opportunities.map(o => `${o.title} ${o.why} ${o.signalType || ''}`.toLowerCase())
+
+  // Sales KPI signals: competitor stockout, creator traction, search interest, ecom demand,
+  // retail sell-through, ingredient interest, launch overperformance, local demand spikes
+  const salesSignalTypes = ['Competitor Launch/Relaunch', 'Creator Traction Shift', 'Ingredient Trend Surge', 'Price Gap Shift', 'New Entrant Disruption', 'Channel Mix Change']
+  const salesKeywords = ['sales', 'revenue', 'substitution', 'demand spike', 'sell-through', 'search interest', 'traction', 'launch', 'growth', 'upside']
+  const salesSignals = signals.filter(s => salesSignalTypes.includes(s.signalType || '') || salesKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
+  const salesOpps = opportunities.filter(o => salesSignalTypes.includes(o.signalType || '') || salesKeywords.some(k => `${o.title} ${o.why}`.toLowerCase().includes(k)))
+  const salesEvidence = [...salesSignals, ...salesOpps]
+
+  // Stockout KPI signals: rising demand, shelf pressure, stockout patterns, rapid sell-through,
+  // retailer reorder behavior, substitution demand, regional supply pressure
+  const stockoutSignalTypes = ['Stockout / Shelf Loss', 'Supply Chain Risk', 'Seasonal Demand Shift', 'Retailer Strategy Change']
+  const stockoutKeywords = ['stockout', 'out-of-stock', 'shelf', 'inventory', 'availability', 'replenish', 'supply', 'allocation', 'sell-through']
+  const stockoutSignals = signals.filter(s => stockoutSignalTypes.includes(s.signalType || '') || stockoutKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
+  const stockoutRisks = risks.filter(r => stockoutSignalTypes.includes(r.signalType || '') || stockoutKeywords.some(k => `${r.title} ${r.cause}`.toLowerCase().includes(k)))
+  const stockoutEvidence = [...stockoutSignals, ...stockoutRisks]
+
+  // Forecast KPI signals: forecast-signal mismatch, unexpected demand shifts, unplanned creator traction,
+  // competitor changes affecting volume, retail beyond forecast, category growth gaps
+  const forecastSignalTypes = ['Consumer Sentiment Shift', 'Reformulation Signal', 'Seasonal Demand Shift', 'Competitor Launch/Relaunch']
+  const forecastKeywords = ['forecast', 'demand plan', 'baseline', 'prediction', 'assumption', 'unexpected', 'shift', 'mismatch', 'acceleration', 'slowdown']
+  const forecastSignals = signals.filter(s => forecastSignalTypes.includes(s.signalType || '') || forecastKeywords.some(k => `${s.title} ${s.why}`.toLowerCase().includes(k)))
+  const forecastEvidence = [...forecastSignals, ...risks.filter(r => forecastKeywords.some(k => `${r.title} ${r.cause}`.toLowerCase().includes(k)))]
+
+  // Build KPI with consistency enforcement
+  const topSalesSignal = salesEvidence[0]
+  const topStockoutSignal = stockoutEvidence[0]
+  const topForecastSignal = forecastEvidence[0]
 
   const kpiOutcomes: DashboardStory['kpiOutcomes'] = {
-    sales: {
-      status: hasCritical ? 'Elevated' : salesActions.length >= 3 ? 'High' : salesActions.length > 0 ? 'Moderate' : 'Low',
-      detail: hasCritical && salesActions.length > 0
-        ? `Competitor pressure driving ${salesActions.length} priority action${salesActions.length > 1 ? 's' : ''} to protect revenue in ${geoLabel}`
-        : salesActions.length > 0
-          ? `${salesActions.length} action${salesActions.length > 1 ? 's' : ''} targeting revenue growth in ${geoLabel}`
-          : 'No priority sales actions identified for current selection',
-    },
-    stockouts: {
-      status: stockoutActions.length >= 2 ? 'Elevated' : stockoutActions.length > 0 ? 'Moderate' : 'Low',
-      detail: stockoutActions.length > 0
-        ? `${stockoutActions.length} action${stockoutActions.length > 1 ? 's' : ''} addressing inventory and shelf position gaps in ${geoLabel}`
-        : 'Shelf position stable across tracked categories in current selection',
-    },
-    forecast: {
-      status: hasCritical ? 'Needs adjustment' : forecastActions.length > 0 ? 'Rising' : 'Moderate',
-      detail: hasCritical
-        ? `Competitive shifts require revised demand assumptions for ${brandLabel} in ${geoLabel}`
-        : forecastActions.length > 0
-          ? `${forecastActions.length} action${forecastActions.length > 1 ? 's' : ''} improving prediction accuracy for ${geoLabel}`
-          : `Current forecast assumptions remain reasonable for ${brandLabel} in ${geoLabel}`,
-    },
+    sales: salesEvidence.length >= 2
+      ? {
+          status: 'High Opportunity',
+          detail: topSalesSignal
+            ? `${(topSalesSignal as any).metrics?.competitorName || (topSalesSignal as any).brand || brandLabel} signals show rising demand — ${cleanText((topSalesSignal as any).why || (topSalesSignal as any).title, 100)} in ${geoLabel}`
+            : `Multiple demand signals indicate near-term sales upside for ${brandLabel} in ${geoLabel}`,
+        }
+      : salesEvidence.length === 1
+        ? {
+            status: 'Moderate Opportunity',
+            detail: topSalesSignal
+              ? `${cleanText((topSalesSignal as any).title, 60)} suggests sales upside for ${brandLabel} in ${geoLabel}`
+              : `One demand signal suggests potential sales upside for ${brandLabel} in ${geoLabel}`,
+          }
+        : {
+            status: 'Stable',
+            detail: `No active demand signals indicating near-term sales change for ${brandLabel} in ${geoLabel}`,
+          },
+    stockouts: stockoutEvidence.length >= 2
+      ? {
+          status: 'Elevated Risk',
+          detail: topStockoutSignal
+            ? `${cleanText((topStockoutSignal as any).title, 60)} creating availability pressure for ${brandLabel} in ${geoLabel}`
+            : `Multiple signals indicate rising availability risk for ${brandLabel} in ${geoLabel}`,
+        }
+      : stockoutEvidence.length === 1
+        ? {
+            status: 'Moderate Risk',
+            detail: topStockoutSignal
+              ? `${cleanText((topStockoutSignal as any).title, 60)} may affect shelf availability in ${geoLabel}`
+              : `One signal suggests potential availability pressure in ${geoLabel}`,
+          }
+        : {
+            status: 'Low Risk',
+            detail: `No active signals indicating availability pressure for ${brandLabel} in ${geoLabel}`,
+          },
+    forecast: forecastEvidence.length >= 2
+      ? {
+          status: 'Needs Adjustment',
+          detail: topForecastSignal
+            ? `${cleanText((topForecastSignal as any).title, 60)} not reflected in current demand plan for ${brandLabel} in ${geoLabel}`
+            : `Multiple market shifts not captured in current forecast for ${brandLabel} in ${geoLabel}`,
+        }
+      : forecastEvidence.length === 1
+        ? {
+            status: 'Review Recommended',
+            detail: topForecastSignal
+              ? `${cleanText((topForecastSignal as any).title, 60)} may require forecast update for ${brandLabel} in ${geoLabel}`
+              : `One emerging signal may affect forecast accuracy for ${brandLabel} in ${geoLabel}`,
+          }
+        : {
+            status: 'On Track',
+            detail: `Current forecast assumptions align with market conditions for ${brandLabel} in ${geoLabel}`,
+          },
   }
 
   return { topLineInsight, whyItMatters, howToAct, kpiOutcomes }

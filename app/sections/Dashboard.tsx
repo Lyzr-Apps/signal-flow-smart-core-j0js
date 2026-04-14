@@ -99,10 +99,11 @@ export default function Dashboard({
 
   const kpiStatusColor = (status: string) => {
     const s = status.toLowerCase()
-    if (s.includes('high') || s.includes('elevated') || s.includes('rising')) return 'text-amber-400'
-    if (s.includes('moderate')) return 'text-emerald-400'
-    if (s.includes('needs adjustment')) return 'text-red-400'
-    if (s.includes('low')) return 'text-emerald-400'
+    if (s.includes('high opportunity')) return 'text-emerald-400'
+    if (s.includes('elevated risk') || s.includes('needs adjustment')) return 'text-red-400'
+    if (s.includes('moderate opportunity')) return 'text-emerald-400'
+    if (s.includes('moderate risk') || s.includes('review recommended')) return 'text-amber-400'
+    if (s.includes('stable') || s.includes('on track') || s.includes('low risk')) return 'text-emerald-400'
     return 'text-foreground'
   }
 
@@ -218,7 +219,6 @@ export default function Dashboard({
               {story.howToAct.map((item, i) => {
                 const displayAction = formatActionText(item.action)
                 const displayOwner = formatActionText(item.ownerTeam)
-                const displayKpi = formatActionText(item.kpiOutcome)
                 return (
                   <button
                     key={i}

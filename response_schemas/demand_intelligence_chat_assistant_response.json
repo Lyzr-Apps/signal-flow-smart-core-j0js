@@ -1,7 +1,7 @@
 {
   "agent_name": "Demand Intelligence Chat Assistant",
-  "agent_id": "69d8fbc177affb93352c126d",
-  "description": "Conversational chat agent for L'Oreal demand intelligence. Answers questions about dashboard insights, fetches real-time web data for beauty industry trends, and provides sourced answers with citations.",
+  "agent_id": "69de6edec09ade10e92c4d5a",
+  "description": "Conversational chat assistant for L'Oreal Demand Sensor dashboard. Answers questions about signals, competitors, KPIs, and actions in short, natural language.",
   "agent_type": "json",
   "accessor": "result",
   "auto_generated": true,
@@ -15,7 +15,7 @@
     ]
   },
   "example_response": {
-    "answer": "sample string",
+    "answer": "The conversational answer in plain text. Never JSON. Always natural language.",
     "sources": [
       {
         "title": "sample string",
