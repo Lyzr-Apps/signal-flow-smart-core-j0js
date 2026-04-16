@@ -264,6 +264,14 @@ export default function Dashboard({
           )}
         </div>
       </div>
+
+      {selectedInsight && (
+        <InsightDrawer
+          item={selectedInsight}
+          onClose={() => setSelectedInsight(null)}
+          initialTab={drawerTab}
+        />
+      )}
     </div>
   )
 }

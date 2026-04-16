@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { RiCloseLine, RiExchangeLine, RiLineChartLine, RiFlashlightLine, RiLinksLine, RiExternalLinkLine } from 'react-icons/ri'
 import type { WhyItMattersItem } from '../data/seededScenarios'
 
@@ -21,6 +21,10 @@ interface InsightDrawerProps {
 
 export default function InsightDrawer({ item, onClose, initialTab = 'what-changed' }: InsightDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab)
+
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab, item])
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
