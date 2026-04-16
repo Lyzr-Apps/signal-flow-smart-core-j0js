@@ -498,7 +498,7 @@ TOP-LINE INSIGHT: Specific, credible, concise, aligned to selected filters. No i
           <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card gap-4">
             <div className="flex items-center gap-3 flex-shrink-0">
               <h2 className="font-serif text-sm tracking-[0.18em] text-foreground uppercase">
-                L&apos;Or&eacute;al Demand Sensor
+                L&apos;Or&eacute;al White Space Finder
               </h2>
               {activeAgentId && (
                 <Badge variant="outline" className="text-[10px] tracking-wider border-primary/40 text-primary animate-pulse">
@@ -533,7 +533,7 @@ TOP-LINE INSIGHT: Specific, credible, concise, aligned to selected filters. No i
           {renderContent()}
           <div className="px-6 py-2.5 border-t border-border bg-card flex items-center justify-between">
             <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
-              Demand Intelligence Platform
+              Whitespace Intelligence Platform
             </p>
             <p className="text-[9px] text-muted-foreground tracking-[0.12em]">
               L&apos;Or&eacute;al Market Intelligence

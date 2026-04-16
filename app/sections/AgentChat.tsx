@@ -11,7 +11,7 @@ import {
 
 // Chat agent — conversational assistant (Perplexity sonar-pro)
 const AGENT_IDS = [
-  '69de6edec09ade10e92c4d5a', // Demand Intelligence Chat Assistant
+  '69de6edec09ade10e92c4d5a', // Whitespace Intelligence Chat Assistant
 ]
 
 interface Source { title: string; url: string }
@@ -274,7 +274,7 @@ export default function AgentChat({ analyses = [] }: AgentChatProps) {
     for (let idx = workingAgentIdx; idx < AGENT_IDS.length; idx++) {
       try {
         const dashboardContext = buildFullDashboardSummary()
-        const prompt = `You are a conversational assistant inside the L'Oreal Demand Sensor dashboard for the United States market.
+        const prompt = `You are a conversational assistant inside the L'Oreal White Space Finder dashboard for the United States market.
 
 DASHBOARD CONTEXT:
 ${dashboardContext.substring(0, 1500)}
@@ -361,7 +361,7 @@ USER QUESTION: ${q}`
             <div className="flex items-center gap-2">
               <RiRadarLine className="h-4 w-4 text-primary" />
               <div>
-                <p className="text-[12px] text-foreground tracking-wide font-medium">Demand Intelligence</p>
+                <p className="text-[12px] text-foreground tracking-wide font-medium">Whitespace Intelligence</p>
                 <p className="text-[9px] text-muted-foreground tracking-[0.1em] uppercase">Dashboard insights + web research</p>
               </div>
             </div>

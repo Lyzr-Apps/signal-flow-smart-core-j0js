@@ -1,20 +1,21 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   RiArrowRightUpLine, RiCloseCircleLine, RiSearchLine,
   RiBarChartGroupedLine, RiLineChartLine, RiShieldCheckLine,
   RiLightbulbLine, RiTeamLine, RiAlertLine,
-  RiFlashlightLine, RiArrowRightSLine,
+  RiFlashlightLine, RiArrowRightSLine, RiLinksLine,
 } from 'react-icons/ri'
 import {
   urgencyBadge, cleanText, stripCitations, deriveFromAnalyses, applyFilters, applyActionFilters,
   buildDashboardStory,
   SEEDED_SIGNALS, SEEDED_ACTIONS, SEEDED_OPPORTUNITIES, SEEDED_RISKS,
   type AnalysisItem, type SeededSignal, type SeededAction,
-  type FilterState,
+  type FilterState, type WhyItMattersItem,
 } from './data/seededScenarios'
 import type { DetailItem } from './DetailView'
+import InsightDrawer from './detail/InsightDrawer'
 
 interface DashboardProps {
   analyses: AnalysisItem[]
@@ -59,6 +60,9 @@ export default function Dashboard({
     () => buildDashboardStory(allSignals, allActions, allOpps, allRisks, filters),
     [allSignals, allActions, allOpps, allRisks, filters]
   )
+
+  const [selectedInsight, setSelectedInsight] = useState<WhyItMattersItem | null>(null)
+  const [drawerTab, setDrawerTab] = useState<'what-changed' | 'demand-impact' | 'how-to-act' | 'sources'>('what-changed')
 
   const isPortfolio = !filters.brand || filters.brand === 'All Brands'
 
@@ -195,13 +199,26 @@ export default function Dashboard({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {story.whyItMatters.map((item, i) => (
-              <div key={i} className="bg-card border border-border p-4 flex flex-col">
-                <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2">{formatActionText(item.title)}</h4>
+              <button
+                key={i}
+                onClick={() => { setDrawerTab('what-changed'); setSelectedInsight(item) }}
+                className="bg-card border border-border p-4 flex flex-col text-left hover:border-primary/40 transition-colors group"
+              >
+                <h4 className="text-[13px] text-foreground tracking-wide leading-snug mb-2 group-hover:text-primary transition-colors">{formatActionText(item.title)}</h4>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">{formatActionText(item.explanation)}</p>
                 {item.dataPoint && (
                   <p className="text-[10px] text-primary/80 tracking-wide leading-relaxed mt-3">{formatActionText(item.dataPoint)}</p>
                 )}
-              </div>
+                <div className="mt-auto pt-3">
+                  <span
+                    onClick={(e) => { e.stopPropagation(); setDrawerTab('sources'); setSelectedInsight(item) }}
+                    className="inline-flex items-center gap-1 text-[10px] tracking-[0.1em] text-muted-foreground uppercase hover:text-primary transition-colors"
+                  >
+                    <RiLinksLine className="h-3 w-3" />
+                    Sources ({item.sources?.length || 0})
+                  </span>
+                </div>
+              </button>
             ))}
           </div>
         </div>

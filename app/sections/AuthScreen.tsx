@@ -15,7 +15,7 @@ export default function AuthScreen() {
             L&apos;OR&Eacute;AL
           </h1>
           <p className="text-muted-foreground text-sm tracking-widest uppercase">
-            Demand Sensor
+            White Space Finder
           </p>
         </div>
         <Card className="border-border bg-card">

@@ -25,7 +25,7 @@ export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
           L&apos;OR&Eacute;AL
         </h1>
         <p className="text-[17px] font-serif tracking-[0.14em] text-primary mt-0.5 leading-tight">
-          Demand Sensor
+          White Space Finder
         </p>
         <p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase mt-2.5">
           Market Intelligence
@@ -52,7 +52,7 @@ export default function Sidebar({ currentView, onNavigate }: SidebarProps) {
 
       <div className="px-5 py-4 border-t border-border">
         <p className="text-[9px] text-muted-foreground tracking-[0.15em] uppercase">
-          Demand Intelligence Platform
+          Whitespace Intelligence Platform
         </p>
       </div>
     </aside>

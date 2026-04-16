@@ -94,9 +94,25 @@ export interface FilterState {
   state: string
 }
 
+export interface InsightSource {
+  title: string
+  url: string
+  type: string
+}
+
+export interface WhyItMattersItem {
+  title: string
+  explanation: string
+  dataPoint: string
+  sources: InsightSource[]
+  whatChanged: string
+  demandImpact: string
+  howToAct: string
+}
+
 export interface DashboardStory {
   topLineInsight: string
-  whyItMatters: { title: string; explanation: string; dataPoint: string }[]
+  whyItMatters: WhyItMattersItem[]
   howToAct: { action: string; ownerTeam: string; kpiOutcome: string }[]
   kpiOutcomes: { sales: { status: string; detail: string }; stockouts: { status: string; detail: string }; forecast: { status: string; detail: string } }
 }
@@ -1246,20 +1262,77 @@ export function buildDashboardStory(
     return ''
   }
 
+  // Build sources list from item metrics.sources
+  const buildSources = (item: any): InsightSource[] => {
+    const m = item.metrics
+    if (!m?.sources || !Array.isArray(m.sources)) return []
+    return m.sources.slice(0, 3).map((s: any) => ({
+      title: s.name || s.title || '',
+      url: s.url || '',
+      type: s.type || 'Industry Source',
+    }))
+  }
+
+  // Build drawer content for an insight
+  const buildDrawerContent = (item: any, rawWhy: string) => {
+    const m = item.metrics
+    const brand = item.brand || brandLabel
+    const competitor = m?.competitorName || ''
+    const ds = Array.isArray(item.detailSections) ? item.detailSections : []
+
+    // What changed
+    let whatChanged = ''
+    if (competitor) {
+      whatChanged = `${competitor} has made a competitive move that impacts ${brand} in ${geoLabel}. ${cleanText(rawWhy, 150)}`
+    } else {
+      whatChanged = cleanText(rawWhy, 200)
+    }
+
+    // Demand impact
+    let demandImpact = ''
+    if (m?.demandImplication) {
+      demandImpact = m.demandImplication
+    } else if (ds.length > 0) {
+      const impactSection = ds.find((d: any) => d.label?.toLowerCase().includes('impact') || d.label?.toLowerCase().includes('demand'))
+      demandImpact = impactSection?.content || ds[0]?.content || ''
+    }
+    if (!demandImpact) demandImpact = `This change affects demand planning and competitive positioning for ${brand} in ${geoLabel}.`
+
+    // How to act
+    let howToActText = ''
+    if (Array.isArray(item.relatedActions) && item.relatedActions.length > 0) {
+      howToActText = item.relatedActions.slice(0, 3).map((a: any) => `${a.action} (${a.owner})`).join('. ')
+    } else if (m?.teamActions) {
+      const ta = m.teamActions
+      const parts: string[] = []
+      if (ta.marketing) parts.push(`Marketing: ${ta.marketing}`)
+      if (ta.product) parts.push(`Product: ${ta.product}`)
+      if (ta.planning) parts.push(`Planning: ${ta.planning}`)
+      howToActText = parts.join('. ')
+    }
+    if (!howToActText) howToActText = `Review competitive positioning and demand plan for ${brand} in ${geoLabel}.`
+
+    return { whatChanged: cleanText(whatChanged, 300), demandImpact: cleanText(demandImpact, 250), howToAct: cleanText(howToActText, 300) }
+  }
+
   const addIfUnique = (title: string, rawWhy: string, item: any) => {
     if (whyItMatters.length >= 3) return
     const normalized = title.toLowerCase().trim()
     if (usedTitles.has(normalized)) return
     const explanation = buildSummary(item, rawWhy)
-    // Check for near-duplicate explanations
     for (const existing of whyItMatters) {
       if (existing.explanation.toLowerCase().substring(0, 30) === explanation.toLowerCase().substring(0, 30)) return
     }
     usedTitles.add(normalized)
+    const { whatChanged, demandImpact, howToAct: howToActText } = buildDrawerContent(item, rawWhy)
     whyItMatters.push({
       title,
       explanation,
       dataPoint: extractDataPoint(item, rawWhy),
+      sources: buildSources(item),
+      whatChanged,
+      demandImpact,
+      howToAct: howToActText,
     })
   }
 
