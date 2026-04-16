@@ -109,21 +109,30 @@ export default function InsightDrawer({ item, onClose, initialTab = 'what-change
               <h4 className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase mb-3">Supporting Sources</h4>
               {item.sources.length > 0 ? (
                 <div className="space-y-3">
-                  {item.sources.map((src, i) => (
-                    <div key={i} className="bg-secondary/50 border border-border p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] text-foreground tracking-wide leading-snug">{src.title}</p>
-                          <p className="text-[10px] text-muted-foreground tracking-[0.1em] uppercase mt-1">{src.type}</p>
+                  {item.sources.map((src, i) =>
+                    src.url ? (
+                      <a
+                        key={i}
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block bg-secondary/50 border border-border p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] text-foreground tracking-wide leading-snug group-hover:text-primary transition-colors">{src.title}</p>
+                            <p className="text-[10px] text-muted-foreground tracking-[0.1em] uppercase mt-1">{src.type}</p>
+                          </div>
+                          <RiExternalLinkLine className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
                         </div>
-                        {src.url && (
-                          <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 flex-shrink-0">
-                            <RiExternalLinkLine className="h-3.5 w-3.5" />
-                          </a>
-                        )}
+                      </a>
+                    ) : (
+                      <div key={i} className="bg-secondary/50 border border-border p-3">
+                        <p className="text-[12px] text-foreground tracking-wide leading-snug">{src.title}</p>
+                        <p className="text-[10px] text-muted-foreground tracking-[0.1em] uppercase mt-1">{src.type}</p>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               ) : (
                 <p className="text-[11px] text-muted-foreground tracking-wide">No specific sources available for this insight.</p>
