@@ -44,6 +44,12 @@ async function pollUntilDone(taskId: string, apiKey: string): Promise<any> {
       const pollRes = await fetch(`${LYZR_TASK_URL}/${taskId}`, {
         headers: { 'accept': 'application/json', 'x-api-key': apiKey },
       })
+      if (pollRes.status === 402) {
+        try { const body = await pollRes.json(); return { success: false, error: body?.detail || 'API credits exhausted.' } } catch { return { success: false, error: 'API credits exhausted. Please add credits in Lyzr Studio.' } }
+      }
+      if (pollRes.status === 401 || pollRes.status === 403) {
+        return { success: false, error: 'API authentication failed. Please check your API key.' }
+      }
       if (!pollRes.ok) continue
       const task = await pollRes.json()
       if (task.status === 'processing') continue
@@ -62,6 +68,22 @@ async function callAnalyzeAgent(message: string): Promise<any> {
   const apiKey = 'sk-default-e1XB361JQq9V80uRmog4ZQalVEJKkB0h'
   const userId = 'raoshreya2020@gmail.com'
 
+  // Helper: check for billing/credit errors and return early
+  const checkBillingError = async (res: Response): Promise<string | null> => {
+    if (res.status === 402) {
+      try {
+        const body = await res.json()
+        return body?.detail || 'API credits exhausted. Please add credits in Lyzr Studio.'
+      } catch {
+        return 'API credits exhausted. Please add credits in Lyzr Studio.'
+      }
+    }
+    if (res.status === 401 || res.status === 403) {
+      return 'API authentication failed. Please check your API key.'
+    }
+    return null
+  }
+
   // Approach 1: Try /api/analyze (server-side proxy route)
   try {
     const submitRes = await fetch('/api/analyze', {
@@ -69,6 +91,8 @@ async function callAnalyzeAgent(message: string): Promise<any> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
     })
+    const billingErr = await checkBillingError(submitRes)
+    if (billingErr) return { success: false, error: billingErr }
     if (submitRes.ok) {
       const submitData = await submitRes.json()
       if (submitData.task_id) {
@@ -85,6 +109,9 @@ async function callAnalyzeAgent(message: string): Promise<any> {
       const errStr = JSON.stringify(result.response || '')
       if (!errStr.includes('403') && !errStr.includes('permission')) return result
     }
+    if (result?.error && typeof result.error === 'string' && result.error.toLowerCase().includes('credit')) {
+      return { success: false, error: result.error }
+    }
   } catch {}
 
   // Approach 3: Call Lyzr API directly (bypass proxy entirely)
@@ -100,6 +127,8 @@ async function callAnalyzeAgent(message: string): Promise<any> {
         session_id: sessionId,
       }),
     })
+    const billingErr = await checkBillingError(submitRes)
+    if (billingErr) return { success: false, error: billingErr }
     if (submitRes.ok) {
       const { task_id } = await submitRes.json()
       if (task_id) {
