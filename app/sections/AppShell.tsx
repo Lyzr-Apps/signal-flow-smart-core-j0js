@@ -65,7 +65,7 @@ async function pollUntilDone(taskId: string, apiKey: string): Promise<any> {
 }
 
 async function callAnalyzeAgent(message: string): Promise<any> {
-  const apiKey = 'sk-default-e1XB361JQq9V80uRmog4ZQalVEJKkB0h'
+  const apiKey = 'sk-default-eE6EHcdIhXl61H4mK4YKZFqISTGrruf1'
   const userId = 'raoshreya2020@gmail.com'
 
   // Helper: check for billing/credit errors and return early
