@@ -3,7 +3,7 @@
   "workflow_type": "manager-subagent",
   "agents": {
     "manager": {
-      "agent_id": "69dd164973b4b622c99ebd9e",
+      "agent_id": "69e26260fe454c99f80406cb",
       "name": "Signal Orchestrator Manager",
       "node_id": "manager_agent",
       "provider": "openai",

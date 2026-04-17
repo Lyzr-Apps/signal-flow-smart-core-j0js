@@ -21,7 +21,7 @@ import FilterBar from './FilterBar'
 import AgentChat from './AgentChat'
 import type { DetailItem } from './DetailView'
 
-const MANAGER_AGENT_ID = '69c4231c4d9b1d0c43a2101b'
+const MANAGER_AGENT_ID = '69e26260fe454c99f80406cb'
 const LYZR_TASK_URL = 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/task'
 const POLL_TIMEOUT_MS = 5 * 60 * 1000
 

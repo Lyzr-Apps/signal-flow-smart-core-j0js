@@ -1,6 +1,6 @@
 {
   "agent_name": "Signal Orchestrator Manager",
-  "agent_id": "69dd164973b4b622c99ebd9e",
+  "agent_id": "69e26260fe454c99f80406cb",
   "description": "Central demand intelligence manager for L'Oreal Demand Sensor. Detects live market signals, interprets demand implications, and recommends actions tied to business outcomes.",
   "agent_type": "json",
   "accessor": "result",
