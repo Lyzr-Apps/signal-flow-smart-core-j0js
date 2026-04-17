@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import parseLLMJson from '@/lib/jsonParser'
 
 const LYZR_TASK_URL = 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/task'
-const LYZR_API_KEY = process.env.LYZR_API_KEY || 'sk-default-eE6EHcdIhXl61H4mK4YKZFqISTGrruf1'
+const LYZR_API_KEY = process.env.LYZR_API_KEY || 'sk-default-e1XB361JQq9V80uRmog4ZQalVEJKkB0h'
 
 // Types
 interface ArtifactFile {
